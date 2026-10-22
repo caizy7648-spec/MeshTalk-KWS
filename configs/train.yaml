@@ -156,19 +156,22 @@ train_kw:
   optimizer: adamw
   lr: 0.003
   weight_decay: 0.001
-  schedule: onecycle           # warm-up 5 %, cosine down to lr/100
+  schedule: onecycle           # linear warm-up from lr/div_factor, then cosine down to lr/(div_factor*final_div_factor)
   warmup_frac: 0.05
+  div_factor: 25
+  final_div_factor: 4          # -> last lr = lr / 100
   loss: cross_entropy
   class_weights: [1.0, 1.0, 1.0, 1.0]   # sampler is already balanced
   label_smoothing: 0.05
-  multitask_spk_weight: 0.0    # 0 = keyword only in this step (speaker head trained in step 3)
   val_windows_per_class: 1500
+  norm_windows: 4000           # training windows used for in_mean / in_std
   workers: 3
   torch_threads: 4
 
 # ------------------------------------------------- Step 3: speaker head
 train_spk:
   mode: frozen_trunk           # frozen_trunk | multitask
+  multitask_kw_weight: 1.0     # multitask only: weight of the keyword loss next to the speaker loss
   epochs: 30
   batch: 256
   windows_per_epoch: 40000
@@ -179,14 +182,24 @@ train_spk:
   weight_decay: 0.0001
   augment: {p_noise: 0.6, snr_db: [5, 25], p_reverb: 0.3, p_highpass: 0.7, gain_db: [-15, 6]}  # no speed / pitch (they change the voice)
   enrol_takes: 5               # device: Help, Help me, SOS, Help, Help me
+  take_s: 2.0                  # device enrolment take length
+  test_clips_min: 3            # a trial speaker needs enrol_takes + this many clips
+  test_clips_max: 8            # test clips per trial speaker (its keywords first)
+  impostors_per_test: 30       # other speakers' templates each test clip is compared with
   enrol_classes: ["help", "help me", "sos", "help", "help me"]
   trial_speakers: 300          # test speakers for the EER
 
 # ------------------------------------------------- Step 2/4: evaluation
 eval:
   context_s: 2.0               # background before / after a test keyword
-  test_snr_db: [5, 20]
-  test_level_dbfs: [-38, -15]
+  test_snr_db: [5, 20]         # "noisy" condition (test noise bank); "clean" = mic noise floor only
+  test_level_dbfs: [-38, -15]  # speech RMS level of a test clip / utterance
+  noise_floor_dbfs: -70        # mic self-noise added to every test stream
+  noise_level_dbfs: [-45, -15] # level of the noise-only false-alarm stream (per file)
+  max_per_source: 600          # test keywords per source (hash order)
+  joined_help_me: 300          # joined "help"+"me" test streams (test speakers)
+  hit_after_ms: 1500           # a hit up to this long after the keyword end still counts (window + smoothing)
+  fa_chunk_min: 30             # false-alarm audio is processed in streams of about 30 min
   fa_noise_mix_prob: 0.5       # running speech: share of files with added noise
   fa_noise_snr_db: [5, 20]
   keyword_guard_s: 1.5         # hits this close to a real "help" in LibriSpeech are not false alarms
@@ -199,3 +212,4 @@ export:
   hits: 3
   hits_ms: 20000
   name: kws-20261022
+  check_windows_per_class: 100 # validation windows for the int8-vs-float check

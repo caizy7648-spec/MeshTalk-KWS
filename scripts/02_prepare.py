@@ -34,23 +34,38 @@ COLS = ["source", "group", "label", "word", "speaker", "gender", "split", "spk_u
 
 
 class Store:
-    """int16 clips one after the other + index rows"""
+    """int16 clips one after the other, written straight to <name>.npy, + index rows"""
 
-    def __init__(self):
-        self.parts, self.rows, self.pos = [], [], 0
+    def __init__(self, name):
+        self.name, self.rows, self.pos = name, [], 0
+        self.path = os.path.join(CACHE, name + ".npy")
+        self.f = open(self.path + ".part", "wb")
+        self.hlen = len(self._header(10 ** 12))
+        self.f.write(b"\0" * self.hlen)
+
+    @staticmethod
+    def _header(n):
+        b = io.BytesIO()
+        np.lib.format.write_array_header_1_0(b, {"descr": "<i2", "fortran_order": False, "shape": (n,)})
+        return b.getvalue()
 
     def add(self, x, **meta):
         x = np.asarray(x, np.int16)
         self.rows.append(dict(meta, offset=self.pos, length=len(x)))
-        self.parts.append(x)
+        self.f.write(x.astype("<i2").tobytes())
         self.pos += len(x)
 
-    def save(self, name, cols=None):
-        np.save(os.path.join(CACHE, name + ".npy"), np.concatenate(self.parts) if self.parts else np.zeros(0, np.int16))
+    def save(self, cols=None):
+        h = self._header(self.pos)
+        assert len(h) == self.hlen
+        self.f.seek(0)
+        self.f.write(h)
+        self.f.close()
+        os.replace(self.path + ".part", self.path)
         df = pd.DataFrame(self.rows)
         if cols:
-            df = df[cols]
-        df.to_csv(os.path.join(CACHE, name + ".csv"), index=False)
+            df = df.reindex(columns=cols)
+        df.to_csv(os.path.join(CACHE, self.name + ".csv"), index=False)
         return df
 
 
@@ -68,10 +83,9 @@ def mswc_decode(link):
 
 def mswc(st):
     sel = pd.read_csv(os.path.join(RAW, "mswc", "selected.csv"))
-    with Pool(4) as pool:
-        X = pool.map(mswc_decode, list(sel.LINK), chunksize=256)
     kws = set(C["sources"]["mswc"]["keyword_words"])
-    for (_, r), x in zip(sel.iterrows(), X):
+    pool = Pool(4)
+    for r, x in zip(sel.itertuples(), pool.imap(mswc_decode, list(sel.LINK), chunksize=256)):
         if rms_db(x) < P["min_rms_db"]:
             continue
         s, e = speech_span(x, P["span_rel_db"])
@@ -81,6 +95,7 @@ def mswc(st):
             label, group = "_other", ("mswc_lookalike" if r.role == "lookalike" else "mswc_random")
         st.add(x, source="mswc", group=group, label=label, word=r.WORD, speaker="mswc-" + r.SPEAKER[:16],
                gender=r.GENDER, split=speaker_split(C, "mswc-" + r.SPEAKER), text="", kw_start=s, kw_end=e)
+    pool.close()
     log("mswc", len(sel))
 
 
@@ -135,7 +150,7 @@ def tts(st):
 
 # ------------------------------------------------------------------ noise banks
 def noise():
-    banks = {"train": Store(), "test": Store()}
+    banks = {"train": Store("noise_train"), "test": Store("noise_test")}
     tp = C["sources"]["musan"]["test_pct"]
     for f in sorted(glob.glob(os.path.join(RAW, "musan", "*", "*", "*.wav"))):
         rel = os.path.relpath(f, os.path.join(RAW, "musan"))
@@ -156,7 +171,7 @@ def noise():
         banks["train"].add(x, source="sc_background", file=os.path.basename(f))
     out = {}
     for k, b in banks.items():
-        df = b.save("noise_" + k)
+        df = b.save()
         out[k] = {s: round(g.length.sum() / 16000 / 3600, 2) for s, g in df.groupby("source")}
     log("noise hours", out)
     return out
@@ -166,7 +181,7 @@ def noise():
 def fa_speech():
     out = {}
     for name, subsets in P["fa_subsets"].items():
-        st, kw = Store(), []
+        st, kw = Store("fa_" + name), []
         for sub in subsets:
             for f in sorted(glob.glob(os.path.join(RAW, "librispeech", "eval", sub + "-*.parquet"))):
                 for r in pd.read_parquet(f, columns=["id", "audio", "words"]).itertuples():
@@ -176,7 +191,7 @@ def fa_speech():
                         if w["word"] and w["word"].lower() in C["sources"]["librispeech"]["keyword_words"]:
                             kw.append(dict(utt=r.id, word=w["word"], at=base + int(w["start"] * sr), end=base + int(w["end"] * sr)))
                     st.add(x, utt=r.id, speaker="ls-" + r.id.split("-")[0], subset=sub)
-        st.save("fa_" + name)
+        st.save()
         pd.DataFrame(kw, columns=["utt", "word", "at", "end"]).to_csv(os.path.join(CACHE, "fa_%s_kw.csv" % name), index=False)
         out[name] = dict(hours=round(st.pos / 16000 / 3600, 2), utterances=len(st.rows), real_keywords=len(kw))
         log("fa", name, out[name])
@@ -185,12 +200,12 @@ def fa_speech():
 
 def main():
     counts = {}
-    st = Store()
+    st = Store("clips")
     mswc(st)
     librispeech(st)
     speech_commands(st)
     tts(st)
-    df = st.save("clips", COLS)
+    df = st.save(COLS)
     # speaker head: real voices with enough clips (never TTS)
     real = df[df.source.isin(["mswc", "librispeech"])]
     n = real.groupby("speaker").size()
