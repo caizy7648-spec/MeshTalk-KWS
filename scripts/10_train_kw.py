@@ -2,9 +2,10 @@
 
     python scripts/10_train_kw.py --stage r1   # round 1 (from scratch)      -> models/kw_r1.pt
     python scripts/10_train_kw.py --stage r2   # round 2 (+ hard negatives)  -> models/kw_r2.pt
+    python scripts/10_train_kw.py --stage r3   # round 3 (+ round-3 hard negatives) -> models/kw_r3.pt
     (also models/kw_<stage>_log.csv, docs/kw_<stage>_training_curves.png, docs/kw_<stage>_confusion_val.png)
 
-Stage r2 uses train_kw with the values of train_kw_r2 replacing those it names
+Stage r2 / r3 use train_kw with the values of train_kw_r2 / train_kw_r3 replacing those they name
 (init = start from the round-1 weights, other_mix with the hard negatives).
 
 All parameters: configs/train.yaml (window, net, augment, train_kw).
@@ -29,7 +30,7 @@ from kws.model import KwsNet  # noqa: E402
 import argparse  # noqa: E402
 
 _ap = argparse.ArgumentParser()
-_ap.add_argument("--stage", default="r1", choices=["r1", "r2"])
+_ap.add_argument("--stage", default="r1", choices=["r1", "r2", "r3"])
 STAGE = _ap.parse_args().stage
 C = load()
 if STAGE != "r1":
@@ -114,8 +115,8 @@ def main():
                    val_loss=vl, val_acc=vacc, val_bal_acc=vbal, sec=time.time() - t1)
         log.append(row)
         print(json.dumps({k: round(v, 4) if isinstance(v, float) else v for k, v in row.items()}), flush=True)
-        if vbal > best:
-            best = vbal
+        if (vbal > best) if K.get("select", "val_bal_acc") == "val_bal_acc" else ep == K["epochs"] - 1:
+            best = max(best, vbal)
             torch.save({"cfg": net.cfg, "state": net.state_dict(), "labels": labels, "epoch": ep + 1,
                         "val_bal_acc": vbal, "val_cm": cm.tolist(), "stage": STAGE}, os.path.join(MODELS, "kw_%s.pt" % STAGE))
     import pandas as pd

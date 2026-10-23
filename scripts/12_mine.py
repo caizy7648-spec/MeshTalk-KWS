@@ -1,7 +1,8 @@
 """12_mine.py - hard negatives (Step A2) + more held-out running speech for the
 false-alarm test.
 
-    python scripts/12_mine.py                  # model / shards / limits: configs/train.yaml mine:
+    python scripts/12_mine.py                  # round 1 model -> hardneg.*      (configs/train.yaml mine:)
+    python scripts/12_mine.py --stage r3       # round 2 model -> hardneg_r3.*   (mine: with mine_r3: replacing values)
 
 Streams LibriSpeech training shards (the same files as 01_download.py, SHA-256
 checked, deleted after use) and, per utterance, by the speaker split:
@@ -33,8 +34,13 @@ from kws.evaluate import batch_run, run_frames  # noqa: E402
 from kws.features import HOP, logmel  # noqa: E402
 from kws.model import KwsNet  # noqa: E402
 
+import argparse  # noqa: E402
+
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--stage", default="r2", help="r2: hard negatives for round 2 (default), r3: for round 3")
+STAGE = _ap.parse_args().stage
 C = load()
-M = C["mine"]
+M = dict(C["mine"], **C.get("mine_" + STAGE, {}))
 L = C["sources"]["librispeech"]
 CACHE = C["paths"]["cache"]
 dl = __import__("01_download")
@@ -83,7 +89,8 @@ def shard_list():
     files = dl.hf_files(L["hf_repo"], "data")
     out = []
     for sub, n in M["shards"].items():
-        fs = sorted(p for p in files if os.path.basename(p).startswith(sub + "-"))[:n]
+        skip = M.get("skip_shards", {}).get(sub, 0)
+        fs = sorted(p for p in files if os.path.basename(p).startswith(sub + "-"))[skip:skip + n]
         out += [(p, files[p]) for p in fs]
     return out
 
@@ -97,8 +104,9 @@ def main():
     torch.set_num_threads(M["torch_threads"])
     net = load_net(os.path.join(ROOT, M["model"]))
     kmask = np.array([not l.startswith("_") for l in C["labels"]])
-    hn = prep.Store("hardneg")
-    extra = {"test": prep.Store("fa_test_extra"), "dev": prep.Store("fa_dev_extra")}
+    hn = prep.Store(M["out"])
+    keep_extra = sum(M["fa_extra_hours"].values()) > 0
+    extra = {"test": prep.Store("fa_test_extra"), "dev": prep.Store("fa_dev_extra")} if keep_extra else {}
     words = {"test": [], "dev": []}
     cap = {k: v * 3600 * RATE for k, v in M["fa_extra_hours"].items()}
     shards = shard_list()
@@ -124,12 +132,12 @@ def main():
                 kw = [(s - int(0.3 * sr), e + int(0.3 * sr)) for w, s, e in W if w in L["keyword_words"]]
                 for a, b, p in mine_audio(net, x, kw, kmask):
                     ws = " ".join(w for w, s, e in W if s < b and e > a)
-                    rows.append((p, x[a:b], dict(source="librispeech", group="hard_neg", label="_other", word=ws[:60],
+                    rows.append((p, x[a:b], dict(source="librispeech", group=M["group"], label="_other", word=ws[:60],
                                                 speaker=spk, gender="", split="train", spk_use=False, text=r.id,
                                                 kw_start=0, kw_end=b - a, prob=round(p, 4))))
             else:
                 name = "test" if split == "test" else "dev"
-                if extra[name].pos < cap[name]:
+                if keep_extra and extra[name].pos < cap[name]:
                     base = extra[name].pos
                     words[name] += [dict(utt=r.id, word=w, at=base + s, end=base + e) for w, s, e in W]
                     extra[name].add(x, utt=r.id, speaker=spk, subset=os.path.basename(path).split("-")[0])
@@ -140,7 +148,7 @@ def main():
         os.remove(cur)
         log("%d/%d %s: %d hard negatives (total %d), extra test %.1f h dev %.1f h, %.0f min"
             % (i + 1, len(shards), os.path.basename(path), min(len(rows), M["per_shard_max"]), len(hn.rows),
-               extra["test"].pos / RATE / 3600, extra["dev"].pos / RATE / 3600, (time.time() - t0) / 60))
+               *[extra[k].pos / RATE / 3600 if keep_extra else 0.0 for k in ("test", "dev")], (time.time() - t0) / 60))
     # training noise bank
     from kws.dataset import Data
     D = Data(C)
@@ -150,7 +158,7 @@ def main():
         x = np.array(na[r.offset:r.offset + r.length])
         found = mine_audio(net, x, [], kmask)[:M["noise_per_file_max"]]
         for a, b, p in found:
-            hn.add(x[a:b], source=r.source, group="hard_neg_noise", label="_other", word=r.file[:60], speaker="noise",
+            hn.add(x[a:b], source=r.source, group=M["group"] + "_noise", label="_other", word=r.file[:60], speaker="noise",
                    gender="", split="train", spk_use=False, text=r.file, kw_start=0, kw_end=b - a, prob=round(p, 4))
         nn += len(found)
     log("noise: %d hard negatives" % nn)
@@ -161,7 +169,7 @@ def main():
             os.path.join(CACHE, "fa_%s_extra_words.csv" % k), index=False)
     stats.update(noise_hardneg=nn, fa_extra_hours={k: round(v.pos / RATE / 3600, 2) for k, v in extra.items()},
                  minutes=round((time.time() - t0) / 60, 1))
-    json.dump(stats, open(os.path.join(CACHE, "mine_stats.json"), "w"), indent=1)
+    json.dump(stats, open(os.path.join(CACHE, "mine_stats_%s.json" % STAGE), "w"), indent=1)
     log(json.dumps(stats))
 
 

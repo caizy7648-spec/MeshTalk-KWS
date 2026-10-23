@@ -120,6 +120,18 @@ mine:
   noise_per_file_max: 50       # training noise bank: at most this many per file
   fa_extra_hours: {test: 30, dev: 20}   # held-out speakers' running speech added to the false-alarm sets
   torch_threads: 4
+  out: hardneg                 # data/cache/hardneg.npy / .csv
+  group: hard_neg              # group names hard_neg / hard_neg_noise
+
+mine_r3:                       # values replacing mine: for round 3 (python scripts/12_mine.py --stage r3)
+  model: models/kw_r2.pt
+  skip_shards: {train_clean_360: 24, train_other_500: 16}   # shards not used in round 2 (other speakers / text)
+  shards: {train_clean_360: 20, train_other_500: 20}
+  threshold: 0.4               # lower than round 2: the chosen thresholds are around 0.45-0.5
+  noise_per_file_max: 200      # noise caused many false "help" hits in round 2
+  fa_extra_hours: {test: 0, dev: 0}   # the false-alarm sets stay as they are
+  out: hardneg_r3
+  group: hard_neg_r3
 
 # ---------------------------------------------------------- augmentation
 augment:                       # kws/augment.py; p_* = probability per training window
@@ -180,6 +192,7 @@ train_kw:
   class_weights: [1.0, 1.0, 1.0, 1.0]   # sampler is already balanced
   label_smoothing: 0.05
   val_windows_per_class: 1500
+  select: val_bal_acc          # which epoch is kept: best validation balanced accuracy (round 1) or last
   norm_windows: 4000           # training windows used for in_mean / in_std
   workers: 4                   # DataLoader processes (one thread each); results do not depend on it
   torch_threads: 2             # threads of the training process
@@ -187,6 +200,8 @@ train_kw:
 # ------------------------------------------------- Step A3: round 2 (values replacing train_kw)
 train_kw_r2:
   init: models/kw_r1.pt        # fine-tune the round-1 model
+  max_other_per_group: 20000   # fixed subset (hash order) of each big _other group: keeps the data in memory
+  select: last                 # keep the last epoch (single-window accuracy does not measure false alarms)
   epochs: 25
   lr: 0.001                    # half the round-1 peak: fine-tuning
   warmup_frac: 0.05
@@ -202,6 +217,29 @@ train_kw_r2:
     tts_other: 0.10
     noise_only: 0.08
     silence: 0.04
+
+# ------------------------------------------------- Step A3: round 3 (values replacing train_kw)
+train_kw_r3:
+  init: models/kw_r2.pt        # fine-tune the round-2 model
+  epochs: 20
+  lr: 0.0007
+  warmup_frac: 0.05
+  max_other_per_group: 15000   # one more hard-negative group: smaller subsets keep the data in memory
+  select: last
+  class_mix: {help: 0.17, help me: 0.16, sos: 0.17, _other: 0.5}
+  other_mix:
+    hard_neg_r3: 0.20          # 12_mine.py --stage r3: where round 2 fired (threshold 0.4, new shards)
+    hard_neg_r3_noise: 0.07    # ... in the training noise (up to 200 per file)
+    hard_neg: 0.10             # round-2 hard negatives (keep them)
+    hard_neg_noise: 0.03
+    mswc_lookalike: 0.11
+    mswc_random: 0.06
+    speech_commands: 0.04
+    libri_words: 0.07
+    libri_chunk: 0.13
+    tts_other: 0.09
+    noise_only: 0.07
+    silence: 0.03
 
 # ------------------------------------------------- Step 2/4: evaluation
 eval:
@@ -233,8 +271,8 @@ eval_sys:
   blame_s: 1.0                 # words said in the last second before a false hit are listed
   blame_words: 4
   blame_top: 30
-  sweep_thr: [0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.93, 0.95]
-  sweep_off: {help: [-0.10, -0.05, 0.0], sos: [0.0, 0.05]}
+  sweep_thr: [0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90]
+  sweep_off: {help: [-0.15, -0.10, -0.05, 0.0], help me: [-0.05, 0.0], sos: [0.0, 0.05]}
   target_trigger_6: 0.90       # owner: >= 90 % with 6 calls
   target_false_sos_24h: 1.0    # owner: <= 1 false SOS per 24 h
   procs: 4
@@ -242,6 +280,7 @@ eval_sys:
 
 # ------------------------------------------------- Step 4: thresholds / export
 export:
+  model: kw_r3.pt              # the round that is exported (copied to models/best.pt with spk_dim 0)
   thr: [0.90, 0.80, 0.65]      # low / medium / high sensitivity (chosen in step 4 from the dev curves)
   cls_off: {help: 0.0, help me: 0.0, sos: 0.0}   # per class threshold offsets (v1.4.1)
   spk_thr: 0.70

@@ -273,14 +273,15 @@ def run_setting(setting):
 
 
 def settings_grid():
+    import itertools
     out = []
+    names = list(S["sweep_off"])
     for thr in S["sweep_thr"]:
-        for oh in S["sweep_off"]["help"]:
-            for os_ in S["sweep_off"]["sos"]:
-                off = [0.0] * len(LABELS)
-                off[LABELS.index("help")] = oh
-                off[LABELS.index("sos")] = os_
-                out.append((thr, tuple(off)))
+        for vals in itertools.product(*[S["sweep_off"][n] for n in names]):
+            off = [0.0] * len(LABELS)
+            for n, v in zip(names, vals):
+                off[LABELS.index(n)] = v
+            out.append((thr, tuple(off)))
     return out
 
 
@@ -312,14 +313,28 @@ def main():
     torch.set_num_threads(S["torch_threads"])
     t0 = time.time()
     net = load_net(a.model)
-    D = Data(C)
-    G["scen"] = build_scenarios(net, D, a.split)
-    print("scenarios: %d (%.0f s)" % (len(G["scen"]), time.time() - t0), flush=True)
-    G["fa"] = build_fa(net, D, a.split)
-    print("false-alarm streams: %.1f h (%.0f s)" % (sum(f["hours"] for f in G["fa"]), time.time() - t0), flush=True)
-    # the cached CNN outputs give exactly the windows Detector asks for
-    sc = G["scen"][0]["st"]
-    detect(sc.feats, sc.dbfs, sc.probs, sc.frames, sc.T, KEYWORD, 0.5, X["hits"], X["hits_ms"], check=True)
+    import hashlib
+    import pickle
+    key = hashlib.md5(open(a.model, "rb").read() + json.dumps([E, S, a.split, a.quick], sort_keys=True,
+                                                               default=str).encode()).hexdigest()[:12]
+    cpath = os.path.join(CACHE, "evalcache_%s.pkl" % key)
+    if os.path.exists(cpath):
+        G.update(pickle.load(open(cpath, "rb")))
+        print("streams from", cpath, flush=True)
+    else:
+        D = Data(C)
+        G["scen"] = build_scenarios(net, D, a.split)
+        # the cached CNN outputs give exactly the windows Detector asks for
+        sc = G["scen"][0]["st"]
+        detect(sc.feats, sc.dbfs, sc.probs, sc.frames, sc.T, KEYWORD, 0.5, X["hits"], X["hits_ms"], check=True)
+        print("scenarios: %d (%.0f s)" % (len(G["scen"]), time.time() - t0), flush=True)
+        G["fa"] = build_fa(net, D, a.split)
+        print("false-alarm streams: %.1f h (%.0f s)" % (sum(f["hours"] for f in G["fa"]), time.time() - t0), flush=True)
+        # Detector only stores the feature rows and hands the window to run_fn, which uses the
+        # cached CNN outputs instead -> the rows can be zeros (saves memory, same decisions)
+        for x in G["scen"] + G["fa"]:
+            x["st"].feats = np.broadcast_to(np.zeros(40, np.float32), x["st"].feats.shape)
+        pickle.dump({k: G[k] for k in ("scen", "fa")}, open(cpath, "wb"))
     sets = settings_grid() if a.sweep else list(export_settings().values())
     with Pool(S["procs"]) as pool:
         res = pool.map(run_setting, sets, chunksize=1)

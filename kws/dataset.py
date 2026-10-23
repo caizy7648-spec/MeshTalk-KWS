@@ -42,9 +42,9 @@ class Data:
     def __init__(self, C):
         cache = C["paths"]["cache"]
         self.C = C
-        # clips.npy (02_prepare.py) and, when present, hardneg.npy (12_mine.py): one table, store = which file
+        # clips.npy (02_prepare.py) and, when present, hardneg*.npy (12_mine.py): one table, store = which file
         frames, self.audios = [], []
-        for k, name in enumerate(("clips", "hardneg")):
+        for k, name in enumerate(("clips", "hardneg", "hardneg_r3")):
             if not os.path.exists(os.path.join(cache, name + ".npy")):
                 continue
             frames.append(pd.read_csv(os.path.join(cache, name + ".csv"), keep_default_na=False).assign(store=len(self.audios)))
@@ -212,6 +212,13 @@ class KwWindows(torch.utils.data.Dataset):
                 P[g] = D.pool("_other", ["libri_words", "libri_me"], split)
             elif g not in ("noise_only", "silence"):
                 P[g] = D.pool("_other", [g], split)
+        # big _other groups: a fixed subset (hash order) - each epoch only uses a few thousand of them, and
+        # the whole cache does not fit in memory (random reads from disk would slow training ~10x)
+        cap = K.get("max_other_per_group")
+        if cap:
+            for g in list(P):
+                if isinstance(g, str) and len(P[g]) > cap:
+                    P[g] = np.array(sorted(P[g], key=lambda i: stable_hash("cap:%d" % i))[:cap])
         # a group without clips in this split (hard negatives exist for train only) is left out
         self.other = [(g, p) for g, p in self.other if g in ("noise_only", "silence") or len(P[g])]
         self.other_p = np.array([p for _, p in self.other], float)

@@ -1,0 +1,80 @@
+# configs/spk.yaml - EVERY parameter of phase B (separate speaker model, CONTRACT_SPK.md).
+# Data, paths, splits and augmentation helpers are shared with configs/train.yaml (kws/cfg.py).
+# TRAINING.md explains every value (in Chinese).
+
+seed: 20261023
+
+data:
+  # real voices only (never Kokoro): clips.csv rows with spk_use (MSWC + LibriSpeech speakers with >= 10 clips),
+  # split by the same speaker hash as the keyword model (train / val / test speakers never mix)
+  exclude_groups_eval: [libri_chunk]   # enrol / test takes are single words (like the device takes), not running speech
+  unavailable:                          # tried, not usable here (see REPORT.md)
+    voxceleb: needs credentials from the authors (HuggingFace mirrors only hold a loader script)
+    common_voice: HuggingFace copy needs a login (gated)
+    vctk: one 11 GB zip (datashare.ed.ac.uk) - does not fit the disk of the cloud session
+
+net:                           # spk/model.py SpkNet (C: spk/c/spk_engine.c)
+  frames: 81                   # = keyword window T: the device hands the hit window to verify()
+  channels: [128, 128, 128, 256]
+  kernels: [5, 3, 3, 1]
+  dilations: [1, 2, 3, 1]      # receptive field 15 frames (0.3 s)
+  dim: 128                     # voice vector length (<= 256)
+
+augment:                       # kws/augment.py through kws.dataset.Builder; no speed / pitch (they change the voice)
+  ref_level_dbfs: -25
+  gain_db: [-20, 6]
+  p_noise: 0.7
+  snr_db: [0, 25]
+  noise_floor_dbfs: [-75, -55]
+  p_reverb: 0.4
+  rt60_s: [0.15, 0.8]
+  rir_len_s: 0.5
+  reverb_wet: [0.3, 1.0]
+  p_speed: 0.0
+  p_pitch: 0.0
+  p_shout: 0.3                 # emergency calls are shouted: the same voice must still match
+  shout_gain_db: [6, 18]
+  p_highpass: 0.7
+  highpass_hz: [60, 120]
+  p_context: 0.0
+
+train:
+  epochs: 40
+  windows_per_epoch: 60000
+  batch: 256
+  optimizer: adamw
+  lr: 0.002
+  weight_decay: 0.0005
+  warmup_frac: 0.05
+  div_factor: 25
+  final_div_factor: 4
+  loss: aam_softmax
+  aam_margin: 0.2
+  aam_scale: 30.0
+  workers: 4
+  torch_threads: 2
+  norm_windows: 4000           # training windows for in_mean / in_std
+  val_speakers: 150            # quick validation EER (clean, 5 takes) after every epoch -> best epoch kept
+
+eval:                          # device protocol (CONTRACT_SPK.md), spk/evaluate.py
+  enrol_takes: [5, 10]         # N takes recorded on the device (3..10)
+  enrol_classes: ["help", "help me", "sos"]   # take i asks for class i % 3 (the device cycles the keywords)
+  enrol_level_dbfs: [-35, -20] # enrolment in a quiet room, normal voice
+  noise_floor_dbfs: -70
+  test_level_dbfs: [-38, -15]
+  test_snr_db: [5, 20]
+  shout_gain_db: [6, 18]
+  test_takes_max: 10           # test takes per speaker (its "help" / "help me" first)
+  impostors: 30                # other speakers' templates each test take is compared with
+  speakers: 400                # test speakers (hash order)
+  system_scenarios: 200        # per condition: owner calls 6 times / another person calls 6 times
+  system_calls: 6
+  system_enrol_takes: 10
+  thr_grid: [0.0, 0.9, 0.025]  # spk threshold sweep on val (start, stop, step)
+  target_owner: 0.90           # owner calling 6 times -> trigger rate
+  target_other: 0.03           # another person calling 6 times -> trigger rate (the choice keeps this on val)
+
+export:
+  threshold: 0.0               # chosen in 41_eval_spk.py on the validation speakers (see REPORT.md)
+  enrol_takes: 10
+  name: spk-20261023
