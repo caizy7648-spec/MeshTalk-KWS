@@ -7,6 +7,7 @@ seed: 20261023
 data:
   # real voices only (never Kokoro): clips.csv rows with spk_use (MSWC + LibriSpeech speakers with >= 10 clips),
   # split by the same speaker hash as the keyword model (train / val / test speakers never mix)
+  max_clips_per_speaker: 20    # training: a fixed subset per speaker (hash order) - keeps the audio in memory
   exclude_groups_eval: [libri_chunk]   # enrol / test takes are single words (like the device takes), not running speech
   unavailable:                          # tried, not usable here (see REPORT.md)
     voxceleb: needs credentials from the authors (HuggingFace mirrors only hold a loader script)

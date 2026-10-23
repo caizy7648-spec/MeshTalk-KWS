@@ -27,16 +27,19 @@ def load_cfg(path=None):
     return C, P
 
 
-def speakers(D, split, exclude=()):
-    """{speaker: [clip index]} of real voices (spk_use) in the split"""
+def speakers(D, split, exclude=(), cap=None):
+    """{speaker: [clip index]} of real voices (spk_use) in the split; cap: at most this many per speaker (hash order)"""
     df = D.df[(D.df.spk_use == True) & (D.df.split == split) & (~D.df.group.isin(list(exclude)))]  # noqa: E712
-    return {s: g.index.to_numpy() for s, g in df.groupby("speaker")}
+    out = {s: g.index.to_numpy() for s, g in df.groupby("speaker")}
+    if cap:
+        out = {s: np.array(sorted(v, key=lambda i: stable_hash("capB:%d" % i))[:cap]) for s, v in out.items()}
+    return out
 
 
 class SpkTrain(torch.utils.data.Dataset):
     def __init__(self, D, C, P, split, n, tag="spkB"):
         self.D, self.C, self.P, self.n, self.tag = D, C, P, n, tag
-        sp = speakers(D, split)
+        sp = speakers(D, split, cap=P["data"]["max_clips_per_speaker"])
         self.names = sorted(sp)
         self.by = [sp[s] for s in self.names]
         self.B = Builder(D, C, split, P["augment"])

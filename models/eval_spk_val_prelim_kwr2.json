@@ -1,0 +1,379 @@
+{
+ "split": "val",
+ "model": "spk_best.pt",
+ "kw_model": "kw_r2.pt",
+ "threshold": 0.575,
+ "owners": 391,
+ "per_take": {
+  "5": {
+   "speakers": 400,
+   "cond": {
+    "clean": {
+     "target": 3845,
+     "impostor": 115350,
+     "eer": 0.0778,
+     "eer_thr": 0.4398,
+     "frr": 0.2684,
+     "far": 0.0126,
+     "eer_keyword_tests": 0.0779
+    },
+    "noisy": {
+     "target": 3845,
+     "impostor": 115350,
+     "eer": 0.1025,
+     "eer_thr": 0.4135,
+     "frr": 0.4239,
+     "far": 0.0125,
+     "eer_keyword_tests": 0.1043
+    },
+    "shout": {
+     "target": 3845,
+     "impostor": 115350,
+     "eer": 0.0811,
+     "eer_thr": 0.4402,
+     "frr": 0.2947,
+     "far": 0.0129,
+     "eer_keyword_tests": 0.0823
+    }
+   }
+  },
+  "10": {
+   "speakers": 400,
+   "cond": {
+    "clean": {
+     "target": 3863,
+     "impostor": 115890,
+     "eer": 0.0606,
+     "eer_thr": 0.4964,
+     "frr": 0.152,
+     "far": 0.021,
+     "eer_keyword_tests": 0.054
+    },
+    "noisy": {
+     "target": 3863,
+     "impostor": 115890,
+     "eer": 0.0893,
+     "eer_thr": 0.4624,
+     "frr": 0.2816,
+     "far": 0.0218,
+     "eer_keyword_tests": 0.0805
+    },
+    "shout": {
+     "target": 3863,
+     "impostor": 115890,
+     "eer": 0.066,
+     "eer_thr": 0.4946,
+     "frr": 0.1724,
+     "far": 0.0227,
+     "eer_keyword_tests": 0.062
+    }
+   }
+  }
+ },
+ "system": {
+  "0.000": {
+   "owner|clean": 0.525,
+   "other|clean": 0.435,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.265,
+   "owner|shout": 0.475,
+   "other|shout": 0.38
+  },
+  "0.025": {
+   "owner|clean": 0.525,
+   "other|clean": 0.425,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.265,
+   "owner|shout": 0.475,
+   "other|shout": 0.355
+  },
+  "0.050": {
+   "owner|clean": 0.525,
+   "other|clean": 0.41,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.24,
+   "owner|shout": 0.475,
+   "other|shout": 0.33
+  },
+  "0.075": {
+   "owner|clean": 0.525,
+   "other|clean": 0.39,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.215,
+   "owner|shout": 0.475,
+   "other|shout": 0.32
+  },
+  "0.100": {
+   "owner|clean": 0.525,
+   "other|clean": 0.37,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.2,
+   "owner|shout": 0.475,
+   "other|shout": 0.305
+  },
+  "0.125": {
+   "owner|clean": 0.525,
+   "other|clean": 0.355,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.19,
+   "owner|shout": 0.475,
+   "other|shout": 0.285
+  },
+  "0.150": {
+   "owner|clean": 0.525,
+   "other|clean": 0.335,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.19,
+   "owner|shout": 0.475,
+   "other|shout": 0.26
+  },
+  "0.175": {
+   "owner|clean": 0.525,
+   "other|clean": 0.32,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.18,
+   "owner|shout": 0.475,
+   "other|shout": 0.235
+  },
+  "0.200": {
+   "owner|clean": 0.525,
+   "other|clean": 0.305,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.165,
+   "owner|shout": 0.475,
+   "other|shout": 0.21
+  },
+  "0.225": {
+   "owner|clean": 0.525,
+   "other|clean": 0.28,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.145,
+   "owner|shout": 0.475,
+   "other|shout": 0.185
+  },
+  "0.250": {
+   "owner|clean": 0.525,
+   "other|clean": 0.265,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.135,
+   "owner|shout": 0.475,
+   "other|shout": 0.18
+  },
+  "0.275": {
+   "owner|clean": 0.525,
+   "other|clean": 0.245,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.13,
+   "owner|shout": 0.475,
+   "other|shout": 0.15
+  },
+  "0.300": {
+   "owner|clean": 0.525,
+   "other|clean": 0.22,
+   "owner|noisy": 0.365,
+   "other|noisy": 0.11,
+   "owner|shout": 0.475,
+   "other|shout": 0.14
+  },
+  "0.325": {
+   "owner|clean": 0.525,
+   "other|clean": 0.195,
+   "owner|noisy": 0.36,
+   "other|noisy": 0.1,
+   "owner|shout": 0.475,
+   "other|shout": 0.13
+  },
+  "0.350": {
+   "owner|clean": 0.525,
+   "other|clean": 0.165,
+   "owner|noisy": 0.355,
+   "other|noisy": 0.095,
+   "owner|shout": 0.475,
+   "other|shout": 0.12
+  },
+  "0.375": {
+   "owner|clean": 0.525,
+   "other|clean": 0.145,
+   "owner|noisy": 0.355,
+   "other|noisy": 0.09,
+   "owner|shout": 0.475,
+   "other|shout": 0.105
+  },
+  "0.400": {
+   "owner|clean": 0.525,
+   "other|clean": 0.125,
+   "owner|noisy": 0.355,
+   "other|noisy": 0.08,
+   "owner|shout": 0.475,
+   "other|shout": 0.08
+  },
+  "0.425": {
+   "owner|clean": 0.525,
+   "other|clean": 0.105,
+   "owner|noisy": 0.355,
+   "other|noisy": 0.06,
+   "owner|shout": 0.47,
+   "other|shout": 0.075
+  },
+  "0.450": {
+   "owner|clean": 0.515,
+   "other|clean": 0.08,
+   "owner|noisy": 0.35,
+   "other|noisy": 0.045,
+   "owner|shout": 0.47,
+   "other|shout": 0.07
+  },
+  "0.475": {
+   "owner|clean": 0.5,
+   "other|clean": 0.07,
+   "owner|noisy": 0.335,
+   "other|noisy": 0.035,
+   "owner|shout": 0.46,
+   "other|shout": 0.06
+  },
+  "0.500": {
+   "owner|clean": 0.49,
+   "other|clean": 0.05,
+   "owner|noisy": 0.32,
+   "other|noisy": 0.035,
+   "owner|shout": 0.44,
+   "other|shout": 0.055
+  },
+  "0.525": {
+   "owner|clean": 0.46,
+   "other|clean": 0.035,
+   "owner|noisy": 0.305,
+   "other|noisy": 0.02,
+   "owner|shout": 0.395,
+   "other|shout": 0.045
+  },
+  "0.550": {
+   "owner|clean": 0.445,
+   "other|clean": 0.035,
+   "owner|noisy": 0.285,
+   "other|noisy": 0.005,
+   "owner|shout": 0.375,
+   "other|shout": 0.03
+  },
+  "0.575": {
+   "owner|clean": 0.41,
+   "other|clean": 0.02,
+   "owner|noisy": 0.255,
+   "other|noisy": 0.005,
+   "owner|shout": 0.35,
+   "other|shout": 0.02
+  },
+  "0.600": {
+   "owner|clean": 0.375,
+   "other|clean": 0.01,
+   "owner|noisy": 0.24,
+   "other|noisy": 0.005,
+   "owner|shout": 0.335,
+   "other|shout": 0.02
+  },
+  "0.625": {
+   "owner|clean": 0.345,
+   "other|clean": 0.005,
+   "owner|noisy": 0.215,
+   "other|noisy": 0.0,
+   "owner|shout": 0.3,
+   "other|shout": 0.015
+  },
+  "0.650": {
+   "owner|clean": 0.3,
+   "other|clean": 0.0,
+   "owner|noisy": 0.165,
+   "other|noisy": 0.0,
+   "owner|shout": 0.245,
+   "other|shout": 0.015
+  },
+  "0.675": {
+   "owner|clean": 0.26,
+   "other|clean": 0.0,
+   "owner|noisy": 0.125,
+   "other|noisy": 0.0,
+   "owner|shout": 0.22,
+   "other|shout": 0.01
+  },
+  "0.700": {
+   "owner|clean": 0.205,
+   "other|clean": 0.0,
+   "owner|noisy": 0.085,
+   "other|noisy": 0.0,
+   "owner|shout": 0.16,
+   "other|shout": 0.005
+  },
+  "0.725": {
+   "owner|clean": 0.155,
+   "other|clean": 0.0,
+   "owner|noisy": 0.06,
+   "other|noisy": 0.0,
+   "owner|shout": 0.115,
+   "other|shout": 0.005
+  },
+  "0.750": {
+   "owner|clean": 0.105,
+   "other|clean": 0.0,
+   "owner|noisy": 0.045,
+   "other|noisy": 0.0,
+   "owner|shout": 0.08,
+   "other|shout": 0.005
+  },
+  "0.775": {
+   "owner|clean": 0.065,
+   "other|clean": 0.0,
+   "owner|noisy": 0.03,
+   "other|noisy": 0.0,
+   "owner|shout": 0.06,
+   "other|shout": 0.0
+  },
+  "0.800": {
+   "owner|clean": 0.035,
+   "other|clean": 0.0,
+   "owner|noisy": 0.015,
+   "other|noisy": 0.0,
+   "owner|shout": 0.03,
+   "other|shout": 0.0
+  },
+  "0.825": {
+   "owner|clean": 0.025,
+   "other|clean": 0.0,
+   "owner|noisy": 0.005,
+   "other|noisy": 0.0,
+   "owner|shout": 0.015,
+   "other|shout": 0.0
+  },
+  "0.850": {
+   "owner|clean": 0.005,
+   "other|clean": 0.0,
+   "owner|noisy": 0.005,
+   "other|noisy": 0.0,
+   "owner|shout": 0.005,
+   "other|shout": 0.0
+  },
+  "0.875": {
+   "owner|clean": 0.0,
+   "other|clean": 0.0,
+   "owner|noisy": 0.0,
+   "other|noisy": 0.0,
+   "owner|shout": 0.0,
+   "other|shout": 0.0
+  },
+  "0.900": {
+   "owner|clean": 0.0,
+   "other|clean": 0.0,
+   "owner|noisy": 0.0,
+   "other|noisy": 0.0,
+   "owner|shout": 0.0,
+   "other|shout": 0.0
+  }
+ },
+ "system_at_threshold": {
+  "owner|clean": 0.41,
+  "other|clean": 0.02,
+  "owner|noisy": 0.255,
+  "other|noisy": 0.005,
+  "owner|shout": 0.35,
+  "other|shout": 0.02
+ }
+}
