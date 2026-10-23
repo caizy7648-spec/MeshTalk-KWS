@@ -1,6 +1,11 @@
 """10_train_kw.py - keyword head (Step 2): help / help me / sos / _other.
 
-    python scripts/10_train_kw.py            # -> models/kw.pt, models/kw_log.csv, docs/kw_*.png
+    python scripts/10_train_kw.py --stage r1   # round 1 (from scratch)      -> models/kw_r1.pt
+    python scripts/10_train_kw.py --stage r2   # round 2 (+ hard negatives)  -> models/kw_r2.pt
+    (also models/kw_<stage>_log.csv, docs/kw_<stage>_training_curves.png, docs/kw_<stage>_confusion_val.png)
+
+Stage r2 uses train_kw with the values of train_kw_r2 replacing those it names
+(init = start from the round-1 weights, other_mix with the hard negatives).
 
 All parameters: configs/train.yaml (window, net, augment, train_kw).
 The network is kws.model.KwsNet (layer types fixed by the firmware); only
@@ -21,7 +26,14 @@ from kws.cfg import load, seed_all  # noqa: E402
 from kws.dataset import worker_init, Data, FixedKwWindows, KwWindows  # noqa: E402
 from kws.model import KwsNet  # noqa: E402
 
+import argparse  # noqa: E402
+
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--stage", default="r1", choices=["r1", "r2"])
+STAGE = _ap.parse_args().stage
 C = load()
+if STAGE != "r1":
+    C["train_kw"] = dict(C["train_kw"], **C["train_kw_" + STAGE])     # KwWindows reads C["train_kw"] too
 K, N = C["train_kw"], C["net"]
 MODELS, DOCS = C["paths"]["models"], C["paths"]["docs"]
 
@@ -66,10 +78,14 @@ def main():
     va = FixedKwWindows(D, C, "val", K["val_windows_per_class"])
     net = KwsNet(ncls=len(labels), T=C["window"]["T"], **N)
     t0 = time.time()
-    m, s = norm_stats(tr, K["norm_windows"])
-    net.in_mean.copy_(m)
-    net.in_std.copy_(s)
-    print("in_mean / in_std from %d windows (%.0f s)" % (K["norm_windows"], time.time() - t0), flush=True)
+    if K.get("init"):
+        ck0 = torch.load(os.path.join(C["paths"]["models"], os.path.basename(K["init"])), weights_only=False)
+        print("start from", K["init"], net.load_state_dict(ck0["state"], strict=False), flush=True)   # keeps in_mean / in_std
+    else:
+        m, s = norm_stats(tr, K["norm_windows"])
+        net.in_mean.copy_(m)
+        net.in_std.copy_(s)
+        print("in_mean / in_std from %d windows (%.0f s)" % (K["norm_windows"], time.time() - t0), flush=True)
     params = [p for n_, p in net.named_parameters() if not n_.startswith("spk.")]
     opt = torch.optim.AdamW(params, lr=K["lr"], weight_decay=K["weight_decay"])
     steps = K["epochs"] * (K["windows_per_epoch"] // K["batch"])
@@ -101,9 +117,9 @@ def main():
         if vbal > best:
             best = vbal
             torch.save({"cfg": net.cfg, "state": net.state_dict(), "labels": labels, "epoch": ep + 1,
-                        "val_bal_acc": vbal, "val_cm": cm.tolist()}, os.path.join(MODELS, "kw.pt"))
+                        "val_bal_acc": vbal, "val_cm": cm.tolist(), "stage": STAGE}, os.path.join(MODELS, "kw_%s.pt" % STAGE))
     import pandas as pd
-    pd.DataFrame(log).to_csv(os.path.join(MODELS, "kw_log.csv"), index=False)
+    pd.DataFrame(log).to_csv(os.path.join(MODELS, "kw_%s_log.csv" % STAGE), index=False)
     print("best val balanced accuracy %.4f, total %.0f min" % (best, (time.time() - t0) / 60))
     plots(log, labels)
 
@@ -112,7 +128,7 @@ def plots(log, labels):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    ck = torch.load(os.path.join(MODELS, "kw.pt"), weights_only=False)
+    ck = torch.load(os.path.join(MODELS, "kw_%s.pt" % STAGE), weights_only=False)
     ep = [r["epoch"] for r in log]
     fig, ax = plt.subplots(1, 2, figsize=(10, 3.6))
     ax[0].plot(ep, [r["train_loss"] for r in log], label="train")
@@ -122,9 +138,9 @@ def plots(log, labels):
     ax[1].plot(ep, [r["val_acc"] for r in log], label="validation accuracy")
     ax[1].plot(ep, [r["val_bal_acc"] for r in log], "--", label="validation balanced")
     ax[1].set_xlabel("epoch"), ax[1].set_ylabel("accuracy"), ax[1].legend(), ax[1].grid(alpha=.3)
-    fig.suptitle("keyword head training (best epoch %d)" % ck["epoch"])
+    fig.suptitle("keyword model training, stage %s (best epoch %d)" % (STAGE, ck["epoch"]))
     fig.tight_layout()
-    fig.savefig(os.path.join(DOCS, "kw_training_curves.png"), dpi=130)
+    fig.savefig(os.path.join(DOCS, "kw_%s_training_curves.png" % STAGE), dpi=130)
     cm = np.array(ck["val_cm"])
     fig, ax = plt.subplots(figsize=(4.8, 4.2))
     r = cm / cm.sum(1, keepdims=True)
@@ -137,7 +153,7 @@ def plots(log, labels):
     ax.set_xlabel("predicted"), ax.set_ylabel("true")
     ax.set_title("validation confusion matrix (single window)")
     fig.tight_layout()
-    fig.savefig(os.path.join(DOCS, "kw_confusion_val.png"), dpi=130)
+    fig.savefig(os.path.join(DOCS, "kw_%s_confusion_val.png" % STAGE), dpi=130)
 
 
 if __name__ == "__main__":

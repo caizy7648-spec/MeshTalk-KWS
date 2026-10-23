@@ -1,19 +1,30 @@
-"""20_eval.py - hit rate / false alarms per hour with kws.detect (Step 2) and
-speaker EER with the device enrolment (Step 3).
+"""20_eval.py - SYSTEM-level evaluation of the keyword model with the device
+logic (kws.detect.Detector: window gate, 3-run average, thr + cls_off,
+1.2 s pause, 3 hits in 20 s -> SOS).
 
-    python scripts/20_eval.py kw  --model models/kw.pt   --split val    # dev: choose thresholds
-    python scripts/20_eval.py kw  --model models/best.pt --split test   # final numbers
-    python scripts/20_eval.py spk --model models/best.pt --split test
+    python scripts/20_eval.py --model models/kw_r2.pt --split val --sweep   # dev: try thr x cls_off
+    python scripts/20_eval.py --model models/best.pt  --split test          # final numbers (export: settings)
 
-split val  = validation speakers / voices + LibriSpeech dev  (used for choices)
-split test = test speakers / voices + LibriSpeech test + test noise (never used for choices)
-Results: models/eval_<part>_<split>.json, figures in docs/.
+1. Trigger rate: one person calls N times within 20 s (N = 4 / 6 / 8, natural
+   variation of level and speed), half the scenarios clean, half in noise
+   (SNR 5-20 dB). Scenario sets (eval_sys.sets): real "help" only, real
+   help / help me mixed, Kokoro help / help me / SOS mixed, Kokoro help only,
+   Kokoro SOS only. A scenario "triggers" when Detector raises EV_SOS.
+2. False triggers: LibriSpeech dev / test speech + the held-out speakers'
+   speech from 12_mine.py (half with noise), and noise alone. False hits
+   per hour, false SOS per 24 h, and the words being said at each false hit.
+split val = validation speakers / voices + dev speech + half of the test
+noise files; split test = test speakers / voices + test speech + the other
+half. Thresholds are only ever chosen on val.
+Results: models/eval_sys_<split>.json (+ _sweep), docs/sys_*.png.
 """
 import argparse
 import json
 import os
 import sys
 import time
+from collections import Counter
+from multiprocessing import Pool
 
 import numpy as np
 import pandas as pd
@@ -24,312 +35,337 @@ from kws import augment as aug  # noqa: E402
 from kws.audio import to_float, to_int16  # noqa: E402
 from kws.cfg import load, rng_for, stable_hash  # noqa: E402
 from kws.dataset import Data  # noqa: E402
-from kws.evaluate import Stream, best_window, eer, fa_count, hit_in, positive_stream, rates, take  # noqa: E402
-from kws.features import logmel  # noqa: E402
+from kws.detect import EV_SOS  # noqa: E402
+from kws.evaluate import Stream, detect  # noqa: E402
 from kws.model import KwsNet  # noqa: E402
 
 C = load()
 E = C["eval"]
+S = C["eval_sys"]
+X = C["export"]
 CACHE, MODELS, DOCS = C["paths"]["cache"], C["paths"]["models"], C["paths"]["docs"]
+LABELS = C["labels"]
+KEYWORD = [not l.startswith("_") for l in LABELS]
+RATE = 16000
+G = {}          # streams shared with the worker processes (fork)
 
 
 def load_net(path):
     ck = torch.load(path, map_location="cpu", weights_only=False)
     net = KwsNet(**ck["cfg"])
-    net.load_state_dict(ck["state"])
-    net.eval()
-    return net
+    net.load_state_dict(ck["state"], strict=False)
+    return net.eval()
 
 
-def noise_fn(D):
-    return lambda rng, n: D.noise_seg(rng, "test", n)
-
-
-# ------------------------------------------------------------------ keyword positives
-def positives(D, split):
-    """[(class, source, audio, s, e)] of the split"""
-    out = []
+# ------------------------------------------------------------------ scenarios
+def pools(D, split):
+    """per scenario set: list of speakers, each a dict label -> list of clip makers"""
     df = D.df
-    cap = E["max_per_source"]
-
-    def add(lab, src, idx):
-        idx = sorted(idx, key=lambda i: stable_hash("evalpos:%d" % i))[:cap]
-        for i in idx:
-            out.append((lab, src) + D.clip(i))
-
-    add("help", "real MSWC", df[(df.group == "mswc_help") & (df.split == split)].index)
-    add("help", "real LibriSpeech", df[(df.group == "libri_help") & (df.split == split)].index)
-    add("help", "TTS (held-out voices)", df[(df.group == "tts") & (df.label == "help") & (df.split == split)].index)
-    add("help me", "real LibriSpeech", df[(df.group == "libri_help_me") & (df.split == split)].index)
-    if D.join[split]:
-        rng = rng_for(C, "evaljoin", split)
-        for _ in range(E["joined_help_me"]):
-            out.append(("help me", "real joined help+me") + D.joined_help_me(rng, split, C["train_kw"]["join_gap_ms"]))
-    add("help me", "TTS (held-out voices)", df[(df.group == "tts") & (df.label == "help me") & (df.split == split)].index)
-    add("sos", "TTS (held-out voices)", df[(df.group == "tts") & (df.label == "sos") & (df.split == split)].index)
+    out = {}
+    sp = {}
+    for g in ("mswc_help", "libri_help"):
+        for s, idx in df[(df.group == g) & (df.split == split)].groupby("speaker").groups.items():
+            sp.setdefault(s, []).extend(list(idx))
+    out["real_help"] = [{"help": [("clip", i) for i in sorted(v)]} for _, v in sorted(sp.items())]
+    mixed = []
+    joinable = {}
+    for k, (h, m) in enumerate(D.join[split]):
+        joinable[df.speaker[h[0]]] = k
+    hm = df[(df.group == "libri_help_me") & (df.split == split)].groupby("speaker").groups
+    for s in sorted(joinable):
+        d = {"help": [("clip", i) for i in sorted(sp.get(s, []))]}
+        d["help me"] = [("clip", i) for i in sorted(hm.get(s, []))] + [("join", joinable[s])] * 2
+        mixed.append(d)
+    out["real_mixed"] = mixed
+    tts = df[(df.source == "tts") & (df.split == split) & (df.label != "_other")]
+    voices = {}
+    for (v, lab), g in tts.groupby(["speaker", "label"]):
+        base = v.split("*")[0]
+        voices.setdefault(base, {}).setdefault(lab, []).extend(("clip", i) for i in g.index)
+    out["tts_mixed"] = [voices[v] for v in sorted(voices)]
+    out["tts_help"] = [{"help": voices[v]["help"]} for v in sorted(voices)]
+    out["tts_sos"] = [{"sos": voices[v]["sos"]} for v in sorted(voices)]
     return out
 
 
-def fa_streams(D, split, T):
-    """running speech (+ noise on a share of the files) and the test noise, cut into ~30 min streams"""
-    name = "dev" if split == "val" else "test"
-    sp = pd.read_csv(os.path.join(CACHE, "fa_%s.csv" % name))
-    a = np.load(os.path.join(CACHE, "fa_%s.npy" % name), mmap_mode="r")
-    kw = pd.read_csv(os.path.join(CACHE, "fa_%s_kw.csv" % name))
-    rng = rng_for(C, "fa", split)
-    chunks, cur, guard, base = [], [], [], 0
-    for r in sp.itertuples():
-        x = to_float(np.array(a[r.offset:r.offset + r.length]))
-        x = aug.set_rms(x, rng.uniform(*E["test_level_dbfs"]))
-        if rng.random() < E["fa_noise_mix_prob"]:
-            x = aug.add_noise(x, D.noise_seg(rng, "test", len(x)), rng.uniform(*E["fa_noise_snr_db"]), x)
-        x = aug.noise_floor(x, rng, E["noise_floor_dbfs"])
-        for k in kw[(kw["at"] >= r.offset) & (kw["at"] < r.offset + r.length)].itertuples():
-            a0 = base + (k.at - r.offset)
-            guard.append((a0 * 1000 // 16000, (base + k.end - r.offset) * 1000 // 16000 + int(E["keyword_guard_s"] * 1000)))
-        cur.append(x)
-        base += len(x)
-        if base > E["fa_chunk_min"] * 60 * 16000:
-            chunks.append(("speech", to_int16(np.concatenate(cur)), guard))
-            cur, guard, base = [], [], 0
-    if cur:
-        chunks.append(("speech", to_int16(np.concatenate(cur)), guard))
-    nd, na = D.noise["test"]
-    cur, base = [], 0
-    for r in nd.itertuples():
-        x = to_float(np.array(na[r.offset:r.offset + r.length]))
-        x = aug.set_rms(x, rng.uniform(*E["noise_level_dbfs"]))
-        cur.append(aug.noise_floor(x, rng, E["noise_floor_dbfs"]))
-        base += len(x)
-        if base > E["fa_chunk_min"] * 60 * 16000:
-            chunks.append(("noise", to_int16(np.concatenate(cur)), []))
-            cur, base = [], 0
-    if cur:
-        chunks.append(("noise", to_int16(np.concatenate(cur)), []))
-    return chunks
+def call_audio(D, rng, maker, split):
+    kind, i = maker
+    if kind == "clip":
+        return D.clip(i)
+    h, m = D.join[split][i]
+    return _join(D, rng, h, m)
 
 
-def eval_kw(net, split, tag, kind="device"):
+def _join(D, rng, hs, ms):
+    """the same speaker's help + me (like Data.joined_help_me, for one given speaker)"""
+    h, hs0, he0 = D.clip(hs[rng.integers(len(hs))])
+    m, ms0, me0 = D.clip(ms[rng.integers(len(ms))])
+    t = int(0.02 * RATE)
+    h = h[:min(len(h), he0 + t)]
+    m = m[max(0, ms0 - t):]
+    m = m * (aug.rms(h[hs0:he0]) / aug.rms(m[t:t + (me0 - ms0)]))
+    gap = np.zeros(int(rng.uniform(*C["train_kw"]["join_gap_ms"]) / 1000 * RATE), np.float32)
+    return np.concatenate([h, gap, m]).astype(np.float32), hs0, len(h) + len(gap) + (me0 - ms0) + t
+
+
+def scenario(D, rng, speaker, n_calls, noisy, split):
+    """(int16 stream, [(label, start_ms, end_ms)]) - one person calling n_calls times in 20 s"""
+    total = int((S["lead_s"] + S["window_s"] + S["tail_s"]) * RATE)
+    y = np.zeros(total, np.float32)
+    level = rng.uniform(*E["test_level_dbfs"])
+    slot = S["window_s"] / n_calls
+    labs = sorted(speaker)
+    calls, speech = [], []
+    for c in range(n_calls):
+        lab = labs[rng.integers(len(labs))]
+        mk = speaker[lab][rng.integers(len(speaker[lab]))]
+        x, s, e = call_audio(D, rng, mk, split)
+        if rng.random() < S["p_speed"]:
+            f = rng.uniform(*S["speed"])
+            x = aug.speed(x, f)
+            s, e = int(s / f), min(len(x), int(e / f))
+        x = aug.set_rms(x, level + rng.uniform(*S["call_gain_db"]), x[s:e] if e - s > 160 else x)
+        room = max(0.0, slot - len(x) / RATE)
+        o = int((S["lead_s"] + c * slot + rng.uniform(0, room)) * RATE)
+        n = min(len(x), total - o)
+        y[o:o + n] += x[:n]
+        calls.append((lab, (o + s) * 1000 // RATE, (o + e) * 1000 // RATE))
+        speech.append(x[s:e])
+    if noisy:
+        ref = np.concatenate(speech)
+        y = aug.add_noise(y, D.noise_seg(rng, "test", total), rng.uniform(*E["test_snr_db"]), ref)
+    y = aug.noise_floor(y, rng, E["noise_floor_dbfs"])
+    return to_int16(y), calls
+
+
+def build_scenarios(net, D, split):
     T = net.cfg["T"]
-    labels = C["labels"]
-    keyword = [not l.startswith("_") for l in labels]
-    grid = E["thr_grid"]
-    X = C["export"]
-    D = Data(C)
-    nf = noise_fn(D)
-    t0 = time.time()
-    # --- positives
-    pos = positives(D, split)
-    rows = []
-    for n, (lab, src, x, s, e) in enumerate(pos):
-        for cond in ("clean", "noisy"):
-            rng = rng_for(C, "evalstream", split, n, cond)
-            pcm, a, b = positive_stream(rng, x, s, e, E, nf, cond == "noisy")
-            st = Stream(net, pcm, T)
-            r = dict(label=lab, source=src, cond=cond)
-            for thr in grid:
-                k = hit_in(st.hits(keyword, thr, check=(n == 0)), a * 1000 // 16000, b * 1000 // 16000 + E["hit_after_ms"])
-                r["hit@%.2f" % thr] = k >= 0
-                r["cls@%.2f" % thr] = k == labels.index(lab)
-            rows.append(r)
-    P = pd.DataFrame(rows)
-    print("positives: %d streams (%.0f s)" % (len(P), time.time() - t0), flush=True)
-    # --- false alarms
-    fa = {"speech": dict(hours=0.0), "noise": dict(hours=0.0)}
-    for thr in grid:
-        for k in fa:
-            fa[k]["hits@%.2f" % thr] = 0
-            fa[k]["sos@%.2f" % thr] = 0
-    for src, pcm, guard in fa_streams(D, split, T):
-        st = Stream(net, pcm, T)
-        fa[src]["hours"] += len(pcm) / 16000 / 3600
-        for thr in grid:
-            fh, sos = fa_count(st.hits(keyword, thr, X["hits"], X["hits_ms"]), guard, X["hits"], X["hits_ms"])
-            fa[src]["hits@%.2f" % thr] += fh
-            fa[src]["sos@%.2f" % thr] += sos
-        print("  %s %.2f h done (%.0f s)" % (src, fa[src]["hours"], time.time() - t0), flush=True)
-    # --- summary per threshold
-    sfx = "" if kind == "device" else "_" + kind
-    res = dict(split=split, model=tag, detector=kind, streams=len(P), fa_hours={k: round(v["hours"], 2) for k, v in fa.items()}, per_thr={})
-    res["positives"] = {f"{a}|{b}": int(v) for (a, b), v in P[P.cond == "clean"].groupby(["label", "source"]).size().items()}
-    for thr in grid:
-        h, c = "hit@%.2f" % thr, "cls@%.2f" % thr
-        d = {}
-        for (lab, src, cond), g in P.groupby(["label", "source", "cond"]):
-            d[f"{lab}|{src}|{cond}"] = dict(hit=round(g[h].mean(), 4), correct_class=round(g[c].mean(), 4))
-        for lab, g in P.groupby("label"):
-            d[f"{lab}|ALL|ALL"] = dict(hit=round(g[h].mean(), 4), correct_class=round(g[c].mean(), 4))
-        hrs = sum(v["hours"] for v in fa.values())
-        f = {k: dict(false_hits_per_h=round(v["hits@%.2f" % thr] / max(v["hours"], 1e-9), 3),
-                     false_sos_per_h=round(v["sos@%.2f" % thr] / max(v["hours"], 1e-9), 3),
-                     false_hits=v["hits@%.2f" % thr], false_sos=v["sos@%.2f" % thr]) for k, v in fa.items()}
-        f["all"] = dict(false_hits_per_h=round(sum(v["hits@%.2f" % thr] for v in fa.values()) / hrs, 3),
-                        false_sos=sum(v["sos@%.2f" % thr] for v in fa.values()))
-        res["per_thr"]["%.2f" % thr] = dict(hit=d, fa=f)
-    json.dump(res, open(os.path.join(MODELS, "eval_kw_%s%s.json" % (split, sfx)), "w"), indent=1)
-    plot_kw(res, split, sfx)
-    print("done in %.0f min" % ((time.time() - t0) / 60))
-    return res
-
-
-def plot_kw(res, split, sfx=""):
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots(figsize=(7, 4.5))
-    thr = sorted(res["per_thr"], key=float)
-    for lab, col in zip(C["labels"][:-1], ["#1f77b4", "#ff7f0e", "#2ca02c"]):
-        xs = [res["per_thr"][t]["fa"]["all"]["false_hits_per_h"] for t in thr]
-        ys = [100 * res["per_thr"][t]["hit"][f"{lab}|ALL|ALL"]["hit"] for t in thr]
-        ax.plot(xs, ys, "o-", color=col, label=lab, ms=3)
-    for t in thr[::3]:
-        ax.annotate(t, (res["per_thr"][t]["fa"]["all"]["false_hits_per_h"], 100 * res["per_thr"][t]["hit"]["help|ALL|ALL"]["hit"]),
-                    fontsize=7, xytext=(3, -8), textcoords="offset points")
-    ax.set_xscale("symlog", linthresh=0.1)
-    ax.set_xlabel("false hits per hour (running speech + noise, %s)" % ("LibriSpeech dev" if split == "val" else "LibriSpeech test + test noise"))
-    ax.set_ylabel("hit rate % (clean + noisy)")
-    ax.grid(alpha=.3)
-    ax.legend()
-    ax.set_title("hit rate vs false alarms, %s (%s)" % ("kws.detect.Detector" if not sfx else "proposed window gate", split))
-    fig.tight_layout()
-    fig.savefig(os.path.join(DOCS, "kw_hit_vs_fa_%s%s.png" % (split, sfx)), dpi=130)
-
-
-# ------------------------------------------------------------------ speaker
-KW_WORDS = ("help", "help me", "me")
-
-
-def trial_speakers(D, split, text_dependent=False):
-    df = D.df[(D.df.spk_use == True) & (D.df.split == split)]  # noqa: E712
-    if text_dependent:      # only "help" / "help me" / "me" clips (LibriSpeech): enrolment and test say the keywords
-        df = df[df.word.isin(KW_WORDS)]
-    S = C["train_spk"]
-    need = S["enrol_takes"] + S["test_clips_min"]
-    sp = [s for s, g in df.groupby("speaker") if len(g) >= need]
-    sp = sorted(sp, key=lambda s: stable_hash("trial:" + s))[:S["trial_speakers"]]
-    return {s: sorted(df[df.speaker == s].index, key=lambda i: stable_hash("clip:%d" % i)) for s in sp}
-
-
-def speaker_vectors(net, D, split, conds=("clean", "noisy", "shout"), text_dependent=False):
-    """enrolment templates and test vectors per speaker (device protocol)
-    text_dependent=False: enrol with 5 other words, test with the speaker's keywords first (pessimistic)
-    text_dependent=True:  enrol and test with help / help me / me clips only"""
-    S = C["train_spk"]
-    T = net.cfg["T"]
-    labels = C["labels"]
-    kcls = [labels.index(c) for c in S["enrol_classes"]]
-    spk = trial_speakers(D, split, text_dependent)
-    tmpl, tests = {}, []
-    for s, idx in spk.items():
-        rng = rng_for(C, "spk", split, s, int(text_dependent))
-        if text_dependent:
-            enrol, test = idx[:S["enrol_takes"]], idx[S["enrol_takes"]:]
-        else:
-            kwi = [i for i in idx if D.df.label[i] in ("help", "help me")]
-            oth = [i for i in idx if i not in kwi]
-            enrol = oth[:S["enrol_takes"]]                   # keywords are kept for testing
-            test = kwi + oth[S["enrol_takes"]:S["enrol_takes"] + S["test_clips_max"] - len(kwi)]
-        tm = np.zeros((len(labels), net.cfg["spk_dim"]))
-        for k, i in zip(kcls, enrol):
-            x, a, b = D.clip(i)
-            pcm = take(rng, x, a, b, S["take_s"], rng.uniform(*E["test_level_dbfs"]), E["noise_floor_dbfs"])
-            tm[k] += best_window(net, logmel(pcm), k, T)[1]
-        tmpl[s] = tm
-        for i in test[:S["test_clips_max"]]:
-            x, a, b = D.clip(i)
-            lab = D.df.label[i]
-            k = labels.index(lab) if lab in ("help", "help me") else 0
-            for cond in conds:
-                kw = {}
-                if cond == "noisy":
-                    kw = dict(noise=D.noise_seg(rng, "test", int(S["take_s"] * 16000)), snr=rng.uniform(*E["test_snr_db"]))
-                if cond == "shout":
-                    kw = dict(shout_db=rng.uniform(*C["augment"]["shout_gain_db"]))
-                pcm = take(rng, x, a, b, S["take_s"], rng.uniform(*E["test_level_dbfs"]), E["noise_floor_dbfs"], **kw)
-                tests.append(dict(speaker=s, k=k, cond=cond, keyword=lab in ("help", "help me"),
-                                  emb=best_window(net, logmel(pcm), k, T)[1]))
-    return tmpl, tests
-
-
-def cos(a, b):
-    return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-12))
-
-
-def spk_scores(tmpl, tests, split, n_imp):
-    names = sorted(tmpl)
+    P = pools(D, split)
     out = []
-    for n, t in enumerate(tests):
-        rng = rng_for(C, "imp", split, n)
-        imp = [names[j] for j in rng.permutation(len(names))[:n_imp + 1] if names[j] != t["speaker"]][:n_imp]
-        out.append(dict(cond=t["cond"], keyword=t["keyword"], target=True, score=cos(tmpl[t["speaker"]][t["k"]], t["emb"])))
-        for s in imp:
-            out.append(dict(cond=t["cond"], keyword=t["keyword"], target=False, score=cos(tmpl[s][t["k"]], t["emb"])))
-    return pd.DataFrame(out)
+    for name in S["sets"]:
+        spk = P[name]
+        if not spk:
+            continue
+        for n_calls in S["calls"]:
+            for cond in ("clean", "noisy"):
+                for k in range(S["scenarios"]):
+                    rng = rng_for(C, "scen", split, name, n_calls, cond, k)
+                    sp = spk[int(stable_hash("scspk:%s:%d:%s:%d" % (name, n_calls, cond, k)) % len(spk))]
+                    pcm, calls = scenario(D, rng, sp, n_calls, cond == "noisy", split)
+                    st = Stream(net, pcm, T)
+                    st.pcm = None
+                    out.append(dict(set=name, n=n_calls, cond=cond, calls=calls, st=st))
+    return out
 
 
-def eval_spk(net, split, tag, spk_thr=None):
-    S = C["train_spk"]
-    t0 = time.time()
-    D = Data(C)
-    spk_thr = C["export"]["spk_thr"] if spk_thr is None else spk_thr
-    res = dict(split=split, model=tag, spk_thr=spk_thr)
-    for proto, td in (("text_independent", False), ("text_dependent", True)):
-        tmpl, tests = speaker_vectors(net, D, split, text_dependent=td)
-        sc = spk_scores(tmpl, tests, split, S["impostors_per_test"])
-        r0 = dict(speakers=len(tmpl), cond={})
-        for cond, g in sc.groupby("cond"):
-            tg, im = g[g.target].score.to_numpy(), g[~g.target].score.to_numpy()
-            e, th = eer(tg, im)
-            frr, far = rates(tg, im, spk_thr)
-            r0["cond"][cond] = dict(trials_target=len(tg), trials_impostor=len(im), eer=round(e, 4), eer_thr=round(th, 4),
-                                    frr_at_spk_thr=round(frr, 4), far_at_spk_thr=round(far, 4))
-        res[proto] = r0
-        sc.to_csv(os.path.join(MODELS, "eval_spk_%s_%s_scores.csv" % (split, proto)), index=False)
-        plot_spk(sc, r0, spk_thr, split, proto)
-        print(proto, json.dumps(r0), flush=True)
-    json.dump(res, open(os.path.join(MODELS, "eval_spk_%s.json" % split), "w"), indent=1)
-    print("done in %.0f min" % ((time.time() - t0) / 60))
+# ------------------------------------------------------------------ false-alarm streams
+def fa_sources(split):
+    name = "dev" if split == "val" else "test"
+    out = []
+    for base in ("fa_%s" % name, "fa_%s_extra" % name):
+        p = os.path.join(CACHE, base + ".npy")
+        if os.path.exists(p):
+            out.append((base, pd.read_csv(os.path.join(CACHE, base + ".csv")), np.load(p, mmap_mode="r"),
+                        pd.read_csv(os.path.join(CACHE, base + "_words.csv"), keep_default_na=False)))
+    return out
+
+
+def build_fa(net, D, split):
+    """streams of ~fa_chunk_min minutes: speech (with words) and noise"""
+    T = net.cfg["T"]
+    rng = rng_for(C, "fa", split)
+    out = []
+    kwset = set(C["sources"]["librispeech"]["keyword_words"])
+    for base, sp, a, words in fa_sources(split):
+        wat = words["at"].to_numpy()
+        cur, meta, pos = [], [], 0
+        for r in sp.itertuples():
+            x = to_float(np.array(a[r.offset:r.offset + r.length]))
+            x = aug.set_rms(x, rng.uniform(*E["test_level_dbfs"]))
+            if rng.random() < E["fa_noise_mix_prob"]:
+                x = aug.add_noise(x, D.noise_seg(rng, "test", len(x)), rng.uniform(*E["fa_noise_snr_db"]), x)
+            x = aug.noise_floor(x, rng, E["noise_floor_dbfs"])
+            meta.append((pos, r.offset, r.length))
+            cur.append(x)
+            pos += len(x)
+            if pos > E["fa_chunk_min"] * 60 * RATE or r.Index == len(sp) - 1:
+                # words of this stream, in stream time (ms)
+                w = []
+                for p0, off, ln in meta:
+                    j0, j1 = np.searchsorted(wat, off), np.searchsorted(wat, off + ln)
+                    for wd in words.iloc[j0:j1].itertuples():
+                        w.append((wd.word, (p0 + wd.at - off) * 1000 // RATE, (p0 + wd.end - off) * 1000 // RATE))
+                guard = [(s, e + int(E["keyword_guard_s"] * 1000)) for wd, s, e in w if wd in kwset]
+                st = Stream(net, to_int16(np.concatenate(cur)), T)
+                hours = len(st.feats) * 0.02 / 3600
+                st.pcm = None
+                out.append(dict(kind="speech", src=base, hours=hours, guard=guard, words=w, st=st))
+                cur, meta, pos = [], [], 0
+                if G.get("quick"):
+                    break
+    nd, na = D.noise["test"]
+    keep = [r for r in nd.itertuples() if (stable_hash("noisesplit:" + r.file) % 2 == 0) == (split == "val")]
+    cur, pos = [], 0
+    for k, r in enumerate(keep):
+        x = to_float(np.array(na[r.offset:r.offset + r.length]))
+        cur.append(aug.noise_floor(aug.set_rms(x, rng.uniform(*E["noise_level_dbfs"])), rng, E["noise_floor_dbfs"]))
+        pos += len(x)
+        if pos > E["fa_chunk_min"] * 60 * RATE or k == len(keep) - 1:
+            st = Stream(net, to_int16(np.concatenate(cur)), T)
+            st.pcm = None
+            out.append(dict(kind="noise", src="noise", hours=len(st.feats) * 0.02 / 3600, guard=[], words=[], st=st))
+            cur, pos = [], 0
+    return out
+
+
+# ------------------------------------------------------------------ one setting
+def run_setting(setting):
+    """(thr, cls_off) -> metrics; uses the streams in G (forked)"""
+    thr, off = setting
+    off = list(off)
+    res = dict(thr=thr, cls_off=off)
+    rows = []
+    for sc in G["scen"]:
+        ev = detect(sc["st"].feats, sc["st"].dbfs, sc["st"].probs, sc["st"].frames, sc["st"].T, KEYWORD, thr,
+                    X["hits"], X["hits_ms"], cls_off=off)
+        trig = any(e & EV_SOS for t, e, k in ev)
+        hit = [any(a <= t <= b + E["hit_after_ms"] for t, e, k in ev) for lab, a, b in sc["calls"]]
+        rows.append((sc["set"], sc["n"], sc["cond"], trig, hit, [lab for lab, a, b in sc["calls"]]))
+    trig = {}
+    for (s, n, c), g in pd.DataFrame(rows, columns=["set", "n", "cond", "trig", "hit", "labs"]).groupby(["set", "n", "cond"]):
+        trig[f"{s}|{n}|{c}"] = round(float(g.trig.mean()), 4)
+    calls = Counter()
+    for s, n, c, t, hit, labs in rows:
+        for h, lab in zip(hit, labs):
+            calls[(s, lab, "n")] += 1
+            calls[(s, lab, "h")] += h
+    res["trigger"] = trig
+    res["call_hit"] = {f"{s}|{lab}": round(calls[(s, lab, "h")] / calls[(s, lab, "n")], 4)
+                       for (s, lab, k) in calls if k == "n"}
+    fa = {"speech": [0, 0, 0.0], "noise": [0, 0, 0.0]}
+    words = Counter()
+    for f in G["fa"]:
+        st = f["st"]
+        ev = detect(st.feats, st.dbfs, st.probs, st.frames, st.T, KEYWORD, thr, X["hits"], X["hits_ms"], cls_off=off)
+        times = []
+        for t, e, k in ev:
+            if any(a <= t <= b for a, b in f["guard"]):
+                continue
+            fa[f["kind"]][0] += 1
+            times = [u for u in times if t - u < X["hits_ms"]] + [t]
+            if len(times) >= X["hits"]:
+                fa[f["kind"]][1] += 1
+                times = []
+            if f["words"]:
+                said = [w for w, a, b in f["words"] if b >= t - S["blame_s"] * 1000 and a <= t]
+                words[(LABELS[k], " ".join(said[-S["blame_words"]:]))] += 1
+            else:
+                words[(LABELS[k], "<noise>")] += 1
+        fa[f["kind"]][2] += f["hours"]
+    hrs = sum(v[2] for v in fa.values())
+    res["fa"] = {k: dict(hours=round(v[2], 2), false_hits=v[0], false_hits_per_h=round(v[0] / v[2], 3),
+                         false_sos=v[1], false_sos_per_24h=round(24 * v[1] / v[2], 3)) for k, v in fa.items()}
+    res["fa"]["all"] = dict(hours=round(hrs, 2), false_hits_per_h=round(sum(v[0] for v in fa.values()) / hrs, 3),
+                            false_sos=sum(v[1] for v in fa.values()),
+                            false_sos_per_24h=round(24 * sum(v[1] for v in fa.values()) / hrs, 3))
+    res["fa_top"] = [dict(cls=c, said=w, n=n) for (c, w), n in words.most_common(S["blame_top"])]
     return res
 
 
-def plot_spk(sc, res, spk_thr, split, proto):
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots(1, 2, figsize=(10, 3.8))
-    th = np.linspace(-0.2, 1.0, 241)
-    for cond, ls in (("clean", "-"), ("noisy", "--")):
-        g = sc[sc.cond == cond]
-        tg, im = g[g.target].score.to_numpy(), g[~g.target].score.to_numpy()
-        ax[0].plot(th, [100 * np.mean(tg < t) for t in th], "r" + ls, label="false reject (%s)" % cond)
-        ax[0].plot(th, [100 * np.mean(im >= t) for t in th], "b" + ls, label="false accept (%s)" % cond)
-    ax[0].axvline(spk_thr, color="k", lw=.8)
-    ax[0].set_xlabel("cosine threshold spk_thr"), ax[0].set_ylabel("%"), ax[0].grid(alpha=.3), ax[0].legend(fontsize=7)
-    ax[0].set_title("EER clean %.1f %%, noisy %.1f %%" % (100 * res["cond"]["clean"]["eer"], 100 * res["cond"]["noisy"]["eer"]))
-    g = sc[sc.cond == "clean"]
-    ax[1].hist(g[g.target].score, bins=50, alpha=.6, density=True, label="same speaker")
-    ax[1].hist(g[~g.target].score, bins=50, alpha=.6, density=True, label="other speakers")
-    ax[1].axvline(spk_thr, color="k", lw=.8)
-    ax[1].set_xlabel("cosine to the enrolled template"), ax[1].legend(), ax[1].grid(alpha=.3)
-    fig.suptitle("speaker head, device enrolment (5 takes), %s, %d %s speakers" % (proto.replace("_", "-"), res["speakers"], split))
-    fig.tight_layout()
-    fig.savefig(os.path.join(DOCS, "spk_eer_%s_%s.png" % (split, proto)), dpi=130)
+def settings_grid():
+    out = []
+    for thr in S["sweep_thr"]:
+        for oh in S["sweep_off"]["help"]:
+            for os_ in S["sweep_off"]["sos"]:
+                off = [0.0] * len(LABELS)
+                off[LABELS.index("help")] = oh
+                off[LABELS.index("sos")] = os_
+                out.append((thr, tuple(off)))
+    return out
+
+
+def export_settings():
+    off = [float(X["cls_off"].get(l, 0.0)) for l in LABELS]
+    names = ["low", "medium", "high"]
+    return {n: (t, tuple(off)) for n, t in zip(names, X["thr"])}
+
+
+def summary(r):
+    t = r["trigger"]
+    m6 = np.mean([t[k] for k in t if k.split("|")[1] == "6"])
+    return "thr %.2f off %s | trig@6 %s | all@6 %.3f | FA hits/h %.2f falseSOS/24h %.2f" % (
+        r["thr"], r["cls_off"], {s: round(np.mean([t[k] for k in t if k.startswith(s + "|6|")]), 3) for s in S["sets"]
+                                  if any(k.startswith(s + "|6|") for k in t)}, m6,
+        r["fa"]["all"]["false_hits_per_h"], r["fa"]["all"]["false_sos_per_24h"])
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("part", choices=["kw", "spk"])
     ap.add_argument("--model", default=os.path.join(MODELS, "best.pt"))
     ap.add_argument("--split", default="test", choices=["val", "test"])
-    ap.add_argument("--detector", default="device", choices=["device", "window_gate"],
-                    help="device = kws.detect.Detector (the firmware today); window_gate = proposed gate change")
+    ap.add_argument("--sweep", action="store_true", help="try the thr x cls_off grid of eval_sys (val only)")
+    ap.add_argument("--quick", action="store_true", help="smoke test: 2 scenarios each, first false-alarm stream only")
     a = ap.parse_args()
-    torch.set_num_threads(C["train_kw"]["torch_threads"])
+    if a.quick:
+        S["scenarios"] = 2
+        G["quick"] = True
+    torch.set_num_threads(S["torch_threads"])
+    t0 = time.time()
     net = load_net(a.model)
-    if a.part == "kw":
-        eval_kw(net, a.split, os.path.basename(a.model), a.detector)
-    else:
-        eval_spk(net, a.split, os.path.basename(a.model))
+    D = Data(C)
+    G["scen"] = build_scenarios(net, D, a.split)
+    print("scenarios: %d (%.0f s)" % (len(G["scen"]), time.time() - t0), flush=True)
+    G["fa"] = build_fa(net, D, a.split)
+    print("false-alarm streams: %.1f h (%.0f s)" % (sum(f["hours"] for f in G["fa"]), time.time() - t0), flush=True)
+    # the cached CNN outputs give exactly the windows Detector asks for
+    sc = G["scen"][0]["st"]
+    detect(sc.feats, sc.dbfs, sc.probs, sc.frames, sc.T, KEYWORD, 0.5, X["hits"], X["hits_ms"], check=True)
+    sets = settings_grid() if a.sweep else list(export_settings().values())
+    with Pool(S["procs"]) as pool:
+        res = pool.map(run_setting, sets, chunksize=1)
+    out = dict(split=a.split, model=os.path.basename(a.model), scenarios=len(G["scen"]),
+               fa_hours={k: round(sum(f["hours"] for f in G["fa"] if f["kind"] == k), 2) for k in ("speech", "noise")},
+               results=res)
+    if not a.sweep:
+        out["sensitivity"] = dict(zip(export_settings().keys(), res))
+    name = "eval_sys_%s%s%s.json" % (a.split, "_sweep" if a.sweep else "", "_quick" if a.quick else "")
+    json.dump(out, open(os.path.join(MODELS, name), "w"), indent=1)
+    for r in res:
+        print(summary(r))
+    plot(out, a.split, a.sweep)
+    print("done in %.0f min" % ((time.time() - t0) / 60))
+
+
+def plot(out, split, sweep):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    res = out["results"]
+    fig, ax = plt.subplots(1, 2, figsize=(11, 4.2))
+    groups = {}
+    for r in res:
+        groups.setdefault(tuple(r["cls_off"]), []).append(r)
+    for off, rs in groups.items():
+        rs = sorted(rs, key=lambda r: r["thr"])
+        lab = "cls_off help %+.2f sos %+.2f" % (off[LABELS.index("help")], off[LABELS.index("sos")])
+        x = [r["fa"]["all"]["false_hits_per_h"] for r in rs]
+        y = [100 * np.mean([v for k, v in r["trigger"].items() if k.split("|")[1] == "6"]) for r in rs]
+        ax[0].plot(x, y, "o-", ms=3, label=lab)
+        x = [r["fa"]["all"]["false_sos_per_24h"] for r in rs]
+        ax[1].plot(x, y, "o-", ms=3, label=lab)
+    ax[0].set_xscale("symlog", linthresh=0.1)
+    ax[0].set_xlabel("false single hits per hour")
+    ax[1].set_xscale("symlog", linthresh=0.1)
+    ax[1].set_xlabel("false SOS per 24 h")
+    ax[1].axvline(S["target_false_sos_24h"], color="k", lw=.8)
+    for a_ in ax:
+        a_.set_ylabel("trigger rate % (6 calls in 20 s, all sets)")
+        a_.axhline(100 * S["target_trigger_6"], color="k", lw=.8)
+        a_.grid(alpha=.3)
+    ax[0].legend(fontsize=6)
+    fig.suptitle("system level, kws.detect.Detector (%s, %.0f h false-alarm audio)" % (split, sum(out["fa_hours"].values())))
+    fig.tight_layout()
+    fig.savefig(os.path.join(DOCS, "sys_trigger_vs_fa_%s%s.png" % (split, "_sweep" if sweep else "")), dpi=130)
 
 
 if __name__ == "__main__":

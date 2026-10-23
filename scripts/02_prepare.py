@@ -10,7 +10,7 @@ Writes (all int16, 16 kHz, clips one after the other + a CSV index):
                             split, kw_start / kw_end (spoken part), spk_use
   noise_{train,test}.npy/.csv   noise banks (MUSAN noise + music, ESC-50, SC background)
   fa_{dev,test}.npy/.csv    running speech for false alarms (LibriSpeech dev / test)
-  fa_{dev,test}_kw.csv      where a real "help" is said in that speech (not a false alarm)
+  fa_{dev,test}_words.csv   every word of that speech and where it is (real "help" = not a false alarm)
   counts.json               numbers per class / source / split (for REPORT.md)
 """
 import glob
@@ -180,21 +180,24 @@ def noise():
 
 # ------------------------------------------------------------------ false-alarm speech
 def fa_speech():
+    """LibriSpeech dev / test utterances + every word with its position (to find what caused a false alarm)"""
     out = {}
     for name, subsets in P["fa_subsets"].items():
-        st, kw = Store("fa_" + name), []
+        st, words = Store("fa_" + name), []
         for sub in subsets:
             for f in sorted(glob.glob(os.path.join(RAW, "librispeech", "eval", sub + "-*.parquet"))):
                 for r in pd.read_parquet(f, columns=["id", "audio", "words"]).itertuples():
                     x, sr = sf.read(io.BytesIO(r.audio["bytes"]), dtype="int16")
                     base = st.pos
                     for w in r.words:
-                        if w["word"] and w["word"].lower() in C["sources"]["librispeech"]["keyword_words"]:
-                            kw.append(dict(utt=r.id, word=w["word"], at=base + int(w["start"] * sr), end=base + int(w["end"] * sr)))
+                        if w["word"]:
+                            words.append(dict(utt=r.id, word=w["word"].lower(), at=base + int(w["start"] * sr), end=base + int(w["end"] * sr)))
                     st.add(x, utt=r.id, speaker="ls-" + r.id.split("-")[0], subset=sub)
         st.save()
-        pd.DataFrame(kw, columns=["utt", "word", "at", "end"]).to_csv(os.path.join(CACHE, "fa_%s_kw.csv" % name), index=False)
-        out[name] = dict(hours=round(st.pos / 16000 / 3600, 2), utterances=len(st.rows), real_keywords=len(kw))
+        wd = pd.DataFrame(words, columns=["utt", "word", "at", "end"])
+        wd.to_csv(os.path.join(CACHE, "fa_%s_words.csv" % name), index=False)
+        nkw = int(wd.word.isin(C["sources"]["librispeech"]["keyword_words"]).sum())
+        out[name] = dict(hours=round(st.pos / 16000 / 3600, 2), utterances=len(st.rows), real_keywords=nkw)
         log("fa", name, out[name])
     return out
 

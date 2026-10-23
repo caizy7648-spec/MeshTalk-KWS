@@ -42,8 +42,14 @@ class Data:
     def __init__(self, C):
         cache = C["paths"]["cache"]
         self.C = C
-        self.df = pd.read_csv(os.path.join(cache, "clips.csv"), keep_default_na=False)
-        self.audio = np.load(os.path.join(cache, "clips.npy"), mmap_mode="r")
+        # clips.npy (02_prepare.py) and, when present, hardneg.npy (12_mine.py): one table, store = which file
+        frames, self.audios = [], []
+        for k, name in enumerate(("clips", "hardneg")):
+            if not os.path.exists(os.path.join(cache, name + ".npy")):
+                continue
+            frames.append(pd.read_csv(os.path.join(cache, name + ".csv"), keep_default_na=False).assign(store=len(self.audios)))
+            self.audios.append(np.load(os.path.join(cache, name + ".npy"), mmap_mode="r"))
+        self.df = pd.concat(frames, ignore_index=True)
         self.noise = {}
         for s in ("train", "test"):
             self.noise[s] = (pd.read_csv(os.path.join(cache, "noise_%s.csv" % s)),
@@ -53,6 +59,7 @@ class Data:
         self.len = df.length.to_numpy()
         self.ks = df.kw_start.to_numpy()
         self.ke = df.kw_end.to_numpy()
+        self.store = df.store.to_numpy()
         self.pools = {}
         for (lab, grp, split), g in df.groupby(["label", "group", "split"]):
             self.pools[(lab, grp, split)] = g.index.to_numpy()
@@ -70,7 +77,7 @@ class Data:
 
     def clip(self, i):
         o = self.off[i]
-        return to_float(np.array(self.audio[o:o + self.len[i]])), int(self.ks[i]), int(self.ke[i])
+        return to_float(np.array(self.audios[self.store[i]][o:o + self.len[i]])), int(self.ks[i]), int(self.ke[i])
 
     def noise_seg(self, rng, split, n):
         df, a = self.noise[split]
@@ -191,9 +198,7 @@ class KwWindows(torch.utils.data.Dataset):
         self.B = Builder(D, C, split)
         self.class_p = np.array([K["class_mix"][l] for l in self.labels], float)
         self.class_p /= self.class_p.sum()
-        self.other = [(g, p) for g, p in K["other_mix"].items()]
-        self.other_p = np.array([p for _, p in self.other], float)
-        self.other_p /= self.other_p.sum()
+        self.other = [(g, p) for g, p in K["other_mix"].items() if p > 0]
         self.epoch = 0
         P = {}
         tts_split = split
@@ -207,6 +212,10 @@ class KwWindows(torch.utils.data.Dataset):
                 P[g] = D.pool("_other", ["libri_words", "libri_me"], split)
             elif g not in ("noise_only", "silence"):
                 P[g] = D.pool("_other", [g], split)
+        # a group without clips in this split (hard negatives exist for train only) is left out
+        self.other = [(g, p) for g, p in self.other if g in ("noise_only", "silence") or len(P[g])]
+        self.other_p = np.array([p for _, p in self.other], float)
+        self.other_p /= self.other_p.sum()
         self.P = P
 
     def __len__(self):

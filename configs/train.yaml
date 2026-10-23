@@ -108,6 +108,19 @@ window:
   p_right_edge: 0.35           # v2: share of keyword windows whose keyword ends in the last right_edge_s of the window
   right_edge_s: 0.30           #     (in a quiet room the device gate only runs the CNN while the word is in its last 240 ms)
 
+# --------------------------------------------- Step A2: hard negatives (12_mine.py)
+mine:
+  model: models/kw_r1.pt       # round-1 keyword model (v2 of round 1) that looks for its own false alarms
+  shards: {train_clean_360: 24, train_other_500: 16}   # LibriSpeech training shards streamed (~300 h, ~2 h of CPU)
+  threshold: 0.5               # a window whose best keyword probability reaches this is a hard negative
+  min_gap_s: 1.0               # at most one hard negative per second of speech
+  clip_s: 2.0                  # length of a kept hard negative
+  clip_after_s: 0.2            # it ends this long after the window that fired
+  per_shard_max: 500           # the most confident ones per shard (diversity, disk)
+  noise_per_file_max: 50       # training noise bank: at most this many per file
+  fa_extra_hours: {test: 30, dev: 20}   # held-out speakers' running speech added to the false-alarm sets
+  torch_threads: 4
+
 # ---------------------------------------------------------- augmentation
 augment:                       # kws/augment.py; p_* = probability per training window
   ref_level_dbfs: -25          # speech RMS level that gain_db is relative to
@@ -136,7 +149,7 @@ net:                           # CONTRACT 2 limits: T<=101 c1<=32 c2<=64 c3<=96 
   c2: 32
   c3: 48
   hid: 64
-  spk_dim: 32
+  spk_dim: 0                   # v1.4.1: the speaker model is separate (CONTRACT_SPK.md); round 1 had an unused 32
 
 # ------------------------------------------------- Step 2: keyword training
 train_kw:
@@ -171,26 +184,24 @@ train_kw:
   workers: 4                   # DataLoader processes (one thread each); results do not depend on it
   torch_threads: 2             # threads of the training process
 
-# ------------------------------------------------- Step 3: speaker head
-train_spk:
-  mode: frozen_trunk           # frozen_trunk | multitask
-  multitask_kw_weight: 1.0     # multitask only: weight of the keyword loss next to the speaker loss
-  epochs: 30
-  batch: 256
-  windows_per_epoch: 40000
-  loss: aam_softmax
-  aam_margin: 0.2
-  aam_scale: 30.0
-  lr: 0.003
-  weight_decay: 0.0001
-  augment: {p_noise: 0.6, snr_db: [5, 25], p_reverb: 0.3, p_highpass: 0.7, gain_db: [-15, 6]}  # no speed / pitch (they change the voice)
-  enrol_takes: 5               # device: Help, Help me, SOS, Help, Help me
-  take_s: 2.0                  # device enrolment take length
-  test_clips_min: 3            # a trial speaker needs enrol_takes + this many clips
-  test_clips_max: 8            # test clips per trial speaker (its keywords first)
-  impostors_per_test: 30       # other speakers' templates each test clip is compared with
-  enrol_classes: ["help", "help me", "sos", "help", "help me"]
-  trial_speakers: 300          # test speakers for the EER
+# ------------------------------------------------- Step A3: round 2 (values replacing train_kw)
+train_kw_r2:
+  init: models/kw_r1.pt        # fine-tune the round-1 model
+  epochs: 25
+  lr: 0.001                    # half the round-1 peak: fine-tuning
+  warmup_frac: 0.05
+  class_mix: {help: 0.17, help me: 0.16, sos: 0.17, _other: 0.5}
+  other_mix:
+    hard_neg: 0.25             # 12_mine.py: running speech where round 1 fired
+    hard_neg_noise: 0.05       # 12_mine.py: training noise where round 1 fired
+    mswc_lookalike: 0.12
+    mswc_random: 0.07
+    speech_commands: 0.04
+    libri_words: 0.08
+    libri_chunk: 0.17
+    tts_other: 0.10
+    noise_only: 0.08
+    silence: 0.04
 
 # ------------------------------------------------- Step 2/4: evaluation
 eval:
@@ -208,9 +219,31 @@ eval:
   keyword_guard_s: 1.5         # hits this close to a real "help" in LibriSpeech are not false alarms
   thr_grid: [0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.93, 0.95, 0.97, 0.98, 0.99]
 
+# ------------------------------------------------- Step A: system-level evaluation (20_eval.py)
+eval_sys:
+  sets: [real_help, real_mixed, tts_mixed, tts_help, tts_sos]   # who calls and what (see 20_eval.py)
+  calls: [4, 6, 8]             # calls within window_s
+  window_s: 20.0               # = hits_ms
+  lead_s: 0.5                  # quiet / noise before the first call
+  tail_s: 2.0                  # after the window (the last call can still be counted)
+  scenarios: 100               # per set x calls x clean/noisy
+  call_gain_db: [-3, 3]        # level change from call to call (one person)
+  p_speed: 0.5
+  speed: [0.95, 1.05]          # speaking rate change from call to call
+  blame_s: 1.0                 # words said in the last second before a false hit are listed
+  blame_words: 4
+  blame_top: 30
+  sweep_thr: [0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.93, 0.95]
+  sweep_off: {help: [-0.10, -0.05, 0.0], sos: [0.0, 0.05]}
+  target_trigger_6: 0.90       # owner: >= 90 % with 6 calls
+  target_false_sos_24h: 1.0    # owner: <= 1 false SOS per 24 h
+  procs: 4
+  torch_threads: 4
+
 # ------------------------------------------------- Step 4: thresholds / export
 export:
   thr: [0.90, 0.80, 0.65]      # low / medium / high sensitivity (chosen in step 4 from the dev curves)
+  cls_off: {help: 0.0, help me: 0.0, sos: 0.0}   # per class threshold offsets (v1.4.1)
   spk_thr: 0.70
   hits: 3
   hits_ms: 20000
