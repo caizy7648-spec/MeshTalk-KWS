@@ -1,8 +1,15 @@
-numpy
-scipy
-soundfile
-torch
-# optional, for synthetic speech (see PLAN.md step 2)
-kokoro-onnx
-onnxruntime
-threadpoolctl
+# versions used for the delivered models (Python 3.13.16); CPU torch is enough:
+#   pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+numpy==2.5.4
+scipy==1.18.1
+soundfile==0.14.0
+torch==2.14.1
+pyyaml==6.0.3
+pandas==3.1.0
+pyarrow==26.0.0
+requests==2.34.2
+matplotlib==3.11.2
+threadpoolctl==3.7.0
+# synthetic speech (scripts/03_tts.py)
+kokoro-onnx==0.6.1
+onnxruntime==1.31.0
