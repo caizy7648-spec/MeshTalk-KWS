@@ -1,0 +1,1363 @@
+{
+ "split": "val",
+ "model": "best_int8sim.pt",
+ "scenarios": 3000,
+ "fa_hours": {
+  "speech": 30.51,
+  "noise": 2.39
+ },
+ "results": [
+  {
+   "thr": 0.65,
+   "cls_off": [
+    -0.1,
+    0.0,
+    0.05,
+    0.0
+   ],
+   "trigger": {
+    "real_help|4|clean": 0.81,
+    "real_help|4|noisy": 0.65,
+    "real_help|6|clean": 0.93,
+    "real_help|6|noisy": 0.67,
+    "real_help|8|clean": 0.95,
+    "real_help|8|noisy": 0.86,
+    "real_mixed|4|clean": 0.87,
+    "real_mixed|4|noisy": 0.6,
+    "real_mixed|6|clean": 0.97,
+    "real_mixed|6|noisy": 0.72,
+    "real_mixed|8|clean": 0.97,
+    "real_mixed|8|noisy": 0.86,
+    "tts_help|4|clean": 1.0,
+    "tts_help|4|noisy": 0.77,
+    "tts_help|6|clean": 1.0,
+    "tts_help|6|noisy": 0.95,
+    "tts_help|8|clean": 1.0,
+    "tts_help|8|noisy": 0.93,
+    "tts_mixed|4|clean": 0.98,
+    "tts_mixed|4|noisy": 0.65,
+    "tts_mixed|6|clean": 1.0,
+    "tts_mixed|6|noisy": 0.89,
+    "tts_mixed|8|clean": 1.0,
+    "tts_mixed|8|noisy": 0.97,
+    "tts_sos|4|clean": 0.76,
+    "tts_sos|4|noisy": 0.56,
+    "tts_sos|6|clean": 0.95,
+    "tts_sos|6|noisy": 0.77,
+    "tts_sos|8|clean": 1.0,
+    "tts_sos|8|noisy": 0.89
+   },
+   "call_hit": {
+    "real_help|help": 0.7739,
+    "real_mixed|help me": 0.824,
+    "real_mixed|help": 0.6792,
+    "tts_mixed|help me": 0.9238,
+    "tts_mixed|sos": 0.6591,
+    "tts_mixed|help": 0.7937,
+    "tts_help|help": 0.8192,
+    "tts_sos|sos": 0.6889
+   },
+   "fa": {
+    "speech": {
+     "hours": 30.51,
+     "false_hits": 61,
+     "false_hits_per_h": 1.999,
+     "false_sos": 0,
+     "false_sos_per_24h": 0.0
+    },
+    "noise": {
+     "hours": 2.39,
+     "false_hits": 6,
+     "false_hits_per_h": 2.514,
+     "false_sos": 0,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 32.9,
+     "false_hits_per_h": 2.037,
+     "false_sos": 0,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "fa_top": [
+    {
+     "cls": "help",
+     "said": "<noise>",
+     "n": 4
+    },
+    {
+     "cls": "help me",
+     "said": "<noise>",
+     "n": 2
+    },
+    {
+     "cls": "help",
+     "said": "house",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "the mississippi to navigation",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "manhood",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "hope to cross it",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "houses not what",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a thousand plans",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "health he",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "she felt that which",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "otto winked at me",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "he was killed and",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "have the man sly",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "health of a church",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "so",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "melbourne",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "must be shocked",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "have to be told",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "of rules of war",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "hope",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "way out there",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a happy one",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "sulkily departed",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "elders",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "that thou deservest well",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "how best he might",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "output of the mine",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "hill looking down",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "happened",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "",
+     "n": 1
+    }
+   ]
+  },
+  {
+   "thr": 0.55,
+   "cls_off": [
+    -0.1,
+    0.0,
+    0.05,
+    0.0
+   ],
+   "trigger": {
+    "real_help|4|clean": 0.87,
+    "real_help|4|noisy": 0.79,
+    "real_help|6|clean": 0.97,
+    "real_help|6|noisy": 0.8,
+    "real_help|8|clean": 1.0,
+    "real_help|8|noisy": 0.93,
+    "real_mixed|4|clean": 0.95,
+    "real_mixed|4|noisy": 0.76,
+    "real_mixed|6|clean": 1.0,
+    "real_mixed|6|noisy": 0.84,
+    "real_mixed|8|clean": 0.99,
+    "real_mixed|8|noisy": 0.9,
+    "tts_help|4|clean": 1.0,
+    "tts_help|4|noisy": 0.85,
+    "tts_help|6|clean": 1.0,
+    "tts_help|6|noisy": 0.98,
+    "tts_help|8|clean": 1.0,
+    "tts_help|8|noisy": 0.97,
+    "tts_mixed|4|clean": 1.0,
+    "tts_mixed|4|noisy": 0.78,
+    "tts_mixed|6|clean": 1.0,
+    "tts_mixed|6|noisy": 0.95,
+    "tts_mixed|8|clean": 1.0,
+    "tts_mixed|8|noisy": 0.98,
+    "tts_sos|4|clean": 0.92,
+    "tts_sos|4|noisy": 0.72,
+    "tts_sos|6|clean": 0.97,
+    "tts_sos|6|noisy": 0.89,
+    "tts_sos|8|clean": 1.0,
+    "tts_sos|8|noisy": 0.94
+   },
+   "call_hit": {
+    "real_help|help": 0.8564,
+    "real_mixed|help me": 0.8903,
+    "real_mixed|help": 0.8039,
+    "tts_mixed|help me": 0.9435,
+    "tts_mixed|sos": 0.7397,
+    "tts_mixed|help": 0.8388,
+    "tts_help|help": 0.8664,
+    "tts_sos|sos": 0.7686
+   },
+   "fa": {
+    "speech": {
+     "hours": 30.51,
+     "false_hits": 178,
+     "false_hits_per_h": 5.834,
+     "false_sos": 0,
+     "false_sos_per_24h": 0.0
+    },
+    "noise": {
+     "hours": 2.39,
+     "false_hits": 21,
+     "false_hits_per_h": 8.801,
+     "false_sos": 1,
+     "false_sos_per_24h": 10.058
+    },
+    "all": {
+     "hours": 32.9,
+     "false_hits_per_h": 6.049,
+     "false_sos": 1,
+     "false_sos_per_24h": 0.73
+    }
+   },
+   "fa_top": [
+    {
+     "cls": "help",
+     "said": "<noise>",
+     "n": 18
+    },
+    {
+     "cls": "help",
+     "said": "",
+     "n": 3
+    },
+    {
+     "cls": "help me",
+     "said": "<noise>",
+     "n": 3
+    },
+    {
+     "cls": "help",
+     "said": "you know i sometimes",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "house",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "the mississippi to navigation",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "manhood",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "with me and",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "had no visible owner",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a house of materials",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "behold yes",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "fatigue this",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "hope to cross it",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "houses not what",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "is said north",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a thousand plans",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "the difference as soon",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "attempted opening it",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "colors",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "bringing up at all",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "you distress",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "noble race besides",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "galloping into camp the",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "numeral calculus which",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "fearfully outnumbered",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "health he",
+     "n": 1
+    },
+    {
+     "cls": "sos",
+     "said": "now helicon must needs",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "yourself these",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "she felt",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "otto winked at me",
+     "n": 1
+    }
+   ]
+  },
+  {
+   "thr": 0.5,
+   "cls_off": [
+    -0.1,
+    0.0,
+    0.05,
+    0.0
+   ],
+   "trigger": {
+    "real_help|4|clean": 0.89,
+    "real_help|4|noisy": 0.84,
+    "real_help|6|clean": 0.97,
+    "real_help|6|noisy": 0.83,
+    "real_help|8|clean": 1.0,
+    "real_help|8|noisy": 0.94,
+    "real_mixed|4|clean": 0.97,
+    "real_mixed|4|noisy": 0.84,
+    "real_mixed|6|clean": 1.0,
+    "real_mixed|6|noisy": 0.88,
+    "real_mixed|8|clean": 0.99,
+    "real_mixed|8|noisy": 0.92,
+    "tts_help|4|clean": 1.0,
+    "tts_help|4|noisy": 0.93,
+    "tts_help|6|clean": 1.0,
+    "tts_help|6|noisy": 0.98,
+    "tts_help|8|clean": 1.0,
+    "tts_help|8|noisy": 0.98,
+    "tts_mixed|4|clean": 1.0,
+    "tts_mixed|4|noisy": 0.86,
+    "tts_mixed|6|clean": 1.0,
+    "tts_mixed|6|noisy": 0.97,
+    "tts_mixed|8|clean": 1.0,
+    "tts_mixed|8|noisy": 0.98,
+    "tts_sos|4|clean": 0.95,
+    "tts_sos|4|noisy": 0.76,
+    "tts_sos|6|clean": 0.99,
+    "tts_sos|6|noisy": 0.9,
+    "tts_sos|8|clean": 1.0,
+    "tts_sos|8|noisy": 0.95
+   },
+   "call_hit": {
+    "real_help|help": 0.8867,
+    "real_mixed|help me": 0.9192,
+    "real_mixed|help": 0.8488,
+    "tts_mixed|help me": 0.9563,
+    "tts_mixed|sos": 0.7733,
+    "tts_mixed|help": 0.8606,
+    "tts_help|help": 0.8819,
+    "tts_sos|sos": 0.7992
+   },
+   "fa": {
+    "speech": {
+     "hours": 30.51,
+     "false_hits": 286,
+     "false_hits_per_h": 9.374,
+     "false_sos": 1,
+     "false_sos_per_24h": 0.787
+    },
+    "noise": {
+     "hours": 2.39,
+     "false_hits": 35,
+     "false_hits_per_h": 14.668,
+     "false_sos": 3,
+     "false_sos_per_24h": 30.173
+    },
+    "all": {
+     "hours": 32.9,
+     "false_hits_per_h": 9.758,
+     "false_sos": 4,
+     "false_sos_per_24h": 2.918
+    }
+   },
+   "fa_top": [
+    {
+     "cls": "help",
+     "said": "<noise>",
+     "n": 29
+    },
+    {
+     "cls": "help me",
+     "said": "<noise>",
+     "n": 6
+    },
+    {
+     "cls": "help",
+     "said": "no",
+     "n": 2
+    },
+    {
+     "cls": "help",
+     "said": "count",
+     "n": 2
+    },
+    {
+     "cls": "help me",
+     "said": "me",
+     "n": 2
+    },
+    {
+     "cls": "help",
+     "said": "my uncle was delighted",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "bean lean",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "great beauty",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "pointed out to me",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "you know i sometimes",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "house",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "had opened the mississippi",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "perfect manhood",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "come with me and",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "pony you have never",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "had no visible owner",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a house of materials",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "behold yes",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "fatigue this",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "hope to cross it",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "few houses not",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "seemed to be burning",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "is said north",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "helplessly an",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a thousand plans",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "the difference as soon",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "attempted opening it",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "agreeable to me but",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "all waters",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "colors",
+     "n": 1
+    }
+   ]
+  }
+ ],
+ "sensitivity": {
+  "low": {
+   "thr": 0.65,
+   "cls_off": [
+    -0.1,
+    0.0,
+    0.05,
+    0.0
+   ],
+   "trigger": {
+    "real_help|4|clean": 0.81,
+    "real_help|4|noisy": 0.65,
+    "real_help|6|clean": 0.93,
+    "real_help|6|noisy": 0.67,
+    "real_help|8|clean": 0.95,
+    "real_help|8|noisy": 0.86,
+    "real_mixed|4|clean": 0.87,
+    "real_mixed|4|noisy": 0.6,
+    "real_mixed|6|clean": 0.97,
+    "real_mixed|6|noisy": 0.72,
+    "real_mixed|8|clean": 0.97,
+    "real_mixed|8|noisy": 0.86,
+    "tts_help|4|clean": 1.0,
+    "tts_help|4|noisy": 0.77,
+    "tts_help|6|clean": 1.0,
+    "tts_help|6|noisy": 0.95,
+    "tts_help|8|clean": 1.0,
+    "tts_help|8|noisy": 0.93,
+    "tts_mixed|4|clean": 0.98,
+    "tts_mixed|4|noisy": 0.65,
+    "tts_mixed|6|clean": 1.0,
+    "tts_mixed|6|noisy": 0.89,
+    "tts_mixed|8|clean": 1.0,
+    "tts_mixed|8|noisy": 0.97,
+    "tts_sos|4|clean": 0.76,
+    "tts_sos|4|noisy": 0.56,
+    "tts_sos|6|clean": 0.95,
+    "tts_sos|6|noisy": 0.77,
+    "tts_sos|8|clean": 1.0,
+    "tts_sos|8|noisy": 0.89
+   },
+   "call_hit": {
+    "real_help|help": 0.7739,
+    "real_mixed|help me": 0.824,
+    "real_mixed|help": 0.6792,
+    "tts_mixed|help me": 0.9238,
+    "tts_mixed|sos": 0.6591,
+    "tts_mixed|help": 0.7937,
+    "tts_help|help": 0.8192,
+    "tts_sos|sos": 0.6889
+   },
+   "fa": {
+    "speech": {
+     "hours": 30.51,
+     "false_hits": 61,
+     "false_hits_per_h": 1.999,
+     "false_sos": 0,
+     "false_sos_per_24h": 0.0
+    },
+    "noise": {
+     "hours": 2.39,
+     "false_hits": 6,
+     "false_hits_per_h": 2.514,
+     "false_sos": 0,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 32.9,
+     "false_hits_per_h": 2.037,
+     "false_sos": 0,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "fa_top": [
+    {
+     "cls": "help",
+     "said": "<noise>",
+     "n": 4
+    },
+    {
+     "cls": "help me",
+     "said": "<noise>",
+     "n": 2
+    },
+    {
+     "cls": "help",
+     "said": "house",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "the mississippi to navigation",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "manhood",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "hope to cross it",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "houses not what",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a thousand plans",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "health he",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "she felt that which",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "otto winked at me",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "he was killed and",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "have the man sly",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "health of a church",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "so",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "melbourne",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "must be shocked",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "have to be told",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "of rules of war",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "hope",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "way out there",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a happy one",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "sulkily departed",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "elders",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "that thou deservest well",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "how best he might",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "output of the mine",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "hill looking down",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "happened",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "",
+     "n": 1
+    }
+   ]
+  },
+  "medium": {
+   "thr": 0.55,
+   "cls_off": [
+    -0.1,
+    0.0,
+    0.05,
+    0.0
+   ],
+   "trigger": {
+    "real_help|4|clean": 0.87,
+    "real_help|4|noisy": 0.79,
+    "real_help|6|clean": 0.97,
+    "real_help|6|noisy": 0.8,
+    "real_help|8|clean": 1.0,
+    "real_help|8|noisy": 0.93,
+    "real_mixed|4|clean": 0.95,
+    "real_mixed|4|noisy": 0.76,
+    "real_mixed|6|clean": 1.0,
+    "real_mixed|6|noisy": 0.84,
+    "real_mixed|8|clean": 0.99,
+    "real_mixed|8|noisy": 0.9,
+    "tts_help|4|clean": 1.0,
+    "tts_help|4|noisy": 0.85,
+    "tts_help|6|clean": 1.0,
+    "tts_help|6|noisy": 0.98,
+    "tts_help|8|clean": 1.0,
+    "tts_help|8|noisy": 0.97,
+    "tts_mixed|4|clean": 1.0,
+    "tts_mixed|4|noisy": 0.78,
+    "tts_mixed|6|clean": 1.0,
+    "tts_mixed|6|noisy": 0.95,
+    "tts_mixed|8|clean": 1.0,
+    "tts_mixed|8|noisy": 0.98,
+    "tts_sos|4|clean": 0.92,
+    "tts_sos|4|noisy": 0.72,
+    "tts_sos|6|clean": 0.97,
+    "tts_sos|6|noisy": 0.89,
+    "tts_sos|8|clean": 1.0,
+    "tts_sos|8|noisy": 0.94
+   },
+   "call_hit": {
+    "real_help|help": 0.8564,
+    "real_mixed|help me": 0.8903,
+    "real_mixed|help": 0.8039,
+    "tts_mixed|help me": 0.9435,
+    "tts_mixed|sos": 0.7397,
+    "tts_mixed|help": 0.8388,
+    "tts_help|help": 0.8664,
+    "tts_sos|sos": 0.7686
+   },
+   "fa": {
+    "speech": {
+     "hours": 30.51,
+     "false_hits": 178,
+     "false_hits_per_h": 5.834,
+     "false_sos": 0,
+     "false_sos_per_24h": 0.0
+    },
+    "noise": {
+     "hours": 2.39,
+     "false_hits": 21,
+     "false_hits_per_h": 8.801,
+     "false_sos": 1,
+     "false_sos_per_24h": 10.058
+    },
+    "all": {
+     "hours": 32.9,
+     "false_hits_per_h": 6.049,
+     "false_sos": 1,
+     "false_sos_per_24h": 0.73
+    }
+   },
+   "fa_top": [
+    {
+     "cls": "help",
+     "said": "<noise>",
+     "n": 18
+    },
+    {
+     "cls": "help",
+     "said": "",
+     "n": 3
+    },
+    {
+     "cls": "help me",
+     "said": "<noise>",
+     "n": 3
+    },
+    {
+     "cls": "help",
+     "said": "you know i sometimes",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "house",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "the mississippi to navigation",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "manhood",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "with me and",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "had no visible owner",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a house of materials",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "behold yes",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "fatigue this",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "hope to cross it",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "houses not what",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "is said north",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a thousand plans",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "the difference as soon",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "attempted opening it",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "colors",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "bringing up at all",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "you distress",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "noble race besides",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "galloping into camp the",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "numeral calculus which",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "fearfully outnumbered",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "health he",
+     "n": 1
+    },
+    {
+     "cls": "sos",
+     "said": "now helicon must needs",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "yourself these",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "she felt",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "otto winked at me",
+     "n": 1
+    }
+   ]
+  },
+  "high": {
+   "thr": 0.5,
+   "cls_off": [
+    -0.1,
+    0.0,
+    0.05,
+    0.0
+   ],
+   "trigger": {
+    "real_help|4|clean": 0.89,
+    "real_help|4|noisy": 0.84,
+    "real_help|6|clean": 0.97,
+    "real_help|6|noisy": 0.83,
+    "real_help|8|clean": 1.0,
+    "real_help|8|noisy": 0.94,
+    "real_mixed|4|clean": 0.97,
+    "real_mixed|4|noisy": 0.84,
+    "real_mixed|6|clean": 1.0,
+    "real_mixed|6|noisy": 0.88,
+    "real_mixed|8|clean": 0.99,
+    "real_mixed|8|noisy": 0.92,
+    "tts_help|4|clean": 1.0,
+    "tts_help|4|noisy": 0.93,
+    "tts_help|6|clean": 1.0,
+    "tts_help|6|noisy": 0.98,
+    "tts_help|8|clean": 1.0,
+    "tts_help|8|noisy": 0.98,
+    "tts_mixed|4|clean": 1.0,
+    "tts_mixed|4|noisy": 0.86,
+    "tts_mixed|6|clean": 1.0,
+    "tts_mixed|6|noisy": 0.97,
+    "tts_mixed|8|clean": 1.0,
+    "tts_mixed|8|noisy": 0.98,
+    "tts_sos|4|clean": 0.95,
+    "tts_sos|4|noisy": 0.76,
+    "tts_sos|6|clean": 0.99,
+    "tts_sos|6|noisy": 0.9,
+    "tts_sos|8|clean": 1.0,
+    "tts_sos|8|noisy": 0.95
+   },
+   "call_hit": {
+    "real_help|help": 0.8867,
+    "real_mixed|help me": 0.9192,
+    "real_mixed|help": 0.8488,
+    "tts_mixed|help me": 0.9563,
+    "tts_mixed|sos": 0.7733,
+    "tts_mixed|help": 0.8606,
+    "tts_help|help": 0.8819,
+    "tts_sos|sos": 0.7992
+   },
+   "fa": {
+    "speech": {
+     "hours": 30.51,
+     "false_hits": 286,
+     "false_hits_per_h": 9.374,
+     "false_sos": 1,
+     "false_sos_per_24h": 0.787
+    },
+    "noise": {
+     "hours": 2.39,
+     "false_hits": 35,
+     "false_hits_per_h": 14.668,
+     "false_sos": 3,
+     "false_sos_per_24h": 30.173
+    },
+    "all": {
+     "hours": 32.9,
+     "false_hits_per_h": 9.758,
+     "false_sos": 4,
+     "false_sos_per_24h": 2.918
+    }
+   },
+   "fa_top": [
+    {
+     "cls": "help",
+     "said": "<noise>",
+     "n": 29
+    },
+    {
+     "cls": "help me",
+     "said": "<noise>",
+     "n": 6
+    },
+    {
+     "cls": "help",
+     "said": "no",
+     "n": 2
+    },
+    {
+     "cls": "help",
+     "said": "count",
+     "n": 2
+    },
+    {
+     "cls": "help me",
+     "said": "me",
+     "n": 2
+    },
+    {
+     "cls": "help",
+     "said": "my uncle was delighted",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "bean lean",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "great beauty",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "pointed out to me",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "you know i sometimes",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "house",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "had opened the mississippi",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "perfect manhood",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "come with me and",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "pony you have never",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "had no visible owner",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a house of materials",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "behold yes",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "fatigue this",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "hope to cross it",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "few houses not",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "seemed to be burning",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "is said north",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "helplessly an",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "a thousand plans",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "the difference as soon",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "attempted opening it",
+     "n": 1
+    },
+    {
+     "cls": "help me",
+     "said": "agreeable to me but",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "all waters",
+     "n": 1
+    },
+    {
+     "cls": "help",
+     "said": "colors",
+     "n": 1
+    }
+   ]
+  }
+ }
+}

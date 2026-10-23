@@ -47,7 +47,30 @@ def budget(net, L):
     macs = T * B * c["c1"] * 9 + (T // 2) * (B // 2) * c["c1"] * c["c2"] * 9 + (T // 4) * (B // 4) * c["c2"] * c["c3"] * 9 \
         + c["c3"] * c["hid"] + c["hid"] * c["ncls"]
     wbytes = sum(L[k][0].size + 4 * (1 + L[k][2].size) for k in L) + 8 * B
-    return dict(macs=int(macs), weight_bytes=int(wbytes))
+    work = T * B + c["c1"] * (T // 2) * (B // 2) + c["c2"] * (T // 4) * (B // 4)       # kws_engine_work()
+    return dict(macs=int(macs), weight_bytes=int(wbytes), work_floats=int(work), work_bytes=int(4 * work),
+                detector_buffers_bytes=int(2 * 4 * T * B))                              # ring + win of kws_det_t
+
+
+def int8_net(net, L):
+    """a KwsNet that computes what the C engine computes: BatchNorm folded, int8 weights x scale
+    (saved as models/best_int8sim.pt; 20_eval.py --model models/best_int8sim.pt gives device-exact numbers)"""
+    q = KwsNet(**net.cfg)
+    q.load_state_dict(net.state_dict())
+    with torch.no_grad():
+        for i, (conv, bn) in enumerate([(q.conv1, q.bn1), (q.conv2, q.bn2), (q.conv3, q.bn3)], 1):
+            w8, sc, b = L["%d" % i]
+            conv.weight.copy_(torch.from_numpy(w8.astype(np.float32) * sc))
+            conv.bias.copy_(torch.from_numpy(b))
+            bn.running_mean.zero_()
+            bn.running_var.fill_(1.0 - bn.eps)
+            bn.weight.fill_(1.0)
+            bn.bias.zero_()
+        for k, lin in (("4", q.fc1), ("5", q.fc2)):
+            w8, sc, b = L[k]
+            lin.weight.copy_(torch.from_numpy(w8.astype(np.float32) * sc))
+            lin.bias.copy_(torch.from_numpy(b))
+    return q.eval()
 
 
 def main():
@@ -66,8 +89,11 @@ def main():
     net.load_state_dict(ck["state"])
     net.eval()
     L = export.layers(net)
+    q = int8_net(net, L)
+    torch.save({"cfg": q.cfg, "state": q.state_dict(), "labels": C["labels"], "note": "int8-equivalent of best.pt"},
+               os.path.join(C["paths"]["models"], "best_int8sim.pt"))
     va = FixedKwWindows(Data(C), C, "val", X["check_windows_per_class"], tag="exportcheck")
-    dp, same, ecos = [], 0, []
+    dp, same, ecos, dq = [], 0, [], []
     for i in range(len(va)):
         f, _ = va[i]
         p8, e8 = export.reference(net, L, f.numpy())
@@ -75,11 +101,13 @@ def main():
             lg, emb = net(f[None])
         pf = torch.softmax(lg, 1)[0].numpy()
         dp.append(np.abs(pf - p8).max())
+        with torch.no_grad():
+            dq.append(float(np.abs(torch.softmax(q(f[None])[0], 1)[0].numpy() - p8).max()))
         same += int(pf.argmax() == p8.argmax())
         if emb is not None:
             ecos.append(float(np.dot(emb[0].numpy(), e8)))
     r = dict(**budget(net, L), windows=len(va), max_prob_diff=float(np.max(dp)), mean_prob_diff=float(np.mean(dp)),
-             argmax_agree=same / len(va), emb_cos_min=float(np.min(ecos)) if ecos else None,
+             argmax_agree=same / len(va), int8sim_vs_reference_max_diff=float(np.max(dq)), emb_cos_min=float(np.min(ecos)) if ecos else None,
              emb_cos_mean=float(np.mean(ecos)) if ecos else None)
     json.dump(r, open(os.path.join(C["paths"]["models"], "export_check.json"), "w"), indent=1)
     print("int8 vs float:", json.dumps(r), flush=True)

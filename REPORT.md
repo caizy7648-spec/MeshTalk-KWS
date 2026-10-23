@@ -125,3 +125,48 @@ Steps 4 (export) has not been done yet, as agreed for a NO-GO.
   (no local changes existed in these files, nothing to merge).
 - `python -m kws.check_c` -> **19 checks, 0 failed**.
 - `WindowGateDetector` removed; all evaluation uses `kws.detect.Detector` (window gate + `cls_off`).
+
+## Phase A - keyword model "usable v1": exported, targets met at the border
+
+**`out/kws_model.c` + `out/kws_model_test.c` (kws-20261023-r3), `python -m kws.check_c out` -> 20 checks, 0 failed.**
+Model: T 81, c1/c2/c3/hid 16/32/48/64, 4 classes, spk_dim 0 -> **6.92 M multiply-adds per run, weights 22.9 KB,
+work memory 22 440 floats = 88 KB** (+ 25 KB ring/window of `kws_det_t`) - inside the budget (64 KB / 160 KB / 15 M).
+Settings: `thr = {0.65, 0.55, 0.50}` (low / **medium** / high), `cls_off: help -0.10, help me 0, sos +0.05`, 3 hits / 20 s.
+
+Test split, measured with `kws.detect.Detector` on the int8 model (`models/best_int8sim.pt` = the C arithmetic,
+max difference to `export.reference` 8.5e-7). Trigger = EV_SOS when one person calls 6 times in 20 s
+(mean of clean and noisy SNR 5-20 dB; 200 scenarios per cell). False alarms: 38.7 h held-out running speech
+(LibriSpeech test + test-split speakers, half with noise) + 1.35 h test noise.
+
+| sensitivity | real help/help me mixed | Kokoro help/help me/SOS mixed | Kokoro SOS only | **real "help" only** | false hits / h | **false SOS / 24 h** |
+|---|---|---|---|---|---|---|
+| low 0.65 | 87.0 % | 97.5 % | 94.5 % | 81.0 % | 2.5 | **0** (0 in 40 h) |
+| **medium 0.55** | **92.5 %** | **99.5 %** | **97.0 %** | **88.0 %** | 6.9 | **1.2** (2 in 40 h) |
+| high 0.50 | 95.0 % | 99.5 % | 98.5 % | 90.5 % | 10.3 | 2.4 (4 in 40 h) |
+| target | >= 90 % | >= 90 % | | (report) | | <= 1 |
+
+Medium in detail (clean / noisy, %):
+
+| calls in 20 s | real help only | real mixed | Kokoro mixed | Kokoro help only | Kokoro SOS only |
+|---|---|---|---|---|---|
+| 4 | 89 / 77 | 95 / 80 | 99 / 97 | 100 / 92 | 97 / 89 |
+| 6 | 95 / 81 | 94 / 91 | 100 / 99 | 100 / 97 | 99 / 95 |
+| 8 | 94 / 89 | 97 / 99 | 100 / 100 | 100 / 97 | 100 / 98 |
+
+- **Trigger target met** (mixed calls 92.5 % real, 99.5 % synthetic). Real "help" only: 88 % (95 % clean, 81 % in noise).
+- **False SOS at the border:** dev 1 in 32.9 h (0.73/24 h), test 2 in 40 h (1.2/24 h), together 3 in 72.9 h = **0.99 / 24 h**.
+  On running speech alone: 0.62 / 24 h (1 in 38.7 h). The other test event comes from noise: one MUSAN file
+  (`noise-free-sound-0155.wav`, 72 s, probably voices in it) gives 31 high windows; the test noise is only 1.35 h, so one file decides.
+- False single hits come from noise (13/h on test noise) and from scattered words with h/p sounds in speech
+  ("hope", "himself", "helpless", "doctor"...), no single dominant word (`models/eval_sys_test.json` fa_top).
+- Sensitivity "low" meets the false-alarm target with margin (0 false SOS, 2.5 hits/h) but real mixed calls drop to 87 %.
+
+How (all choices on dev, test only reported): round 1 (`kw_r1.pt`, round-1 v2) -> **hard-negative mining**
+(`12_mine.py`: round-1 model over 242 h of training speakers' speech: 20 000 windows where it fired + 3206 in training noise)
+-> round 2 (`kw_r2.pt`, fine-tuned 25 epochs) -> mining again with round 2 (new shards, threshold 0.4: only 7946 + 986 left)
+-> round 3 (`kw_r3.pt`, 20 epochs) -> `cls_off` / `thr` sweep on dev (160 settings). Dev at the same trigger rate:
+false hits/h r2 9-10 -> r3 4.7-5.4. False-alarm sets enlarged for this: dev 30.5 h + test 38.7 h of held-out speech.
+
+Next most effective steps: (1) the owner's own "help / help me / SOS" recordings with the device microphone (real SOS
+is still synthetic only, noisy real "help" is the weak case); (2) more real noise with voices as hard negatives
+(the device's own environment recordings would be best); (3) once `kwsbench` is measured, c1/c2 24/48 (14.5 M MAC) is the allowed next size.

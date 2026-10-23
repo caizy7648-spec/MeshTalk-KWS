@@ -1,0 +1,14 @@
+{
+ "macs": 6921088,
+ "weight_bytes": 22900,
+ "work_floats": 22440,
+ "work_bytes": 89760,
+ "detector_buffers_bytes": 25920,
+ "windows": 400,
+ "max_prob_diff": 0.10414273844360239,
+ "mean_prob_diff": 0.015880604252217125,
+ "argmax_agree": 0.9875,
+ "int8sim_vs_reference_max_diff": 8.530415976926164e-07,
+ "emb_cos_min": null,
+ "emb_cos_mean": null
+}

@@ -281,10 +281,12 @@ eval_sys:
 # ------------------------------------------------- Step 4: thresholds / export
 export:
   model: kw_r3.pt              # the round that is exported (copied to models/best.pt with spk_dim 0)
-  thr: [0.90, 0.80, 0.65]      # low / medium / high sensitivity (chosen in step 4 from the dev curves)
-  cls_off: {help: 0.0, help me: 0.0, sos: 0.0}   # per class threshold offsets (v1.4.1)
+  thr: [0.65, 0.55, 0.50]      # low / medium (default) / high sensitivity - chosen on dev (20_eval.py --sweep, r3):
+                               #   medium: highest 6-call trigger rate with 0 false SOS in 32.9 h of dev audio
+                               #   low: about 1.7 false single hits / h; high: more sensitive, ~2 false SOS / 24 h on dev
+  cls_off: {help: -0.10, help me: 0.0, sos: 0.05}   # per class offsets: "help" (short word) lower, SOS (synthetic data only) stricter
   spk_thr: 0.70
   hits: 3
   hits_ms: 20000
-  name: kws-20261022
+  name: kws-20261023-r3
   check_windows_per_class: 100 # validation windows for the int8-vs-float check
