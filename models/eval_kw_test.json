@@ -1,0 +1,1641 @@
+{
+ "split": "test",
+ "model": "kw.pt",
+ "detector": "device",
+ "streams": 3892,
+ "fa_hours": {
+  "speech": 10.74,
+  "noise": 3.74
+ },
+ "per_thr": {
+  "0.30": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 1.0,
+     "correct_class": 1.0
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.9867,
+     "correct_class": 0.9867
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.9831,
+     "correct_class": 0.8885
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.9696,
+     "correct_class": 0.8041
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.9639,
+     "correct_class": 0.9639
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.8894,
+     "correct_class": 0.863
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 1.0,
+     "correct_class": 0.0
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.9933,
+     "correct_class": 0.24
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.9412,
+     "correct_class": 0.3235
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.9706,
+     "correct_class": 0.6176
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 1.0,
+     "correct_class": 0.1067
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.99,
+     "correct_class": 0.29
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.9933,
+     "correct_class": 0.79
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.9933,
+     "correct_class": 0.89
+    },
+    "help|ALL|ALL": {
+     "hit": 0.961,
+     "correct_class": 0.9175
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.9937,
+     "correct_class": 0.1759
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.9933,
+     "correct_class": 0.84
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 365.069,
+     "false_sos_per_h": 92.524,
+     "false_hits": 3922,
+     "false_sos": 994
+    },
+    "noise": {
+     "false_hits_per_h": 427.77,
+     "false_sos_per_h": 126.618,
+     "false_hits": 1598,
+     "false_sos": 473
+    },
+    "all": {
+     "false_hits_per_h": 381.246,
+     "false_sos": 1467
+    }
+   }
+  },
+  "0.35": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 1.0,
+     "correct_class": 1.0
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.9833,
+     "correct_class": 0.98
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.9595,
+     "correct_class": 0.8311
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.9561,
+     "correct_class": 0.7669
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.9255,
+     "correct_class": 0.9255
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.8822,
+     "correct_class": 0.8606
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 1.0,
+     "correct_class": 0.01
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.9933,
+     "correct_class": 0.4167
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.9412,
+     "correct_class": 0.3824
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.9412,
+     "correct_class": 0.6471
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.9967,
+     "correct_class": 0.1733
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.98,
+     "correct_class": 0.3
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.9867,
+     "correct_class": 0.8267
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.99,
+     "correct_class": 0.9167
+    },
+    "help|ALL|ALL": {
+     "hit": 0.9457,
+     "correct_class": 0.8943
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.9897,
+     "correct_class": 0.2405
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.9883,
+     "correct_class": 0.8717
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 275.896,
+     "false_sos_per_h": 59.759,
+     "false_hits": 2964,
+     "false_sos": 642
+    },
+    "noise": {
+     "false_hits_per_h": 310.789,
+     "false_sos_per_h": 85.929,
+     "false_hits": 1161,
+     "false_sos": 321
+    },
+    "all": {
+     "false_hits_per_h": 284.899,
+     "false_sos": 963
+    }
+   }
+  },
+  "0.40": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 1.0,
+     "correct_class": 1.0
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.9767,
+     "correct_class": 0.9733
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.9358,
+     "correct_class": 0.7838
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.9324,
+     "correct_class": 0.7128
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.9014,
+     "correct_class": 0.9014
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.8558,
+     "correct_class": 0.8365
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.9967,
+     "correct_class": 0.1033
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.9933,
+     "correct_class": 0.5933
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.8824,
+     "correct_class": 0.5882
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.9412,
+     "correct_class": 0.7353
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.9833,
+     "correct_class": 0.2533
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.98,
+     "correct_class": 0.3533
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.9567,
+     "correct_class": 0.8333
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.9767,
+     "correct_class": 0.93
+    },
+    "help|ALL|ALL": {
+     "hit": 0.9274,
+     "correct_class": 0.8686
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.9842,
+     "correct_class": 0.3438
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.9667,
+     "correct_class": 0.8817
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 200.779,
+     "false_sos_per_h": 34.534,
+     "false_hits": 2157,
+     "false_sos": 371
+    },
+    "noise": {
+     "false_hits_per_h": 206.657,
+     "false_sos_per_h": 51.664,
+     "false_hits": 772,
+     "false_sos": 193
+    },
+    "all": {
+     "false_hits_per_h": 202.295,
+     "false_sos": 564
+    }
+   }
+  },
+  "0.45": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.9933,
+     "correct_class": 0.9933
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.96,
+     "correct_class": 0.9567
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.8986,
+     "correct_class": 0.7331
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.9122,
+     "correct_class": 0.6689
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.8918,
+     "correct_class": 0.8918
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.8221,
+     "correct_class": 0.8053
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.9133,
+     "correct_class": 0.3
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.9833,
+     "correct_class": 0.7
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.8529,
+     "correct_class": 0.6176
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.9412,
+     "correct_class": 0.8235
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.9733,
+     "correct_class": 0.32
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.96,
+     "correct_class": 0.4233
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.8833,
+     "correct_class": 0.81
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.9667,
+     "correct_class": 0.94
+    },
+    "help|ALL|ALL": {
+     "hit": 0.9066,
+     "correct_class": 0.8429
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.9543,
+     "correct_class": 0.4511
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.925,
+     "correct_class": 0.875
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 148.373,
+     "false_sos_per_h": 20.106,
+     "false_hits": 1594,
+     "false_sos": 216
+    },
+    "noise": {
+     "false_hits_per_h": 145.624,
+     "false_sos_per_h": 32.926,
+     "false_hits": 544,
+     "false_sos": 123
+    },
+    "all": {
+     "false_hits_per_h": 147.664,
+     "false_sos": 339
+    }
+   }
+  },
+  "0.50": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.9767,
+     "correct_class": 0.9767
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.9533,
+     "correct_class": 0.95
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.8277,
+     "correct_class": 0.6757
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.8649,
+     "correct_class": 0.6014
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.8341,
+     "correct_class": 0.8341
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.7716,
+     "correct_class": 0.7596
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.8633,
+     "correct_class": 0.6333
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.9667,
+     "correct_class": 0.78
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.8529,
+     "correct_class": 0.7059
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.8824,
+     "correct_class": 0.7647
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.97,
+     "correct_class": 0.4333
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.9467,
+     "correct_class": 0.5133
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.8433,
+     "correct_class": 0.7933
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.9633,
+     "correct_class": 0.9533
+    },
+    "help|ALL|ALL": {
+     "hit": 0.8636,
+     "correct_class": 0.7999
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.933,
+     "correct_class": 0.5978
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.9033,
+     "correct_class": 0.8733
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 104.997,
+     "false_sos_per_h": 9.029,
+     "false_hits": 1128,
+     "false_sos": 97
+    },
+    "noise": {
+     "false_hits_per_h": 97.975,
+     "false_sos_per_h": 20.077,
+     "false_hits": 366,
+     "false_sos": 75
+    },
+    "all": {
+     "false_hits_per_h": 103.185,
+     "false_sos": 172
+    }
+   }
+  },
+  "0.55": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.8867,
+     "correct_class": 0.8867
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.93,
+     "correct_class": 0.9233
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.7331,
+     "correct_class": 0.6081
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.777,
+     "correct_class": 0.5034
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.7644,
+     "correct_class": 0.7644
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.7332,
+     "correct_class": 0.7163
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.79,
+     "correct_class": 0.6033
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.96,
+     "correct_class": 0.8233
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.7353,
+     "correct_class": 0.6765
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.8529,
+     "correct_class": 0.7647
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.9533,
+     "correct_class": 0.5133
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.9267,
+     "correct_class": 0.5833
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.76,
+     "correct_class": 0.7367
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.9433,
+     "correct_class": 0.94
+    },
+    "help|ALL|ALL": {
+     "hit": 0.7979,
+     "correct_class": 0.7352
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.9014,
+     "correct_class": 0.6356
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.8517,
+     "correct_class": 0.8383
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 73.535,
+     "false_sos_per_h": 4.375,
+     "false_hits": 790,
+     "false_sos": 47
+    },
+    "noise": {
+     "false_hits_per_h": 62.64,
+     "false_sos_per_h": 10.44,
+     "false_hits": 234,
+     "false_sos": 39
+    },
+    "all": {
+     "false_hits_per_h": 70.724,
+     "false_sos": 86
+    }
+   }
+  },
+  "0.60": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.6067,
+     "correct_class": 0.6067
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.89,
+     "correct_class": 0.8867
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.6216,
+     "correct_class": 0.5439
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.7027,
+     "correct_class": 0.4324
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.7019,
+     "correct_class": 0.7019
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.6707,
+     "correct_class": 0.6587
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.69,
+     "correct_class": 0.5333
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.94,
+     "correct_class": 0.86
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.5882,
+     "correct_class": 0.5588
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.8235,
+     "correct_class": 0.7647
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.8833,
+     "correct_class": 0.5467
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.89,
+     "correct_class": 0.64
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.69,
+     "correct_class": 0.68
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.9233,
+     "correct_class": 0.9233
+    },
+    "help|ALL|ALL": {
+     "hit": 0.6976,
+     "correct_class": 0.6438
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.8431,
+     "correct_class": 0.6459
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.8067,
+     "correct_class": 0.8017
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 50.544,
+     "false_sos_per_h": 2.606,
+     "false_hits": 543,
+     "false_sos": 28
+    },
+    "noise": {
+     "false_hits_per_h": 40.154,
+     "false_sos_per_h": 5.622,
+     "false_hits": 150,
+     "false_sos": 21
+    },
+    "all": {
+     "false_hits_per_h": 47.863,
+     "false_sos": 49
+    }
+   }
+  },
+  "0.65": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.3167,
+     "correct_class": 0.3167
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.8367,
+     "correct_class": 0.8333
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.5101,
+     "correct_class": 0.4493
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.598,
+     "correct_class": 0.3716
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.6082,
+     "correct_class": 0.6082
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.613,
+     "correct_class": 0.6034
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.4667,
+     "correct_class": 0.37
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.9,
+     "correct_class": 0.86
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.3824,
+     "correct_class": 0.3824
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.7353,
+     "correct_class": 0.7059
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.7567,
+     "correct_class": 0.5067
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.82,
+     "correct_class": 0.6333
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.5933,
+     "correct_class": 0.5933
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.9033,
+     "correct_class": 0.9033
+    },
+    "help|ALL|ALL": {
+     "hit": 0.584,
+     "correct_class": 0.5395
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.7263,
+     "correct_class": 0.5899
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.7483,
+     "correct_class": 0.7483
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 34.534,
+     "false_sos_per_h": 0.931,
+     "false_hits": 371,
+     "false_sos": 10
+    },
+    "noise": {
+     "false_hits_per_h": 27.304,
+     "false_sos_per_h": 3.212,
+     "false_hits": 102,
+     "false_sos": 12
+    },
+    "all": {
+     "false_hits_per_h": 32.668,
+     "false_sos": 22
+    }
+   }
+  },
+  "0.70": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.2867,
+     "correct_class": 0.2867
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.78,
+     "correct_class": 0.78
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.3716,
+     "correct_class": 0.348
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.5034,
+     "correct_class": 0.3209
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.5457,
+     "correct_class": 0.5457
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.5625,
+     "correct_class": 0.5529
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.26,
+     "correct_class": 0.1733
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.8667,
+     "correct_class": 0.8367
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.2647,
+     "correct_class": 0.2647
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.6176,
+     "correct_class": 0.6176
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.65,
+     "correct_class": 0.4767
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.75,
+     "correct_class": 0.6033
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.5367,
+     "correct_class": 0.5367
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.8733,
+     "correct_class": 0.8733
+    },
+    "help|ALL|ALL": {
+     "hit": 0.5138,
+     "correct_class": 0.4817
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.6215,
+     "correct_class": 0.5181
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.705,
+     "correct_class": 0.705
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 22.061,
+     "false_sos_per_h": 0.279,
+     "false_hits": 237,
+     "false_sos": 3
+    },
+    "noise": {
+     "false_hits_per_h": 16.329,
+     "false_sos_per_h": 1.338,
+     "false_hits": 61,
+     "false_sos": 5
+    },
+    "all": {
+     "false_hits_per_h": 20.582,
+     "false_sos": 8
+    }
+   }
+  },
+  "0.75": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.2467,
+     "correct_class": 0.2467
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.6833,
+     "correct_class": 0.6833
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.2939,
+     "correct_class": 0.2804
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.375,
+     "correct_class": 0.2162
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.4856,
+     "correct_class": 0.4856
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.4663,
+     "correct_class": 0.4615
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.2267,
+     "correct_class": 0.1433
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.8367,
+     "correct_class": 0.8133
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.2059,
+     "correct_class": 0.2059
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.5294,
+     "correct_class": 0.5294
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.5267,
+     "correct_class": 0.3933
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.6333,
+     "correct_class": 0.57
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.4233,
+     "correct_class": 0.4233
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.8267,
+     "correct_class": 0.8267
+    },
+    "help|ALL|ALL": {
+     "hit": 0.4313,
+     "correct_class": 0.4051
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.5457,
+     "correct_class": 0.474
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.625,
+     "correct_class": 0.625
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 12.845,
+     "false_sos_per_h": 0.186,
+     "false_hits": 138,
+     "false_sos": 2
+    },
+    "noise": {
+     "false_hits_per_h": 9.637,
+     "false_sos_per_h": 1.071,
+     "false_hits": 36,
+     "false_sos": 4
+    },
+    "all": {
+     "false_hits_per_h": 12.018,
+     "false_sos": 6
+    }
+   }
+  },
+  "0.80": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.23,
+     "correct_class": 0.23
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.5833,
+     "correct_class": 0.5833
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.223,
+     "correct_class": 0.2162
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.2872,
+     "correct_class": 0.152
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.3798,
+     "correct_class": 0.3798
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.3702,
+     "correct_class": 0.3702
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.2067,
+     "correct_class": 0.1267
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.8,
+     "correct_class": 0.7933
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.1765,
+     "correct_class": 0.1765
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.5,
+     "correct_class": 0.5
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.3933,
+     "correct_class": 0.3333
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.5133,
+     "correct_class": 0.47
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.3433,
+     "correct_class": 0.3433
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.7933,
+     "correct_class": 0.7933
+    },
+    "help|ALL|ALL": {
+     "hit": 0.3493,
+     "correct_class": 0.3286
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.4708,
+     "correct_class": 0.4259
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.5683,
+     "correct_class": 0.5683
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 6.981,
+     "false_sos_per_h": 0.0,
+     "false_hits": 75,
+     "false_sos": 0
+    },
+    "noise": {
+     "false_hits_per_h": 3.748,
+     "false_sos_per_h": 0.268,
+     "false_hits": 14,
+     "false_sos": 1
+    },
+    "all": {
+     "false_hits_per_h": 6.147,
+     "false_sos": 1
+    }
+   }
+  },
+  "0.85": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.1533,
+     "correct_class": 0.1533
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.44,
+     "correct_class": 0.44
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.1149,
+     "correct_class": 0.1149
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.1791,
+     "correct_class": 0.0912
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.262,
+     "correct_class": 0.262
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.2428,
+     "correct_class": 0.2428
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.16,
+     "correct_class": 0.1
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.7067,
+     "correct_class": 0.7
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.1176,
+     "correct_class": 0.1176
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.3529,
+     "correct_class": 0.3529
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.2933,
+     "correct_class": 0.2733
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.3833,
+     "correct_class": 0.3733
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.2333,
+     "correct_class": 0.2333
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.7533,
+     "correct_class": 0.7533
+    },
+    "help|ALL|ALL": {
+     "hit": 0.2347,
+     "correct_class": 0.2218
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.3778,
+     "correct_class": 0.3549
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.4933,
+     "correct_class": 0.4933
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 3.072,
+     "false_sos_per_h": 0.0,
+     "false_hits": 33,
+     "false_sos": 0
+    },
+    "noise": {
+     "false_hits_per_h": 1.071,
+     "false_sos_per_h": 0.0,
+     "false_hits": 4,
+     "false_sos": 0
+    },
+    "all": {
+     "false_hits_per_h": 2.555,
+     "false_sos": 0
+    }
+   }
+  },
+  "0.90": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.0667,
+     "correct_class": 0.0667
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.2333,
+     "correct_class": 0.2333
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.0304,
+     "correct_class": 0.0304
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.0709,
+     "correct_class": 0.027
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.1202,
+     "correct_class": 0.1202
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.1202,
+     "correct_class": 0.1202
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.1033,
+     "correct_class": 0.06
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.6033,
+     "correct_class": 0.6
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.1176,
+     "correct_class": 0.1176
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.3235,
+     "correct_class": 0.3235
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.1567,
+     "correct_class": 0.1567
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.2633,
+     "correct_class": 0.26
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.1733,
+     "correct_class": 0.1733
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.6633,
+     "correct_class": 0.6633
+    },
+    "help|ALL|ALL": {
+     "hit": 0.1087,
+     "correct_class": 0.1023
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.2784,
+     "correct_class": 0.2666
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.4183,
+     "correct_class": 0.4183
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 1.024,
+     "false_sos_per_h": 0.0,
+     "false_hits": 11,
+     "false_sos": 0
+    },
+    "noise": {
+     "false_hits_per_h": 0.268,
+     "false_sos_per_h": 0.0,
+     "false_hits": 1,
+     "false_sos": 0
+    },
+    "all": {
+     "false_hits_per_h": 0.829,
+     "false_sos": 0
+    }
+   }
+  },
+  "0.93": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.0233,
+     "correct_class": 0.0233
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.1033,
+     "correct_class": 0.1033
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.0101,
+     "correct_class": 0.0101
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.0405,
+     "correct_class": 0.0101
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.0433,
+     "correct_class": 0.0433
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.0481,
+     "correct_class": 0.0481
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.05,
+     "correct_class": 0.0367
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.4933,
+     "correct_class": 0.49
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.0882,
+     "correct_class": 0.0882
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.2647,
+     "correct_class": 0.2647
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.11,
+     "correct_class": 0.11
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.1733,
+     "correct_class": 0.1733
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.13,
+     "correct_class": 0.13
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.5767,
+     "correct_class": 0.5767
+    },
+    "help|ALL|ALL": {
+     "hit": 0.045,
+     "correct_class": 0.0405
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.205,
+     "correct_class": 0.2011
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.3533,
+     "correct_class": 0.3533
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 0.279,
+     "false_sos_per_h": 0.0,
+     "false_hits": 3,
+     "false_sos": 0
+    },
+    "noise": {
+     "false_hits_per_h": 0.0,
+     "false_sos_per_h": 0.0,
+     "false_hits": 0,
+     "false_sos": 0
+    },
+    "all": {
+     "false_hits_per_h": 0.207,
+     "false_sos": 0
+    }
+   }
+  },
+  "0.95": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.0067,
+     "correct_class": 0.0067
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.0367,
+     "correct_class": 0.0367
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.0169,
+     "correct_class": 0.0034
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.012,
+     "correct_class": 0.012
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.0168,
+     "correct_class": 0.0168
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.0333,
+     "correct_class": 0.0333
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.3667,
+     "correct_class": 0.3667
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.0588,
+     "correct_class": 0.0588
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.1471,
+     "correct_class": 0.1471
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.0833,
+     "correct_class": 0.0833
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.1133,
+     "correct_class": 0.1133
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.0567,
+     "correct_class": 0.0567
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.5067,
+     "correct_class": 0.5067
+    },
+    "help|ALL|ALL": {
+     "hit": 0.0148,
+     "correct_class": 0.0128
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.1467,
+     "correct_class": 0.1467
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.2817,
+     "correct_class": 0.2817
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 0.093,
+     "false_sos_per_h": 0.0,
+     "false_hits": 1,
+     "false_sos": 0
+    },
+    "noise": {
+     "false_hits_per_h": 0.0,
+     "false_sos_per_h": 0.0,
+     "false_hits": 0,
+     "false_sos": 0
+    },
+    "all": {
+     "false_hits_per_h": 0.069,
+     "false_sos": 0
+    }
+   }
+  },
+  "0.97": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.0067,
+     "correct_class": 0.0067
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.0068,
+     "correct_class": 0.0
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.0072,
+     "correct_class": 0.0072
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.0233,
+     "correct_class": 0.0233
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.2333,
+     "correct_class": 0.2333
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.0294,
+     "correct_class": 0.0294
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.1176,
+     "correct_class": 0.1176
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.0567,
+     "correct_class": 0.0567
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.0533,
+     "correct_class": 0.0533
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.0233,
+     "correct_class": 0.0233
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.35,
+     "correct_class": 0.35
+    },
+    "help|ALL|ALL": {
+     "hit": 0.0035,
+     "correct_class": 0.0025
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.0907,
+     "correct_class": 0.0907
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.1867,
+     "correct_class": 0.1867
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 0.0,
+     "false_sos_per_h": 0.0,
+     "false_hits": 0,
+     "false_sos": 0
+    },
+    "noise": {
+     "false_hits_per_h": 0.0,
+     "false_sos_per_h": 0.0,
+     "false_hits": 0,
+     "false_sos": 0
+    },
+    "all": {
+     "false_hits_per_h": 0.0,
+     "false_sos": 0
+    }
+   }
+  },
+  "0.98": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.0034,
+     "correct_class": 0.0
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.0024,
+     "correct_class": 0.0024
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.01,
+     "correct_class": 0.01
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.1233,
+     "correct_class": 0.1233
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.0294,
+     "correct_class": 0.0294
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.0588,
+     "correct_class": 0.0588
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.0267,
+     "correct_class": 0.0267
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.0167,
+     "correct_class": 0.0167
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.01,
+     "correct_class": 0.01
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.2567,
+     "correct_class": 0.2567
+    },
+    "help|ALL|ALL": {
+     "hit": 0.001,
+     "correct_class": 0.0005
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.0442,
+     "correct_class": 0.0442
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.1333,
+     "correct_class": 0.1333
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 0.0,
+     "false_sos_per_h": 0.0,
+     "false_hits": 0,
+     "false_sos": 0
+    },
+    "noise": {
+     "false_hits_per_h": 0.0,
+     "false_sos_per_h": 0.0,
+     "false_hits": 0,
+     "false_sos": 0
+    },
+    "all": {
+     "false_hits_per_h": 0.0,
+     "false_sos": 0
+    }
+   }
+  },
+  "0.99": {
+   "hit": {
+    "help|TTS (held-out voices)|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|TTS (held-out voices)|noisy": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|real LibriSpeech|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|real LibriSpeech|noisy": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|real MSWC|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help|real MSWC|noisy": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help me|TTS (held-out voices)|clean": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help me|TTS (held-out voices)|noisy": {
+     "hit": 0.02,
+     "correct_class": 0.02
+    },
+    "help me|real LibriSpeech|clean": {
+     "hit": 0.0294,
+     "correct_class": 0.0294
+    },
+    "help me|real LibriSpeech|noisy": {
+     "hit": 0.0294,
+     "correct_class": 0.0294
+    },
+    "help me|real joined help+me|clean": {
+     "hit": 0.0033,
+     "correct_class": 0.0033
+    },
+    "help me|real joined help+me|noisy": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "sos|TTS (held-out voices)|clean": {
+     "hit": 0.0033,
+     "correct_class": 0.0033
+    },
+    "sos|TTS (held-out voices)|noisy": {
+     "hit": 0.1267,
+     "correct_class": 0.1267
+    },
+    "help|ALL|ALL": {
+     "hit": 0.0,
+     "correct_class": 0.0
+    },
+    "help me|ALL|ALL": {
+     "hit": 0.0071,
+     "correct_class": 0.0071
+    },
+    "sos|ALL|ALL": {
+     "hit": 0.065,
+     "correct_class": 0.065
+    }
+   },
+   "fa": {
+    "speech": {
+     "false_hits_per_h": 0.0,
+     "false_sos_per_h": 0.0,
+     "false_hits": 0,
+     "false_sos": 0
+    },
+    "noise": {
+     "false_hits_per_h": 0.0,
+     "false_sos_per_h": 0.0,
+     "false_hits": 0,
+     "false_sos": 0
+    },
+    "all": {
+     "false_hits_per_h": 0.0,
+     "false_sos": 0
+    }
+   }
+  }
+ },
+ "positives": {
+  "help|TTS (held-out voices)": 300,
+  "help|real LibriSpeech": 296,
+  "help|real MSWC": 416,
+  "help me|TTS (held-out voices)": 300,
+  "help me|real LibriSpeech": 34,
+  "help me|real joined help+me": 300,
+  "sos|TTS (held-out voices)": 300
+ }
+}

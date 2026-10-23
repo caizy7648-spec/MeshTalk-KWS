@@ -3,7 +3,10 @@
 本文件说明：用了哪些数据、每个参数是什么值以及为什么这样选、如何从零复现、训练结果图表和运行环境。
 **所有参数都在 `configs/train.yaml` 里，代码只从这个文件读取**（`kws/cfg.py`），代码中没有其他"魔法数字"。
 
-<!-- RESULTS -->
+> **当前状态（2026-10-23）**：Step 2 未达标（NO-GO），已暂停等待决定，详见 `REPORT.md`。
+> 已有结果图：`docs/kw_training_curves.png`（训练曲线）、`docs/kw_confusion_val.png`（混淆矩阵）、
+> `docs/kw_hit_vs_fa_{val,test}.png`（命中率–误报率，设备原逻辑）、`docs/kw_hit_vs_fa_{val,test}_window_gate.png`（建议的门限修改）、
+> `models/prelim_spk/spk_eer_val_*.png`（声纹 EER，初步）。复现命令、运行环境与耗时将在 Step 4 完成后补全。
 
 ---
 
