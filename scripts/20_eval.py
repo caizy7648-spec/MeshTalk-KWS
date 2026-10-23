@@ -196,8 +196,13 @@ def plot_kw(res, split, sfx=""):
 
 
 # ------------------------------------------------------------------ speaker
-def trial_speakers(D, split):
+KW_WORDS = ("help", "help me", "me")
+
+
+def trial_speakers(D, split, text_dependent=False):
     df = D.df[(D.df.spk_use == True) & (D.df.split == split)]  # noqa: E712
+    if text_dependent:      # only "help" / "help me" / "me" clips (LibriSpeech): enrolment and test say the keywords
+        df = df[df.word.isin(KW_WORDS)]
     S = C["train_spk"]
     need = S["enrol_takes"] + S["test_clips_min"]
     sp = [s for s, g in df.groupby("speaker") if len(g) >= need]
@@ -205,20 +210,25 @@ def trial_speakers(D, split):
     return {s: sorted(df[df.speaker == s].index, key=lambda i: stable_hash("clip:%d" % i)) for s in sp}
 
 
-def speaker_vectors(net, D, split, conds=("clean", "noisy", "shout")):
-    """enrolment templates and test vectors per speaker (device protocol)"""
+def speaker_vectors(net, D, split, conds=("clean", "noisy", "shout"), text_dependent=False):
+    """enrolment templates and test vectors per speaker (device protocol)
+    text_dependent=False: enrol with 5 other words, test with the speaker's keywords first (pessimistic)
+    text_dependent=True:  enrol and test with help / help me / me clips only"""
     S = C["train_spk"]
     T = net.cfg["T"]
     labels = C["labels"]
     kcls = [labels.index(c) for c in S["enrol_classes"]]
-    spk = trial_speakers(D, split)
+    spk = trial_speakers(D, split, text_dependent)
     tmpl, tests = {}, []
     for s, idx in spk.items():
-        rng = rng_for(C, "spk", split, s)
-        kwi = [i for i in idx if D.df.label[i] in ("help", "help me")]
-        oth = [i for i in idx if i not in kwi]
-        enrol = oth[:S["enrol_takes"]]                       # enrol with other words: keywords are kept for testing
-        test = kwi + oth[S["enrol_takes"]:S["enrol_takes"] + S["test_clips_max"] - len(kwi)]
+        rng = rng_for(C, "spk", split, s, int(text_dependent))
+        if text_dependent:
+            enrol, test = idx[:S["enrol_takes"]], idx[S["enrol_takes"]:]
+        else:
+            kwi = [i for i in idx if D.df.label[i] in ("help", "help me")]
+            oth = [i for i in idx if i not in kwi]
+            enrol = oth[:S["enrol_takes"]]                   # keywords are kept for testing
+            test = kwi + oth[S["enrol_takes"]:S["enrol_takes"] + S["test_clips_max"] - len(kwi)]
         tm = np.zeros((len(labels), net.cfg["spk_dim"]))
         for k, i in zip(kcls, enrol):
             x, a, b = D.clip(i)
@@ -261,30 +271,28 @@ def eval_spk(net, split, tag, spk_thr=None):
     S = C["train_spk"]
     t0 = time.time()
     D = Data(C)
-    tmpl, tests = speaker_vectors(net, D, split)
-    sc = spk_scores(tmpl, tests, split, S["impostors_per_test"])
     spk_thr = C["export"]["spk_thr"] if spk_thr is None else spk_thr
-    res = dict(split=split, model=tag, speakers=len(tmpl), spk_thr=spk_thr, cond={})
-    for cond, g in sc.groupby("cond"):
-        tg, im = g[g.target].score.to_numpy(), g[~g.target].score.to_numpy()
-        e, th = eer(tg, im)
-        frr, far = rates(tg, im, spk_thr)
-        r = dict(trials_target=len(tg), trials_impostor=len(im), eer=round(e, 4), eer_thr=round(th, 4),
-                 frr_at_spk_thr=round(frr, 4), far_at_spk_thr=round(far, 4))
-        gk = g[g.keyword]
-        if gk.target.sum() >= 20:
-            r["eer_keyword_tests_only"] = round(eer(gk[gk.target].score.to_numpy(), gk[~gk.target].score.to_numpy())[0], 4)
-            r["keyword_target_trials"] = int(gk.target.sum())
-        res["cond"][cond] = r
-    sc.to_csv(os.path.join(MODELS, "eval_spk_%s_scores.csv" % split), index=False)
+    res = dict(split=split, model=tag, spk_thr=spk_thr)
+    for proto, td in (("text_independent", False), ("text_dependent", True)):
+        tmpl, tests = speaker_vectors(net, D, split, text_dependent=td)
+        sc = spk_scores(tmpl, tests, split, S["impostors_per_test"])
+        r0 = dict(speakers=len(tmpl), cond={})
+        for cond, g in sc.groupby("cond"):
+            tg, im = g[g.target].score.to_numpy(), g[~g.target].score.to_numpy()
+            e, th = eer(tg, im)
+            frr, far = rates(tg, im, spk_thr)
+            r0["cond"][cond] = dict(trials_target=len(tg), trials_impostor=len(im), eer=round(e, 4), eer_thr=round(th, 4),
+                                    frr_at_spk_thr=round(frr, 4), far_at_spk_thr=round(far, 4))
+        res[proto] = r0
+        sc.to_csv(os.path.join(MODELS, "eval_spk_%s_%s_scores.csv" % (split, proto)), index=False)
+        plot_spk(sc, r0, spk_thr, split, proto)
+        print(proto, json.dumps(r0), flush=True)
     json.dump(res, open(os.path.join(MODELS, "eval_spk_%s.json" % split), "w"), indent=1)
-    plot_spk(sc, res, split)
-    print(json.dumps(res, indent=1))
     print("done in %.0f min" % ((time.time() - t0) / 60))
     return res
 
 
-def plot_spk(sc, res, split):
+def plot_spk(sc, res, spk_thr, split, proto):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -295,17 +303,17 @@ def plot_spk(sc, res, split):
         tg, im = g[g.target].score.to_numpy(), g[~g.target].score.to_numpy()
         ax[0].plot(th, [100 * np.mean(tg < t) for t in th], "r" + ls, label="false reject (%s)" % cond)
         ax[0].plot(th, [100 * np.mean(im >= t) for t in th], "b" + ls, label="false accept (%s)" % cond)
-    ax[0].axvline(res["spk_thr"], color="k", lw=.8)
+    ax[0].axvline(spk_thr, color="k", lw=.8)
     ax[0].set_xlabel("cosine threshold spk_thr"), ax[0].set_ylabel("%"), ax[0].grid(alpha=.3), ax[0].legend(fontsize=7)
     ax[0].set_title("EER clean %.1f %%, noisy %.1f %%" % (100 * res["cond"]["clean"]["eer"], 100 * res["cond"]["noisy"]["eer"]))
     g = sc[sc.cond == "clean"]
     ax[1].hist(g[g.target].score, bins=50, alpha=.6, density=True, label="same speaker")
     ax[1].hist(g[~g.target].score, bins=50, alpha=.6, density=True, label="other speakers")
-    ax[1].axvline(res["spk_thr"], color="k", lw=.8)
+    ax[1].axvline(spk_thr, color="k", lw=.8)
     ax[1].set_xlabel("cosine to the enrolled template"), ax[1].legend(), ax[1].grid(alpha=.3)
-    fig.suptitle("speaker head, device enrolment (5 takes), %d %s speakers" % (res["speakers"], split))
+    fig.suptitle("speaker head, device enrolment (5 takes), %s, %d %s speakers" % (proto.replace("_", "-"), res["speakers"], split))
     fig.tight_layout()
-    fig.savefig(os.path.join(DOCS, "spk_eer_%s.png" % split), dpi=130)
+    fig.savefig(os.path.join(DOCS, "spk_eer_%s_%s.png" % (split, proto)), dpi=130)
 
 
 def main():

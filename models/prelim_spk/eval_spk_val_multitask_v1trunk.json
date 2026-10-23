@@ -1,0 +1,63 @@
+{
+ "split": "val",
+ "model": "spk_v1_mt.pt",
+ "spk_thr": 0.7,
+ "text_independent": {
+  "speakers": 300,
+  "cond": {
+   "clean": {
+    "trials_target": 2390,
+    "trials_impostor": 71700,
+    "eer": 0.3426,
+    "eer_thr": 0.9942,
+    "frr_at_spk_thr": 0.0,
+    "far_at_spk_thr": 1.0
+   },
+   "noisy": {
+    "trials_target": 2390,
+    "trials_impostor": 71700,
+    "eer": 0.3523,
+    "eer_thr": 0.9932,
+    "frr_at_spk_thr": 0.0,
+    "far_at_spk_thr": 1.0
+   },
+   "shout": {
+    "trials_target": 2390,
+    "trials_impostor": 71700,
+    "eer": 0.3406,
+    "eer_thr": 0.9938,
+    "frr_at_spk_thr": 0.0,
+    "far_at_spk_thr": 1.0
+   }
+  }
+ },
+ "text_dependent": {
+  "speakers": 67,
+  "cond": {
+   "clean": {
+    "trials_target": 382,
+    "trials_impostor": 11460,
+    "eer": 0.3377,
+    "eer_thr": 0.9961,
+    "frr_at_spk_thr": 0.0,
+    "far_at_spk_thr": 1.0
+   },
+   "noisy": {
+    "trials_target": 382,
+    "trials_impostor": 11460,
+    "eer": 0.3848,
+    "eer_thr": 0.9954,
+    "frr_at_spk_thr": 0.0,
+    "far_at_spk_thr": 1.0
+   },
+   "shout": {
+    "trials_target": 382,
+    "trials_impostor": 11460,
+    "eer": 0.3691,
+    "eer_thr": 0.9956,
+    "frr_at_spk_thr": 0.0,
+    "far_at_spk_thr": 1.0
+   }
+  }
+ }
+}

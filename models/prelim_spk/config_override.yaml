@@ -1,0 +1,218 @@
+# configs/train.yaml - EVERY parameter of the MeshTalk voice-SOS training.
+# All scripts read this file (kws/cfg.py); there are no other magic numbers.
+# TRAINING.md explains every value (in Chinese).
+
+seed: 20261022                 # global seed; every random choice derives from it
+
+paths:
+  raw: data/raw                # downloads, as they come (not in git)
+  cache: data/cache            # prepared clips / noise banks (not in git)
+  models: models               # best.pt and training logs (in git)
+  out: out                     # kws_model.c / kws_model_test.c (in git)
+  docs: docs                   # PNG figures (in git)
+
+labels: ["help", "help me", "sos", "_other"]   # output order of the network (CONTRACT 3)
+
+# ---------------------------------------------------------------- Step 1: data
+sources:
+  mswc:                        # Multilingual Spoken Words Corpus, English, CC-BY 4.0
+    licence: CC-BY 4.0
+    splits_url: https://storage.googleapis.com/public-datasets-mswc/splits/en.tar.gz
+    splits_md5_b64: UzZXFbKRyrUOpCZS3AXQ/A==          # 778 269 141 bytes
+    audio_url: https://storage.googleapis.com/public-datasets-mswc/audio/en.tar.gz
+    audio_md5_b64: frXtC6JWYfxI/v9miaKO7A==           # 34 846 172 764 bytes, streamed, only the selected clips are kept
+    keyword_words: [help]      # all clips of these words are kept (MSWC has no "me" and no "sos": words < 3 letters are not in MSWC)
+    lookalike_words: [hello, helped, helps, helping, helpful, helen, held, health, self, hell, helm, kelp,
+                      yelp, ask, yes, also, please, hey, stop, save, fire, emergency, mayday,
+                      boss, loss, cross, toss, sauce, moss, hollow, salsa]
+    lookalike_max_per_word: 1500
+    random_other_clips: 30000  # random clips of all other words (_other)
+    spk_speakers: 4000         # speakers kept for the speaker head (most clips first, then by hash)
+    spk_min_clips: 25          # a speaker needs at least this many valid clips
+    spk_clips_per_speaker: 25  # clips kept per speaker
+  librispeech:                 # LibriSpeech with word alignments (MFA), CC-BY 4.0
+    licence: CC-BY 4.0
+    hf_repo: gilkeyio/librispeech-alignments
+    train_subsets: [train_clean_100, train_clean_360, train_other_500]   # streamed shard by shard, parquet deleted afterwards
+    eval_subsets: [dev_clean, dev_other, test_clean, test_other]  # kept whole: running speech for false alarms
+    context_s: 0.30            # audio kept before / after a cut word
+    keyword_words: [help]      # every occurrence; "help" directly followed by "me" -> real "help me"
+    # shares below are chosen by a hash of utterance + word position (same on every run)
+    me_keep_frac: 0.25         # share of "me" occurrences kept (to join with the same speaker's "help")
+    lookalike_keep_frac: 0.5   # share of look-alike words (mswc.lookalike_words) kept
+    spk_word_keep_frac: 0.025  # share of other words >= spk_word_min_s kept (speaker head, _other)
+    spk_word_min_s: 0.35
+    other_chunks_per_utt: 0.15 # share of utterances giving one random running-speech chunk (_other)
+    chunk_s: 1.5
+    subset_overrides:          # train-other-500 (added in v2): mainly more running speech for _other
+      train_other_500: {other_chunks_per_utt: 0.25, chunk_s: 2.0, spk_word_keep_frac: 0.0}
+  speech_commands:             # Google Speech Commands v0.02, CC-BY 4.0
+    licence: CC-BY 4.0
+    url: https://storage.googleapis.com/download.tensorflow.org/data/speech_commands_v0.02.tar.gz
+    md5_b64: a3TzkBIUyywpNOmBloKYNQ==                  # 2 428 923 189 bytes
+    other_clips: 15000         # random word clips for _other (all 35 words are non-keywords)
+  esc50:                       # ESC-50 environmental sounds, CC-BY-NC 3.0 (HuggingFace mirror, GitHub zip is blocked here)
+    licence: CC-BY-NC 3.0
+    hf_repo: ashraq/esc50
+    test_fold: 5               # fold 5 -> false-alarm test, folds 1-4 -> training noise
+  musan:                       # MUSAN noise + music, CC-BY 4.0 (speech part not used)
+    licence: CC-BY 4.0 (noise/music files individually CC / public domain, see MUSAN README)
+    url: https://www.openslr.org/resources/17/musan.tar.gz
+    keep: [noise, music]
+    music_keep_frac: 0.30      # share of music files kept (disk space); noise: all
+    test_pct: 25               # % of files (by hash) reserved for the false-alarm test
+  kokoro:                      # Kokoro-82M TTS, Apache-2.0 (kokoro-onnx)
+    licence: Apache-2.0
+    model_url: https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+    voices_url: https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+
+prepare:                       # scripts/02_prepare.py
+  min_rms_db: -60              # clips quieter than this (dB re full scale) are dropped
+  span_rel_db: -35             # spoken part = frames louder than (loudest - 35 dB)
+  spk_min_clips: 10            # a real speaker is used for the speaker head with >= 10 clips
+  fa_subsets:                  # running speech for false alarms per hour
+    dev: [dev_clean, dev_other]      # threshold choice (step 4)
+    test: [test_clean, test_other]   # final numbers (never used for any choice)
+
+split:                         # by speaker (hash of the speaker id), never by clip
+  val_pct: 10
+  test_pct: 10
+
+tts:                           # scripts/03_tts.py (synthetic voices: keyword head ONLY)
+  voice_prefixes: [af_, am_, bf_, bm_]   # all English voices of Kokoro v1.0
+  test_voices: [af_bella, am_michael, bf_emma, bm_george]   # held out (test only)
+  val_voices: [af_nicole, am_puck]                          # held out (validation only)
+  blend_prob: 0.35             # a training clip uses a 2-voice blend with this probability
+  speed: [0.8, 1.3]            # uniform
+  clips_per_class: {help: 2500, help me: 2500, sos: 3000, _other: 5000}
+  test_clips_per_class: 300    # per keyword class from the held-out voices (val: same number)
+  texts:
+    # Kokoro reads "SOS" / "SOS!" as one word ("sauce"), so only spelled-out forms are used;
+    # phrases longer than the 1.22 s window ("Somebody help me!") are not used
+    help: ["Help", "Help!", "HELP!", "help", "Help.", "Help!!", "Heelp!", "Help?"]
+    help me: ["Help me", "Help me!", "HELP ME!", "help me", "Help me.", "Help me!!", "Help, me!", "Help me?"]
+    sos: ["S. O. S.", "S.O.S.", "S O S", "S. O. S!", "S, O, S!", "S.O.S.!", "S-O-S!", "Ess, Oh, Ess!"]
+    _other: ["Hello", "Hello!", "Health", "Held", "Helmet", "Yelp", "Self", "Hell", "Hold me", "Tell me", "Sell me",
+             "Kelp", "Whelp", "Hello me", "So so", "Boss", "Sauce", "Loss", "Toss", "S. O.", "O. S.", "S. S.",
+             "Ask", "Yes", "Oh yes", "Also", "Okay", "Stop", "Hey", "Please", "Hello there", "Excuse me", "Thank you",
+             "Come here", "Look at me", "Call me", "Show me", "Give me that", "Let me go", "Hey you", "Oh no",
+             "What's up", "Good morning", "See you soon", "Go home", "Over there", "Is anyone there?", "Everything is fine",
+             "Turn left", "Battery low", "Channel two", "Roger that", "Copy that", "Over and out", "Testing, one two three",
+             "Echo", "Hotel", "Oscar", "Sierra", "Seven", "Six", "Sorry", "Seriously", "Soul",
+             "Sauce boss", "Help desk", "Helpful", "Helping", "Helps", "Unhelpful"]
+
+# ------------------------------------------------------- features / windows
+window:
+  T: 81                        # frames per CNN window (1.62 s; CONTRACT 2 allows <= 101). 61 (1.22 s) is too short for a slow "S. O. S."
+  margin_frames: 2             # keyword fully inside the window, at least this far from both ends
+  p_right_edge: 0.35           # v2: share of keyword windows whose keyword ends in the last right_edge_s of the window
+  right_edge_s: 0.30           #     (in a quiet room the device gate only runs the CNN while the word is in its last 240 ms)
+
+# ---------------------------------------------------------- augmentation
+augment:                       # kws/augment.py; p_* = probability per training window
+  ref_level_dbfs: -25          # speech RMS level that gain_db is relative to
+  gain_db: [-20, 6]            # -> speech at -45 .. -19 dBFS RMS (quiet far talker .. loud close talker)
+  p_noise: 0.85
+  snr_db: [0, 20]              # noise from the training noise bank (MUSAN noise/music 1-75 %, ESC-50 folds 1-4, SC background)
+  noise_floor_dbfs: [-75, -55] # always: white-ish mic noise (INMP441 self noise)
+  p_reverb: 0.4
+  rt60_s: [0.15, 0.8]          # synthetic exponential-decay RIR
+  rir_len_s: 0.5
+  reverb_wet: [0.3, 1.0]
+  p_speed: 0.5
+  speed: [0.9, 1.1]            # resampling (tempo and pitch together)
+  p_pitch: 0.3
+  pitch_semitones: [-2, 2]     # phase-vocoder pitch shift (tempo kept)
+  p_shout: 0.15
+  shout_gain_db: [6, 18]       # then soft clipping tanh
+  p_highpass: 0.7
+  highpass_hz: [60, 120]       # 2nd-order Butterworth (mic / case)
+  p_context: 0.25              # other running speech before / after the keyword (not overlapping)
+  context_level_db: [-12, 0]   # relative to the keyword
+
+# ------------------------------------------------------------- network
+net:                           # CONTRACT 2 limits: T<=101 c1<=32 c2<=64 c3<=96 hid<=128 ncls<=8 spk_dim<=64
+  c1: 16
+  c2: 32
+  c3: 48
+  hid: 64
+  spk_dim: 32
+
+# ------------------------------------------------- Step 2: keyword training
+train_kw:
+  epochs: 50
+  windows_per_epoch: 48000
+  batch: 256
+  class_mix: {help: 0.17, help me: 0.16, sos: 0.17, _other: 0.5}  # sampler probabilities (v1: 0.2/0.2/0.2/0.4)
+  other_mix:                   # where an _other window comes from
+    mswc_lookalike: 0.14
+    mswc_random: 0.10
+    speech_commands: 0.06
+    libri_words: 0.10          # LibriSpeech look-alikes / "me" alone
+    libri_chunk: 0.30          # running speech (v1: 0.18 - false alarms on running speech were far too high)
+    tts_other: 0.12            # synthetic negatives (so "synthetic" never means "keyword")
+    noise_only: 0.13
+    silence: 0.05
+  real_vs_tts: {help: 0.75, help me: 0.55, sos: 0.0}   # share of real clips per keyword (rest synthetic)
+  help_me_sources: {libri_real: 0.4, joined_same_speaker: 0.6}  # among the real "help me"
+  join_gap_ms: [0, 80]         # gap when joining "help" + "me" of the same speaker
+  optimizer: adamw
+  lr: 0.002                    # v1: 0.003 (validation jumped around while lr was high)
+  weight_decay: 0.001
+  schedule: onecycle           # linear warm-up from lr/div_factor, then cosine down to lr/(div_factor*final_div_factor)
+  warmup_frac: 0.05
+  div_factor: 25
+  final_div_factor: 4          # -> last lr = lr / 100
+  loss: cross_entropy
+  class_weights: [1.0, 1.0, 1.0, 1.0]   # sampler is already balanced
+  label_smoothing: 0.05
+  val_windows_per_class: 1500
+  norm_windows: 4000           # training windows used for in_mean / in_std
+  workers: 4                   # DataLoader processes (one thread each); results do not depend on it
+  torch_threads: 2             # threads of the training process
+
+# ------------------------------------------------- Step 3: speaker head
+train_spk:
+  mode: multitask           # frozen_trunk | multitask
+  multitask_kw_weight: 1.0     # multitask only: weight of the keyword loss next to the speaker loss
+  epochs: 4
+  batch: 256
+  windows_per_epoch: 20000
+  loss: aam_softmax
+  aam_margin: 0.2
+  aam_scale: 30.0
+  lr: 0.003
+  weight_decay: 0.0001
+  augment: {p_noise: 0.6, snr_db: [5, 25], p_reverb: 0.3, p_highpass: 0.7, gain_db: [-15, 6]}  # no speed / pitch (they change the voice)
+  enrol_takes: 5               # device: Help, Help me, SOS, Help, Help me
+  take_s: 2.0                  # device enrolment take length
+  test_clips_min: 3            # a trial speaker needs enrol_takes + this many clips
+  test_clips_max: 8            # test clips per trial speaker (its keywords first)
+  impostors_per_test: 30       # other speakers' templates each test clip is compared with
+  enrol_classes: ["help", "help me", "sos", "help", "help me"]
+  trial_speakers: 120          # test speakers for the EER
+
+# ------------------------------------------------- Step 2/4: evaluation
+eval:
+  context_s: 2.0               # background before / after a test keyword
+  test_snr_db: [5, 20]         # "noisy" condition (test noise bank); "clean" = mic noise floor only
+  test_level_dbfs: [-38, -15]  # speech RMS level of a test clip / utterance
+  noise_floor_dbfs: -70        # mic self-noise added to every test stream
+  noise_level_dbfs: [-45, -15] # level of the noise-only false-alarm stream (per file)
+  max_per_source: 600          # test keywords per source (hash order)
+  joined_help_me: 300          # joined "help"+"me" test streams (test speakers)
+  hit_after_ms: 1500           # a hit up to this long after the keyword end still counts (window + smoothing)
+  fa_chunk_min: 30             # false-alarm audio is processed in streams of about 30 min
+  fa_noise_mix_prob: 0.5       # running speech: share of files with added noise
+  fa_noise_snr_db: [5, 20]
+  keyword_guard_s: 1.5         # hits this close to a real "help" in LibriSpeech are not false alarms
+  thr_grid: [0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.93, 0.95, 0.97, 0.98, 0.99]
+
+# ------------------------------------------------- Step 4: thresholds / export
+export:
+  thr: [0.90, 0.80, 0.65]      # low / medium / high sensitivity (chosen in step 4 from the dev curves)
+  spk_thr: 0.70
+  hits: 3
+  hits_ms: 20000
+  name: kws-20261022
+  check_windows_per_class: 100 # validation windows for the int8-vs-float check

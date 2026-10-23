@@ -65,9 +65,14 @@ def val_eer(net, D):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--kw", default=os.path.join(MODELS, "kw.pt"), help="keyword model from step 2")
+    ap.add_argument("--out", default=os.path.join(MODELS, "best.pt"))
+    a = ap.parse_args()
     seed_all(C, 1)
     torch.set_num_threads(C["train_kw"]["torch_threads"])
-    ck = torch.load(os.path.join(MODELS, "kw.pt"), weights_only=False)
+    ck = torch.load(a.kw, weights_only=False)
     net = KwsNet(**ck["cfg"])
     net.load_state_dict(ck["state"])
     D = Data(C)
@@ -122,8 +127,8 @@ def main():
         if e < best:
             best = e
             torch.save({"cfg": net.cfg, "state": net.state_dict(), "labels": C["labels"], "kw_epoch": ck["epoch"],
-                        "spk_epoch": ep + 1, "val_eer": e, "spk_mode": S["mode"]}, os.path.join(MODELS, "best.pt"))
-    pd.DataFrame(log).to_csv(os.path.join(MODELS, "spk_log.csv"), index=False)
+                        "spk_epoch": ep + 1, "val_eer": e, "spk_mode": S["mode"]}, a.out)
+    pd.DataFrame(log).to_csv(os.path.splitext(a.out)[0] + "_spk_log.csv", index=False)
     print("best validation EER %.4f, %.0f min" % (best, (time.time() - t0) / 60))
     plot(log)
 

@@ -1,0 +1,6 @@
+speaker head: 5224 training speakers
+{"epoch": 1, "train_loss": 19.1254, "val_eer": 0.3708, "sec": 227.0806}
+{"epoch": 2, "train_loss": 15.6012, "val_eer": 0.3489, "sec": 232.0689}
+{"epoch": 3, "train_loss": 15.0798, "val_eer": 0.3425, "sec": 218.3484}
+{"epoch": 4, "train_loss": 14.8452, "val_eer": 0.3408, "sec": 226.0361}
+best validation EER 0.3408, 15 min
