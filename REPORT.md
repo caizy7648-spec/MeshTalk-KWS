@@ -170,3 +170,46 @@ false hits/h r2 9-10 -> r3 4.7-5.4. False-alarm sets enlarged for this: dev 30.5
 Next most effective steps: (1) the owner's own "help / help me / SOS" recordings with the device microphone (real SOS
 is still synthetic only, noisy real "help" is the weak case); (2) more real noise with voices as hard negatives
 (the device's own environment recordings would be best); (3) once `kwsbench` is measured, c1/c2 24/48 (14.5 M MAC) is the allowed next size.
+
+## Phase B - separate speaker model: delivered, **system target NOT met** -> keep "anyone triggers"
+
+**Delivered:** `out/spk_engine.c` + `out/spk_model.h` + `out/spk_model.c` (-> firmware `Ai/`), `out/spk_model_test.c` +
+`out/spk_test.c` (C test, -> `Tests/`). `python -m spk.check_c out` -> **10 checks, 0 failed, C vs Python max difference 1.9e-7**.
+Compiled and linked together with the keyword C code (`-Wall -Wextra`): no warnings, `test_kws` still 20/0.
+
+Model (`spk/model.py` SpkNet, `models/spk_best.pt`): 81 frames (= the keyword window handed to `verify()`), 4 x Conv1d
+(128/128/128/256 channels, kernels 5/3/3/1, dilations 1/2/3/1) + mean/std pooling + Linear -> 128-dim vector.
+**12.8 M multiply-adds per check, weights 229 KB (int8, one scale per channel), work memory 45 352 floats = 177 KB**
+(budget 512 KB / 512 KB / ~300 ms). `spk_threshold() = 0.60`, `spk_enrol_takes() = 10`.
+Training: real voices only - 5224 speakers (MSWC ~4000 + LibriSpeech ~1200 training-split speakers, max 20 clips each),
+AAM-softmax (m 0.2, s 30), noise / reverb / gain / **shouting** augmentation, 40 epochs (130 min).
+Not available here: VoxCeleb (needs credentials), Common Voice (HuggingFace copy needs a login), VCTK (one 11 GB zip, no disk).
+
+Per call (device enrolment protocol: N takes, per-class templates, cosine; test split, 400 speakers, ~3900 target and
+~116 000 impostor trials per row):
+
+| enrolment takes | EER clean | EER noisy | EER shouted | EER, test word = help / help me (clean / noisy / shouted) | at 0.60: false reject / false accept (clean) |
+|---|---|---|---|---|---|
+| 5 | 8.6 % | 11.3 % | 9.1 % | 8.1 / 11.1 / 7.8 % | 37.6 % / 1.0 % |
+| 10 | **6.8 %** | **9.8 %** | **7.2 %** | 7.3 / 9.0 / 7.5 % | 22.0 % / 1.6 % |
+
+System (keyword model v1 medium + 3 hits / 20 s + Only My Voice at 0.60, `kws.detect.Detector(only_me=True, verify=...)`,
+380 test speakers who have real "help" recordings, 10 enrolment takes, 200 scenarios per cell):
+
+| | clean | noisy | shouted | target |
+|---|---|---|---|---|
+| owner calls 6 times -> SOS | 75.5 % | 58.5 % | 78.0 % | >= 90 % |
+| another person calls 6 times -> SOS | 2.5 % | 1.5 % | 2.0 % | <= 3 % |
+
+Trade-off on val (`docs/spk_eer_val.png`, right): threshold 0.50 -> owner 90.5 / 77.5 / 89.5 %, other 9 / 5.5 / 10.5 %;
+threshold 0.40 -> owner 93.5 / 88.5 / 94 %, other 19 / 18.5 / 19.5 %. No threshold meets both targets.
+
+Why the per-call EER (6.8 %) does not give the system numbers the CONTRACT_SPK guide expects: errors are **per pair of
+voices, not per call** - a person whose voice is close to the owner's passes on all 6 calls, and an owner whose
+enrolment does not match is rejected on all 6. Also pessimistic here: the public data has almost no person saying
+"help" several times, so enrolment uses 10 OTHER words of the speaker (different recordings, often different session),
+and the 6 calls repeat one "help" recording; on the device the owner enrols the real keywords with the same microphone.
+
+**Recommendation:** keep "anyone triggers" (as planned). The speaker model and engine are ready; with 10 of the owner's
+own takes recorded on the device (`data/own/`), threshold and possibly a short fine-tune can be re-checked with
+`scripts/41_eval_spk.py` - this is the most effective next step.

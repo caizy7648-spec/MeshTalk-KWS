@@ -76,6 +76,6 @@ eval:                          # device protocol (CONTRACT_SPK.md), spk/evaluate
   target_other: 0.03           # another person calling 6 times -> trigger rate (the choice keeps this on val)
 
 export:
-  threshold: 0.0               # chosen in 41_eval_spk.py on the validation speakers (see REPORT.md)
+  threshold: 0.60              # chosen on val by 41_eval_spk.py: highest owner rate with other-person rate <= 3 % (see REPORT.md)
   enrol_takes: 10
   name: spk-20261023

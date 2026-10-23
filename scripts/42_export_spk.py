@@ -4,8 +4,8 @@ then the C test (spk/check_c.py: spk_engine.c == Python).
     python scripts/42_export_spk.py
 
 Threshold, enrolment takes and name: configs/spk.yaml export:.
-Also copies spk/c/spk_engine.c and spk/c/spk_model.h to out/ (they go to
-the firmware's Ai/ together with spk_model.c).
+Also copies spk/c/spk_engine.c and spk/c/spk_model.h (-> firmware Ai/ with
+spk_model.c) and the C test spk/c/spk_test.c (-> Tests/ with spk_model_test.c) to out/.
 """
 import json
 import os
@@ -28,7 +28,7 @@ def main():
     x = P["export"]
     mid = export.write_model(net, L, os.path.join(out, "spk_model.c"), x["name"], x["threshold"], x["enrol_takes"])
     export.write_test(net, L, os.path.join(out, "spk_model_test.c"))
-    for f in ("spk_engine.c", "spk_model.h"):
+    for f in ("spk_engine.c", "spk_model.h", "spk_test.c"):
         shutil.copy(os.path.join(ROOT, "spk", "c", f), out)
     info = dict(id="%08X" % mid, **export.sizes(net, L), threshold=x["threshold"], enrol_takes=x["enrol_takes"])
     json.dump(info, open(os.path.join(C["paths"]["models"], "spk_export.json"), "w"), indent=1)

@@ -1,0 +1,9 @@
+{
+ "id": "4A5BDC6D",
+ "weight_bytes": 228672,
+ "work_floats": 45352,
+ "work_bytes": 181408,
+ "macs": 12755968,
+ "threshold": 0.6,
+ "enrol_takes": 10
+}
