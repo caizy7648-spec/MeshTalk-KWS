@@ -115,3 +115,13 @@ keep "anyone triggers"; export with `spk_dim` kept but "Only My Voice" off**, or
    speech, more epochs; and, most effective, the owner's own recordings in `data/own/`).
 3. Speaker head: confirm "Only My Voice" stays disabled.
 Steps 4 (export) has not been done yet, as agreed for a NO-GO.
+
+---
+
+# Round 2 (firmware v1.4.1)
+
+## Step 0 - firmware v1.4.1 synced: GO
+- `c_ref/`, `kws/detect.py`, `kws/export.py`, `CONTRACT.md` replaced from `update_v1.4.1/`, `CONTRACT_SPK.md` added
+  (no local changes existed in these files, nothing to merge).
+- `python -m kws.check_c` -> **19 checks, 0 failed**.
+- `WindowGateDetector` removed; all evaluation uses `kws.detect.Detector` (window gate + `cls_off`).

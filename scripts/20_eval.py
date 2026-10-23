@@ -128,7 +128,7 @@ def eval_kw(net, split, tag, kind="device"):
             st = Stream(net, pcm, T)
             r = dict(label=lab, source=src, cond=cond)
             for thr in grid:
-                k = hit_in(st.hits(keyword, thr, check=(n == 0), kind=kind), a * 1000 // 16000, b * 1000 // 16000 + E["hit_after_ms"])
+                k = hit_in(st.hits(keyword, thr, check=(n == 0)), a * 1000 // 16000, b * 1000 // 16000 + E["hit_after_ms"])
                 r["hit@%.2f" % thr] = k >= 0
                 r["cls@%.2f" % thr] = k == labels.index(lab)
             rows.append(r)
@@ -144,7 +144,7 @@ def eval_kw(net, split, tag, kind="device"):
         st = Stream(net, pcm, T)
         fa[src]["hours"] += len(pcm) / 16000 / 3600
         for thr in grid:
-            fh, sos = fa_count(st.hits(keyword, thr, X["hits"], X["hits_ms"], kind=kind), guard, X["hits"], X["hits_ms"])
+            fh, sos = fa_count(st.hits(keyword, thr, X["hits"], X["hits_ms"]), guard, X["hits"], X["hits_ms"])
             fa[src]["hits@%.2f" % thr] += fh
             fa[src]["sos@%.2f" % thr] += sos
         print("  %s %.2f h done (%.0f s)" % (src, fa[src]["hours"], time.time() - t0), flush=True)

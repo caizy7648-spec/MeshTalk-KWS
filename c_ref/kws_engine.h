@@ -21,6 +21,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#define KWS_MAX_NCLS_ 8                /* (= KWS_MAX_NCLS, needed inside the struct) */
+
 typedef struct {
     const char   *name;             /* "kws-2026-11-01" ...                     */
     uint32_t      id;               /* changes with every export (templates!)   */
@@ -36,6 +38,7 @@ typedef struct {
     const int8_t *w6; float s6; const float *b6;    /* [spk_dim][c3], or NULL   */
     /* detection settings chosen in training (see the report of the export) */
     float         thr[3];           /* keyword probability: sensitivity low / medium / high */
+    float         cls_off[KWS_MAX_NCLS_]; /* v1.4.1: per class offset, threshold = thr[s] + cls_off[k] */
     float         spk_thr;          /* speaker: cosine similarity to the enrolled voice */
     int           hits;             /* keyword heard this often ...             */
     uint32_t      hits_ms;          /* ... within this time -> voice SOS        */
@@ -46,7 +49,7 @@ typedef struct {
 #define KWS_MAX_C2    64
 #define KWS_MAX_C3    96
 #define KWS_MAX_HID   128
-#define KWS_MAX_NCLS  8
+#define KWS_MAX_NCLS  KWS_MAX_NCLS_
 #define KWS_MAX_SPK   64
 
 /* the model built into the firmware (Ai/kws_model.c). ncls == 0: none yet */

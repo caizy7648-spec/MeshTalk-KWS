@@ -27,29 +27,52 @@ c3 <= 96, hid <= 128, ncls <= 8, spk_dim <= 64 (spk_dim = 0: no speaker
 head; then "Only My Voice" is disabled on the device). Budget: about 5 M
 multiply-adds per run (default sizes), the device runs it every 240 ms.
 
+## 2b. Resource budget (owner: leave room for later features)
+The keyword model runs all the time next to the radio, voice messages, the
+screen and future features, so it must stay small:
+
+| | budget | default sizes (T 81, 16/32/48) |
+|---|---|---|
+| weights (flash) | <= 64 KB | ~22 KB |
+| work memory (PSRAM) | <= 160 KB | ~87 KB |
+| internal RAM | nothing new (all buffers are in PSRAM) | - |
+| compute | <= ~15 M multiply-adds per run, and <= 20 % of one core once measured with `kwsbench` | ~6.9 M |
+
+Prefer the smallest model that meets the targets; bigger channels only with
+a clear gain AND inside this budget. For reference: 81/24/48/64 = 14.5 M
+MAC, 43 KB, 125 KB (limit); 101/32/64/96 = 33 M MAC (too big).
+
 ## 3. Classes
 `--labels` gives the class names in output order, separated by `|`.
 Names starting with `_` are "not a keyword". Planned:
 `help|help me|sos|_other` (optionally `_noise` as a 5th class).
 
-## 4. On the device (fixed - `kws/detect.py` = `Ai/kws_detect.c`)
-- the CNN runs every 12 frames (240 ms) on the last T frames, only if
-  something louder than -55 dBFS was heard in those 240 ms;
-- the last 3 runs are averaged; a keyword class above `thr[sensitivity]`
-  is one hit, then 1.2 s pause;
-- "Only My Voice": the hit also needs cosine(speaker vector of the clearest
-  of those runs, enrolled template) >= `spk_thr`;
+## 4. On the device (fixed - `kws/detect.py` = `Ai/kws_detect.c`, v1.4.1)
+- the CNN runs every 12 frames (240 ms) on the last T frames **as long as any
+  frame inside the window was louder than -55 dBFS** (v1.4.1 window gate;
+  v1.4 only looked at the last 240 ms). A completely quiet window: no run;
+- the last 3 runs are averaged; keyword class k is a hit when
+  `smooth[k] >= thr[sensitivity] + cls_off[k]` (v1.4.1 per-class offsets;
+  the class with the largest margin wins), then 1.2 s pause;
+- "Only My Voice": the hit also needs the voice to match the enrolled one.
+  v1.4.1: done by a **separate speaker model** (`Ai/spk_engine.h`, see
+  `CONTRACT_SPK.md`) through the `verify` hook; the keyword model itself is
+  exported with `spk_dim = 0`;
 - `hits` hits within `hits_ms` -> Voice SOS (the UI then gives 5 s to cancel).
-- Enrolment on the device: 5 takes of 2 s ("Help", "Help me", "SOS",
-  "Help", "Help me"); for each take the window where its phrase is most
-  likely (`kws_best_window`, 40 ms steps) gives the speaker vector; the
-  template per class = sum of those vectors (compared by cosine).
+- Enrolment on the device: N takes of 2.2 s (N = `spk_enrol_takes()`, 3..10;
+  the phrases cycle through the model's keywords); for each take the window
+  where its phrase is most likely (`kws_best_window`, 40 ms steps) is found
+  with the keyword model, the speaker model gets `spk_frames()` frames
+  centred on it; template per class = sum of the voice vectors (cosine).
+- Serial console `kwsbench [T c1 c2 c3]` prints the CNN run time on the
+  ESP32-S3 (the owner will report it; until then keep the default channels).
 
 ## 5. Export and hand-back
 ```
 torch.save({"cfg": net.cfg, "state": net.state_dict()}, "best.pt")
 python -m kws.export best.pt out --labels "help|help me|sos|_other" \
-       --thr 0.90 0.80 0.65 --spk-thr 0.70 --hits 3 --hits-ms 20000 --name kws-YYYYMMDD
+       --thr 0.90 0.80 0.65 --cls-off "help=-0.05,sos=0.05" \
+       --hits 3 --hits-ms 20000 --name kws-YYYYMMDD
 python -m kws.check_c out          # must end with "0 failed"
 ```
 Hand back: `out/kws_model.c`, `out/kws_model_test.c`, `REPORT.md`, plus the
@@ -61,3 +84,7 @@ Do not change `features.py`, the layer types in `model.py`, `detect.py` or
 the export format. If something really has to change, write it in REPORT.md
 together with the matching C change - the firmware side is done in the other
 conversation.
+
+## 6. Speaker model (phase 2)
+See `CONTRACT_SPK.md`. It is a separate network with its own C engine,
+started only after keyword recognition is finished.

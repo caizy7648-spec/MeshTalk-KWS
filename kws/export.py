@@ -2,7 +2,8 @@
 kws_model_test.c: an input and the outputs the C code must give for it.
 
     python -m kws.export model.pt out_dir --labels "help|help me|sos|_other" \
-        --thr 0.90 0.80 0.65 --spk-thr 0.70 --hits 3 --hits-ms 20000
+        --thr 0.90 0.80 0.65 --cls-off "help=-0.05,help me=0,sos=0.05" \
+        --spk-thr 0.70 --hits 3 --hits-ms 20000
 
 BatchNorm is folded into the convolutions, every weight tensor becomes int8
 with one scale (symmetric, max |w| -> 127). reference() repeats the C
@@ -99,7 +100,17 @@ def c_int8(name, a):
     return "static const int8_t %s[%d] = {\n%s};\n" % (name, a.size, ",\n".join(lines))
 
 
-def write_model(net, L, labels, thr, spk_thr, hits, hits_ms, name, path, var="kws_model"):
+def parse_cls_off(text, labels):
+    """ "help=-0.05,sos=0.05" -> list per class (0 for the others) """
+    names = labels.split("|")
+    off = [0.0] * len(names)
+    for part in filter(None, (text or "").split(",")):
+        k, v = part.split("=")
+        off[names.index(k.strip())] = float(v)
+    return off
+
+
+def write_model(net, L, labels, thr, spk_thr, hits, hits_ms, name, path, var="kws_model", cls_off=None):
     cfg = net.cfg
     blob = b"".join(L[k][0].tobytes() for k in sorted(L)) + labels.encode()
     mid = zlib.crc32(blob) & 0xFFFFFFFF
@@ -121,6 +132,8 @@ def write_model(net, L, labels, thr, spk_thr, hits, hits_ms, name, path, var="kw
             s.append("    .w%s = w%s, .s%s = %.9gf, .b%s = b%s,\n" % (k, k, k, float(L[k][1]), k, k))
     s.append("    .thr = { %.4ff, %.4ff, %.4ff }, .spk_thr = %.4ff, .hits = %d, .hits_ms = %uu,\n"
              % (thr[0], thr[1], thr[2], spk_thr, hits, hits_ms))
+    off = cls_off or [0.0] * cfg["ncls"]
+    s.append("    .cls_off = { %s },\n" % ", ".join("%.4ff" % v for v in off))
     s.append("};\n")
     open(path, "w").write("".join(s))
     return mid
@@ -147,6 +160,7 @@ def main():
     ap.add_argument("out_dir")
     ap.add_argument("--labels", required=True)
     ap.add_argument("--thr", type=float, nargs=3, default=[0.9, 0.8, 0.65])
+    ap.add_argument("--cls-off", default="", help='per class threshold offsets, e.g. "help=-0.05,sos=0.05"')
     ap.add_argument("--spk-thr", type=float, default=0.7)
     ap.add_argument("--hits", type=int, default=3)
     ap.add_argument("--hits-ms", type=int, default=20000)
@@ -158,7 +172,9 @@ def main():
     net.eval()
     assert len(a.labels.split("|")) == net.cfg["ncls"], "labels do not match ncls"
     L = layers(net)
-    mid = write_model(net, L, a.labels, a.thr, a.spk_thr, a.hits, a.hits_ms, a.name, a.out_dir + "/kws_model.c")
+    off = parse_cls_off(a.cls_off, a.labels)
+    mid = write_model(net, L, a.labels, a.thr, a.spk_thr, a.hits, a.hits_ms, a.name, a.out_dir + "/kws_model.c",
+                      cls_off=off)
     write_test(net, L, a.out_dir + "/kws_model_test.c")
     print("written kws_model.c / kws_model_test.c, id %08X" % mid)
 

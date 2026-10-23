@@ -39,6 +39,12 @@ static void collect(void *ctx, const float *f)
     s_nf++;
 }
 
+static float verify_fixed(void *ctx, const float *win, int T, int cls)
+{
+    (void)win; (void)T; (void)cls;
+    return *(const float *)ctx;
+}
+
 static float compare_model(const kws_model_t *m, const float *in, const float *probs, const float *emb)
 {
     float *work = malloc(sizeof(float) * kws_engine_work(m));
@@ -127,12 +133,12 @@ int main(void)
             kws_engine_run(&m, kws_test_model_test_in, work, probs, emb);
             for (j = 0; j < m.spk_dim; j++) { emb[j] = -emb[j]; }
             for (i = 0; i < KWS_ENROL_PER_WORD; i++) {
-                kws_voice_add(&m, &voice, 0, emb);
-                kws_voice_add(&m, &voice, 1, emb);
-                kws_voice_add(&m, &voice, 2, emb);
+                kws_voice_add(&voice, m.spk_dim, 0, emb);
+                kws_voice_add(&voice, m.spk_dim, 1, emb);
+                kws_voice_add(&voice, m.spk_dim, 2, emb);
             }
         }
-        CHECK(kws_voice_ready(&m, &voice), "enrolment complete");
+        CHECK(kws_voice_ready(&m, &voice, KWS_ENROL_TAKES), "enrolment complete");
         kws_det_init(&det, &m, work, ring, win);
         det.voice = &voice;
         det.only_me = true;
@@ -153,6 +159,70 @@ int main(void)
             hits += (ev & KWS_EV_HIT) != 0;
         }
         CHECK(hits >= 2, "without Only My Voice it counts again (%d)", hits);
+        free(work);
+    }
+
+    printf("3b. v1.4.1: window gate, per class thresholds, speaker hook\n");
+    {
+        kws_model_t m = kws_test_model;
+        kws_det_t det;
+        float *work = malloc(sizeof(float) * kws_engine_work(&m));
+        static float ring[KWS_MAX_T * KWS_BANDS], win[KWS_MAX_T * KWS_BANDS];
+        float frame[KWS_BANDS];
+        int ran = 0, ev, hitcls[KWS_MAX_NCLS] = { 0 }, rej = 0, ok = 0;
+        uint32_t t;
+
+        m.thr[0] = m.thr[1] = m.thr[2] = 0.0f;
+        kws_det_init(&det, &m, work, ring, win);
+        for (t = 0; t < 2000; t += 20) {             /* fill the window with silence */
+            for (j = 0; j < KWS_BANDS; j++) { frame[j] = kws_test_model_test_in[((t / 20) % m.T) * KWS_BANDS + j]; }
+            kws_det_frame(&det, frame, -80.0f, t);
+        }
+        for (t = 2000; t < 6000; t += 20) {          /* one short word (300 ms), then silence */
+            for (j = 0; j < KWS_BANDS; j++) { frame[j] = kws_test_model_test_in[((t / 20) % m.T) * KWS_BANDS + j]; }
+            ev = kws_det_frame(&det, frame, (t < 2300) ? -30.0f : -80.0f, t);
+            ran += (ev & KWS_EV_RAN) != 0;
+        }
+        printf("   a 0.3 s word in silence: %d runs (window %d ms)\n", ran, m.T * 20);
+        CHECK(ran >= m.T / KWS_STEP - 1 && ran <= m.T / KWS_STEP + 2, "the CNN keeps running while the word is in the window (%d)", ran);
+
+        /* class 0 made impossible by its offset: only the other keywords are hit */
+        m.cls_off[0] = 2.0f;
+        kws_det_init(&det, &m, work, ring, win);
+        for (t = 0; t < 12000; t += 20) {
+            for (j = 0; j < KWS_BANDS; j++) { frame[j] = kws_test_model_test_in[((t / 20) % m.T) * KWS_BANDS + j]; }
+            ev = kws_det_frame(&det, frame, -30.0f, t);
+            if (ev & KWS_EV_HIT) { hitcls[det.hit_cls]++; }
+        }
+        printf("   cls_off[0] = +2: hits per class %d %d %d\n", hitcls[0], hitcls[1], hitcls[2]);
+        CHECK(hitcls[0] == 0 && hitcls[1] + hitcls[2] > 0, "cls_off: class 0 never, others yes (%d %d %d)", hitcls[0], hitcls[1], hitcls[2]);
+        m.cls_off[0] = 0.0f;
+
+        /* speaker hook (a separate model): rejects, then accepts */
+        {
+            float c0 = 0.1f, c1 = 0.9f;
+            kws_det_init(&det, &m, work, ring, win);
+            det.only_me = true;
+            det.verify_thr = 0.5f;
+            det.verify = verify_fixed;
+            det.verify_ctx = &c0;
+            for (t = 0; t < 6000; t += 20) {
+                for (j = 0; j < KWS_BANDS; j++) { frame[j] = kws_test_model_test_in[((t / 20) % m.T) * KWS_BANDS + j]; }
+                ev = kws_det_frame(&det, frame, -30.0f, t);
+                rej += (ev & KWS_EV_REJECT) != 0;
+                ok += (ev & KWS_EV_HIT) != 0;
+            }
+            CHECK(rej > 0 && ok == 0, "voice 0.1 < 0.5: rejected (%d / %d)", rej, ok);
+            det.verify_ctx = &c1;
+            rej = ok = 0;
+            for (; t < 12000; t += 20) {
+                for (j = 0; j < KWS_BANDS; j++) { frame[j] = kws_test_model_test_in[((t / 20) % m.T) * KWS_BANDS + j]; }
+                ev = kws_det_frame(&det, frame, -30.0f, t);
+                rej += (ev & KWS_EV_REJECT) != 0;
+                ok += (ev & KWS_EV_HIT) != 0;
+            }
+            CHECK(rej == 0 && ok > 0, "voice 0.9: accepted (%d / %d)", rej, ok);
+        }
         free(work);
     }
 

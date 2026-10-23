@@ -6,7 +6,7 @@
 void kws_det_reset(kws_det_t *d)
 {
     d->head = d->filled = d->step = 0;
-    d->loud = -120.0f;
+    d->quiet = 1 << 20;
     d->n_hist = d->hist_pos = 0;
     memset(d->smooth, 0, sizeof(d->smooth));
 }
@@ -41,28 +41,28 @@ static float cosine(const float *a, const float *b, int n)
     return ab / sqrtf(aa * bb);
 }
 
-float kws_voice_similarity(const kws_model_t *m, const kws_voice_t *v, int k, const float *emb)
+float kws_voice_similarity(const kws_voice_t *v, int dim, int k, const float *emb)
 {
-    if (!v || !m || m->spk_dim <= 0) { return -2.0f; }
-    if (k >= 0 && k < m->ncls && v->have[k]) { return cosine(v->tmpl[k], emb, m->spk_dim); }
-    if (v->n_all) { return cosine(v->all, emb, m->spk_dim); }
+    if (!v || dim <= 0 || dim > KWS_VOICE_DIM) { return -2.0f; }
+    if (k >= 0 && k < KWS_MAX_NCLS && v->have[k]) { return cosine(v->tmpl[k], emb, dim); }
+    if (v->n_all) { return cosine(v->all, emb, dim); }
     return -2.0f;
 }
 
-void kws_voice_add(const kws_model_t *m, kws_voice_t *v, int k, const float *emb)
+void kws_voice_add(kws_voice_t *v, int dim, int k, const float *emb)
 {
     int i;
-    if (!m || m->spk_dim <= 0 || k < 0 || k >= m->ncls) { return; }
-    for (i = 0; i < m->spk_dim; i++) { v->tmpl[k][i] += emb[i]; v->all[i] += emb[i]; }
+    if (!v || dim <= 0 || dim > KWS_VOICE_DIM || k < 0 || k >= KWS_MAX_NCLS) { return; }
+    for (i = 0; i < dim; i++) { v->tmpl[k][i] += emb[i]; v->all[i] += emb[i]; }
     if (v->have[k] < 255) { v->have[k]++; }
     if (v->n_all < 255) { v->n_all++; }
 }
 
-bool kws_voice_ready(const kws_model_t *m, const kws_voice_t *v)
+bool kws_voice_ready(const kws_model_t *m, const kws_voice_t *v, int takes)
 {
     int k;
-    if (!kws_model_ok(m) || m->spk_dim <= 0 || !v) { return false; }
-    if (v->n_all < KWS_ENROL_TAKES) { return false; }
+    if (!kws_model_ok(m) || !v) { return false; }
+    if (v->n_all < takes) { return false; }
     for (k = 0; k < m->ncls; k++) {
         if (kws_is_keyword(m, k) && v->have[k] < 1) { return false; }
     }
@@ -73,27 +73,30 @@ static void decide(kws_det_t *d, uint32_t now, int *ev)
 {
     const kws_model_t *m = d->m;
     int k, best = -1, i, j, n;
-    float bestp = 0.0f, thr = m->thr[d->sens > 2 ? 2 : d->sens];
+    float bestp = 0.0f, bestm = -1e9f, thr = m->thr[d->sens > 2 ? 2 : d->sens];
 
     for (k = 0; k < m->ncls; k++) {
-        float s = 0.0f;
+        float s = 0.0f, margin;
         for (i = 0; i < d->n_hist; i++) { s += d->hist[i][k]; }
         d->smooth[k] = d->n_hist ? s / (float)d->n_hist : 0.0f;
-        if (kws_is_keyword(m, k) && d->smooth[k] >= thr && d->smooth[k] > bestp) { best = k; bestp = d->smooth[k]; }
+        margin = d->smooth[k] - (thr + m->cls_off[k]);        /* v1.4.1: per class threshold */
+        if (kws_is_keyword(m, k) && margin >= 0.0f && margin > bestm) { best = k; bestp = d->smooth[k]; bestm = margin; }
     }
     if (best < 0 || (d->last_hit && now - d->last_hit < KWS_REFRACT_MS)) { return; }
     d->last_hit = now ? now : 1;
     d->hit_cls = best;
     d->hit_score = bestp;
     d->hit_spk = -2.0f;
-    if (m->spk_dim > 0 && d->voice) {
+    if (d->verify) {
+        d->hit_spk = d->verify(d->verify_ctx, d->win, m->T, best);       /* separate speaker model */
+    } else if (m->spk_dim > 0 && d->voice) {
         /* the run of the last few where this keyword was clearest */
         int at = 0;
         float p = -1.0f;
         for (i = 0; i < d->n_hist; i++) { if (d->hist[i][best] > p) { p = d->hist[i][best]; at = i; } }
-        d->hit_spk = kws_voice_similarity(m, d->voice, best, d->emb_hist[at]);
+        d->hit_spk = kws_voice_similarity(d->voice, m->spk_dim, best, d->emb_hist[at]);
     }
-    if (d->only_me && d->voice && d->hit_spk > -2.0f && d->hit_spk < m->spk_thr) {
+    if (d->only_me && d->hit_spk > -2.0f && d->hit_spk < (d->verify ? d->verify_thr : m->spk_thr)) {
         *ev |= KWS_EV_REJECT;
         return;
     }
@@ -121,16 +124,14 @@ int kws_det_frame(kws_det_t *d, const float *feat, float dbfs, uint32_t now_ms)
     memcpy(d->ring + d->head * KWS_BANDS, feat, sizeof(float) * KWS_BANDS);
     d->head = (d->head + 1) % m->T;
     if (d->filled < m->T) { d->filled++; }
-    if (dbfs > d->loud) { d->loud = dbfs; }
+    d->quiet = dbfs >= KWS_GATE_DBFS ? 0 : (d->quiet < (1 << 20) ? d->quiet + 1 : d->quiet);
     if (d->filled < m->T || ++d->step < KWS_STEP) { return 0; }
     d->step = 0;
-    if (d->loud < KWS_GATE_DBFS) {
-        /* quiet: nothing to look at; what was heard before fades out */
-        d->loud = -120.0f;
+    if (d->quiet >= m->T) {
+        /* nothing loud in the whole window: no run; what was heard before fades out */
         d->n_hist = d->hist_pos = 0;
         return 0;
     }
-    d->loud = -120.0f;
     kws_det_window(d, d->win);
     if (!kws_engine_run(m, d->win, d->work, d->probs, m->spk_dim > 0 ? d->emb : NULL)) { return 0; }
     ev |= KWS_EV_RAN;
