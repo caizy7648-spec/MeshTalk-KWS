@@ -33,7 +33,7 @@ sources:
   librispeech:                 # LibriSpeech with word alignments (MFA), CC-BY 4.0
     licence: CC-BY 4.0
     hf_repo: gilkeyio/librispeech-alignments
-    train_subsets: [train_clean_100, train_clean_360]   # streamed shard by shard, parquet deleted afterwards
+    train_subsets: [train_clean_100, train_clean_360, train_other_500]   # streamed shard by shard, parquet deleted afterwards
     eval_subsets: [dev_clean, dev_other, test_clean, test_other]  # kept whole: running speech for false alarms
     context_s: 0.30            # audio kept before / after a cut word
     keyword_words: [help]      # every occurrence; "help" directly followed by "me" -> real "help me"
@@ -44,6 +44,8 @@ sources:
     spk_word_min_s: 0.35
     other_chunks_per_utt: 0.15 # share of utterances giving one random running-speech chunk (_other)
     chunk_s: 1.5
+    subset_overrides:          # train-other-500 (added in v2): mainly more running speech for _other
+      train_other_500: {other_chunks_per_utt: 0.25, chunk_s: 2.0, spk_word_keep_frac: 0.0}
   speech_commands:             # Google Speech Commands v0.02, CC-BY 4.0
     licence: CC-BY 4.0
     url: https://storage.googleapis.com/download.tensorflow.org/data/speech_commands_v0.02.tar.gz
@@ -103,6 +105,8 @@ tts:                           # scripts/03_tts.py (synthetic voices: keyword he
 window:
   T: 81                        # frames per CNN window (1.62 s; CONTRACT 2 allows <= 101). 61 (1.22 s) is too short for a slow "S. O. S."
   margin_frames: 2             # keyword fully inside the window, at least this far from both ends
+  p_right_edge: 0.35           # v2: share of keyword windows whose keyword ends in the last right_edge_s of the window
+  right_edge_s: 0.30           #     (in a quiet room the device gate only runs the CNN while the word is in its last 240 ms)
 
 # ---------------------------------------------------------- augmentation
 augment:                       # kws/augment.py; p_* = probability per training window
@@ -125,7 +129,6 @@ augment:                       # kws/augment.py; p_* = probability per training 
   highpass_hz: [60, 120]       # 2nd-order Butterworth (mic / case)
   p_context: 0.25              # other running speech before / after the keyword (not overlapping)
   context_level_db: [-12, 0]   # relative to the keyword
-  p_time_mask: 0.0             # SpecAugment off (device features are exact)
 
 # ------------------------------------------------------------- network
 net:                           # CONTRACT 2 limits: T<=101 c1<=32 c2<=64 c3<=96 hid<=128 ncls<=8 spk_dim<=64
@@ -137,24 +140,24 @@ net:                           # CONTRACT 2 limits: T<=101 c1<=32 c2<=64 c3<=96 
 
 # ------------------------------------------------- Step 2: keyword training
 train_kw:
-  epochs: 40
+  epochs: 50
   windows_per_epoch: 48000
   batch: 256
-  class_mix: {help: 0.2, help me: 0.2, sos: 0.2, _other: 0.4}     # sampler probabilities
+  class_mix: {help: 0.17, help me: 0.16, sos: 0.17, _other: 0.5}  # sampler probabilities (v1: 0.2/0.2/0.2/0.4)
   other_mix:                   # where an _other window comes from
-    mswc_lookalike: 0.17
-    mswc_random: 0.15
-    speech_commands: 0.10
+    mswc_lookalike: 0.14
+    mswc_random: 0.10
+    speech_commands: 0.06
     libri_words: 0.10          # LibriSpeech look-alikes / "me" alone
-    libri_chunk: 0.18          # running speech
+    libri_chunk: 0.30          # running speech (v1: 0.18 - false alarms on running speech were far too high)
     tts_other: 0.12            # synthetic negatives (so "synthetic" never means "keyword")
-    noise_only: 0.10
-    silence: 0.03
+    noise_only: 0.13
+    silence: 0.05
   real_vs_tts: {help: 0.75, help me: 0.55, sos: 0.0}   # share of real clips per keyword (rest synthetic)
   help_me_sources: {libri_real: 0.4, joined_same_speaker: 0.6}  # among the real "help me"
   join_gap_ms: [0, 80]         # gap when joining "help" + "me" of the same speaker
   optimizer: adamw
-  lr: 0.003
+  lr: 0.002                    # v1: 0.003 (validation jumped around while lr was high)
   weight_decay: 0.001
   schedule: onecycle           # linear warm-up from lr/div_factor, then cosine down to lr/(div_factor*final_div_factor)
   warmup_frac: 0.05
@@ -165,8 +168,8 @@ train_kw:
   label_smoothing: 0.05
   val_windows_per_class: 1500
   norm_windows: 4000           # training windows used for in_mean / in_std
-  workers: 3
-  torch_threads: 4
+  workers: 4                   # DataLoader processes (one thread each); results do not depend on it
+  torch_threads: 2             # threads of the training process
 
 # ------------------------------------------------- Step 3: speaker head
 train_spk:

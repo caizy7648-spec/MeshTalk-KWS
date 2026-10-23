@@ -1,7 +1,8 @@
 """02_prepare.py - data/raw -> data/cache (Step 1): decode, resample to 16 kHz
 int16, find the spoken part, label, split by speaker.
 
-    python scripts/02_prepare.py
+    python scripts/02_prepare.py                    # everything
+    python scripts/02_prepare.py --parts clips      # only clips.npy/.csv (noise / fa unchanged)
 
 Writes (all int16, 16 kHz, clips one after the other + a CSV index):
   clips.npy / clips.csv     every short clip (MSWC, LibriSpeech cuts, Speech
@@ -198,8 +199,7 @@ def fa_speech():
     return out
 
 
-def main():
-    counts = {}
+def clips(counts):
     st = Store("clips")
     mswc(st)
     librispeech(st)
@@ -217,9 +217,22 @@ def main():
     counts["speakers_by_group_split"] = {f"{a}|{b}": int(v) for (a, b), v in df.groupby(["group", "split"]).speaker.nunique().items()}
     sp = df[df.spk_use]
     counts["speaker_head"] = {s: dict(speakers=int(g.speaker.nunique()), clips=len(g)) for s, g in sp.groupby("split")}
-    counts["noise_hours"] = noise()
-    counts["fa"] = fa_speech()
-    json.dump(counts, open(os.path.join(CACHE, "counts.json"), "w"), indent=1)
+
+
+def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--parts", default="clips,noise,fa")
+    parts = ap.parse_args().parts.split(",")
+    path = os.path.join(CACHE, "counts.json")
+    counts = json.load(open(path)) if os.path.exists(path) else {}
+    if "clips" in parts:
+        clips(counts)
+    if "noise" in parts:
+        counts["noise_hours"] = noise()
+    if "fa" in parts:
+        counts["fa"] = fa_speech()
+    json.dump(counts, open(path, "w"), indent=1)
     log(json.dumps(counts, indent=1))
 
 

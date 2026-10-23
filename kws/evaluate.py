@@ -26,7 +26,7 @@ import torch
 
 from . import augment as aug
 from .audio import to_int16
-from .detect import EV_HIT, STEP, Detector
+from .detect import EV_HIT, GATE_DBFS, STEP, Detector
 from .features import FRAME, HOP, logmel
 
 RATE = 16000
@@ -63,7 +63,28 @@ def batch_run(net, feats, frames, T, bs=2048):
     return np.concatenate(P), np.concatenate(E)
 
 
-def detect(feats, dbfs, probs, frames, T, keyword, thr, hits, hits_ms, check=False):
+class WindowGateDetector(Detector):
+    """PROPOSED firmware change (not the device today): the CNN runs when any
+    frame of the current window (last T frames) was louder than the gate,
+    instead of only the last 12 frames. Everything else is kws.detect.Detector.
+    C: kws_det_t gets `int quiet;` (frames since the last loud frame) and in
+    kws_det_frame `d->quiet = dbfs >= KWS_GATE_DBFS ? 0 : d->quiet + 1;`
+    replaces `d->loud`; the gate test becomes `if (d->quiet >= m->T)`."""
+
+    def __init__(self, *a, **k):
+        super().__init__(*a, **k)
+        self.quiet = 10 ** 9
+
+    def frame(self, feat, dbfs, t_ms):
+        self.quiet = 0 if dbfs >= GATE_DBFS else self.quiet + 1
+        self.loud = 0.0 if self.quiet < self.T else -120.0      # Detector.frame keeps max(loud, dbfs)
+        return super().frame(feat, -120.0 if self.quiet < self.T else dbfs, t_ms)
+
+
+DETECTORS = {"device": Detector, "window_gate": WindowGateDetector}
+
+
+def detect(feats, dbfs, probs, frames, T, keyword, thr, hits, hits_ms, check=False, kind="device"):
     """runs kws.detect.Detector over a stream; returns list of (t_ms, events, class)"""
     cache = {int(f): k for k, f in enumerate(frames)}
     cur = [0]
@@ -74,7 +95,7 @@ def detect(feats, dbfs, probs, frames, T, keyword, thr, hits, hits_ms, check=Fal
             assert np.array_equal(window, feats[cur[0] - T + 1:cur[0] + 1]), "cached window differs"
         return probs[k], None
 
-    det = Detector(run_fn, T, keyword, thr, hits=hits, hits_ms=hits_ms)
+    det = DETECTORS[kind](run_fn, T, keyword, thr, hits=hits, hits_ms=hits_ms)
     out = []
     for i in range(len(feats)):
         cur[0] = i
@@ -95,8 +116,8 @@ class Stream:
         self.probs, self.emb = batch_run(net, self.feats, self.frames, T)
         self.T = T
 
-    def hits(self, keyword, thr, hits=3, hits_ms=20000, check=False):
-        return detect(self.feats, self.dbfs, self.probs, self.frames, self.T, keyword, thr, hits, hits_ms, check)
+    def hits(self, keyword, thr, hits=3, hits_ms=20000, check=False, kind="device"):
+        return detect(self.feats, self.dbfs, self.probs, self.frames, self.T, keyword, thr, hits, hits_ms, check, kind)
 
 
 # ------------------------------------------------------------------ keyword streams

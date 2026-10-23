@@ -212,6 +212,13 @@ def ls_words(row):
     return [(w["word"].lower(), float(w["start"]), float(w["end"])) for w in row["words"] if w["word"]]
 
 
+def ls_settings(sub):
+    """librispeech: settings with the per-subset overrides of train.yaml"""
+    L = dict(S["librispeech"])
+    L.update(L.get("subset_overrides", {}).get(sub, {}))
+    return L
+
+
 def ls_cut_train(table, L):
     """the clips we keep from one training shard: (meta rows, int16 audio)"""
     look = set(S["mswc"]["lookalike_words"])
@@ -291,7 +298,7 @@ def librispeech():
             rows, audio = [], []
             off = 0
             for g in range(pf.num_row_groups):
-                r, a = ls_cut_train(pf.read_row_group(g, columns=["id", "audio", "words"]), L)
+                r, a = ls_cut_train(pf.read_row_group(g, columns=["id", "audio", "words"]), ls_settings(sub))
                 for x in r:
                     x["offset"] += off
                 off += len(a)

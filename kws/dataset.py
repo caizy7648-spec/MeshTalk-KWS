@@ -29,6 +29,13 @@ def n_samples(T):
     return FRAME + (T - 1) * HOP
 
 
+def worker_init(_):
+    """DataLoader workers: one thread each (numpy BLAS / torch would otherwise oversubscribe the CPU)"""
+    from threadpoolctl import threadpool_limits
+    threadpool_limits(1)
+    torch.set_num_threads(1)
+
+
 class Data:
     """clips + noise banks from data/cache, grouped for sampling"""
 
@@ -97,6 +104,8 @@ class Builder:
         self.T = C["window"]["T"]
         self.N = n_samples(self.T)
         self.margin = C["window"]["margin_frames"] * HOP
+        self.p_edge = C["window"].get("p_right_edge", 0.0)
+        self.edge = C["window"].get("right_edge_s", 0.0)
         self.ctx_pool = D.pool("_other", ["libri_chunk"], split)
 
     def place(self, rng, x, s, e, keyword):
@@ -104,7 +113,13 @@ class Builder:
         N, m, L = self.N, self.margin, len(x)
         lo, hi = m - s, N - m - e
         if keyword:
-            return None if lo > hi else int(rng.integers(lo, hi + 1))
+            if lo > hi:
+                return None
+            if rng.random() < self.p_edge:
+                # keyword end close to the window end: the windows the device runs on in a quiet room
+                # (the -55 dBFS gate only lets the CNN run while the word is in its last 240 ms)
+                return int(max(lo, hi - int(rng.uniform(0, self.edge) * aug.RATE)))
+            return int(rng.integers(lo, hi + 1))
         if L >= N:
             return int(rng.integers(N - L, 1))
         return int(rng.integers(min(lo, 0), max(hi, N - L) + 1))

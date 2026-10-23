@@ -18,7 +18,7 @@ import torch.nn.functional as F
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from kws.cfg import load, seed_all  # noqa: E402
-from kws.dataset import Data, FixedKwWindows, KwWindows  # noqa: E402
+from kws.dataset import worker_init, Data, FixedKwWindows, KwWindows  # noqa: E402
 from kws.model import KwsNet  # noqa: E402
 
 C = load()
@@ -30,12 +30,13 @@ def loader(ds, shuffle, seed):
     g = torch.Generator()
     g.manual_seed(seed)
     return torch.utils.data.DataLoader(ds, batch_size=K["batch"], shuffle=shuffle, num_workers=K["workers"],
-                                       generator=g, drop_last=shuffle, persistent_workers=False)
+                                       generator=g, drop_last=shuffle, persistent_workers=False,
+                                       worker_init_fn=worker_init)
 
 
 def norm_stats(ds, n):
     """per-band mean / std of the training features (sets in_mean / in_std)"""
-    ds.epoch = -1
+    ds.epoch = 999999                                       # windows not used for training epochs
     X = torch.stack([ds[i][0] for i in range(n)])          # [n, T, 40]
     return X.mean(dim=(0, 1)), X.std(dim=(0, 1))
 

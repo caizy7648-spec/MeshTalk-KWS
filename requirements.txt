@@ -5,3 +5,4 @@ torch
 # optional, for synthetic speech (see PLAN.md step 2)
 kokoro-onnx
 onnxruntime
+threadpoolctl

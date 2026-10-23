@@ -23,7 +23,7 @@ import torch.nn.functional as F
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from kws.cfg import load, seed_all  # noqa: E402
-from kws.dataset import Data, KwWindows, SpkWindows  # noqa: E402
+from kws.dataset import worker_init, Data, KwWindows, SpkWindows  # noqa: E402
 from kws.evaluate import eer  # noqa: E402
 from kws.model import KwsNet  # noqa: E402
 
@@ -92,11 +92,12 @@ def main():
         tr.epoch = ep
         g.manual_seed(C["seed"] + 1000 + ep)
         dl = torch.utils.data.DataLoader(tr, batch_size=S["batch"], shuffle=True, num_workers=C["train_kw"]["workers"],
-                                         generator=g, drop_last=True)
+                                         generator=g, drop_last=True, worker_init_fn=worker_init)
         if not frozen:
             kw_ds.epoch = ep
             kw_it = iter(torch.utils.data.DataLoader(kw_ds, batch_size=S["batch"], shuffle=True, num_workers=1,
-                                                     generator=torch.Generator().manual_seed(C["seed"] + 2000 + ep), drop_last=True))
+                                                     generator=torch.Generator().manual_seed(C["seed"] + 2000 + ep), drop_last=True,
+                                                     worker_init_fn=worker_init))
         net.train(not frozen)
         head.train()
         tl, tn, t1 = 0.0, 0, time.time()

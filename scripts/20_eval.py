@@ -84,7 +84,7 @@ def fa_streams(D, split, T):
         if rng.random() < E["fa_noise_mix_prob"]:
             x = aug.add_noise(x, D.noise_seg(rng, "test", len(x)), rng.uniform(*E["fa_noise_snr_db"]), x)
         x = aug.noise_floor(x, rng, E["noise_floor_dbfs"])
-        for k in kw[(kw.at >= r.offset) & (kw.at < r.offset + r.length)].itertuples():
+        for k in kw[(kw["at"] >= r.offset) & (kw["at"] < r.offset + r.length)].itertuples():
             a0 = base + (k.at - r.offset)
             guard.append((a0 * 1000 // 16000, (base + k.end - r.offset) * 1000 // 16000 + int(E["keyword_guard_s"] * 1000)))
         cur.append(x)
@@ -109,7 +109,7 @@ def fa_streams(D, split, T):
     return chunks
 
 
-def eval_kw(net, split, tag):
+def eval_kw(net, split, tag, kind="device"):
     T = net.cfg["T"]
     labels = C["labels"]
     keyword = [not l.startswith("_") for l in labels]
@@ -128,7 +128,7 @@ def eval_kw(net, split, tag):
             st = Stream(net, pcm, T)
             r = dict(label=lab, source=src, cond=cond)
             for thr in grid:
-                k = hit_in(st.hits(keyword, thr, check=(n == 0)), a * 1000 // 16000, b * 1000 // 16000 + E["hit_after_ms"])
+                k = hit_in(st.hits(keyword, thr, check=(n == 0), kind=kind), a * 1000 // 16000, b * 1000 // 16000 + E["hit_after_ms"])
                 r["hit@%.2f" % thr] = k >= 0
                 r["cls@%.2f" % thr] = k == labels.index(lab)
             rows.append(r)
@@ -140,16 +140,17 @@ def eval_kw(net, split, tag):
         for k in fa:
             fa[k]["hits@%.2f" % thr] = 0
             fa[k]["sos@%.2f" % thr] = 0
-    for kind, pcm, guard in fa_streams(D, split, T):
+    for src, pcm, guard in fa_streams(D, split, T):
         st = Stream(net, pcm, T)
-        fa[kind]["hours"] += len(pcm) / 16000 / 3600
+        fa[src]["hours"] += len(pcm) / 16000 / 3600
         for thr in grid:
-            fh, sos = fa_count(st.hits(keyword, thr, X["hits"], X["hits_ms"]), guard, X["hits"], X["hits_ms"])
-            fa[kind]["hits@%.2f" % thr] += fh
-            fa[kind]["sos@%.2f" % thr] += sos
-        print("  %s %.2f h done (%.0f s)" % (kind, fa[kind]["hours"], time.time() - t0), flush=True)
+            fh, sos = fa_count(st.hits(keyword, thr, X["hits"], X["hits_ms"], kind=kind), guard, X["hits"], X["hits_ms"])
+            fa[src]["hits@%.2f" % thr] += fh
+            fa[src]["sos@%.2f" % thr] += sos
+        print("  %s %.2f h done (%.0f s)" % (src, fa[src]["hours"], time.time() - t0), flush=True)
     # --- summary per threshold
-    res = dict(split=split, model=tag, streams=len(P), fa_hours={k: round(v["hours"], 2) for k, v in fa.items()}, per_thr={})
+    sfx = "" if kind == "device" else "_" + kind
+    res = dict(split=split, model=tag, detector=kind, streams=len(P), fa_hours={k: round(v["hours"], 2) for k, v in fa.items()}, per_thr={})
     res["positives"] = {f"{a}|{b}": int(v) for (a, b), v in P[P.cond == "clean"].groupby(["label", "source"]).size().items()}
     for thr in grid:
         h, c = "hit@%.2f" % thr, "cls@%.2f" % thr
@@ -165,13 +166,13 @@ def eval_kw(net, split, tag):
         f["all"] = dict(false_hits_per_h=round(sum(v["hits@%.2f" % thr] for v in fa.values()) / hrs, 3),
                         false_sos=sum(v["sos@%.2f" % thr] for v in fa.values()))
         res["per_thr"]["%.2f" % thr] = dict(hit=d, fa=f)
-    json.dump(res, open(os.path.join(MODELS, "eval_kw_%s.json" % split), "w"), indent=1)
-    plot_kw(res, split)
+    json.dump(res, open(os.path.join(MODELS, "eval_kw_%s%s.json" % (split, sfx)), "w"), indent=1)
+    plot_kw(res, split, sfx)
     print("done in %.0f min" % ((time.time() - t0) / 60))
     return res
 
 
-def plot_kw(res, split):
+def plot_kw(res, split, sfx=""):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -189,9 +190,9 @@ def plot_kw(res, split):
     ax.set_ylabel("hit rate % (clean + noisy)")
     ax.grid(alpha=.3)
     ax.legend()
-    ax.set_title("hit rate vs false alarms, kws.detect.Detector (%s)" % split)
+    ax.set_title("hit rate vs false alarms, %s (%s)" % ("kws.detect.Detector" if not sfx else "proposed window gate", split))
     fig.tight_layout()
-    fig.savefig(os.path.join(DOCS, "kw_hit_vs_fa_%s.png" % split), dpi=130)
+    fig.savefig(os.path.join(DOCS, "kw_hit_vs_fa_%s%s.png" % (split, sfx)), dpi=130)
 
 
 # ------------------------------------------------------------------ speaker
@@ -312,10 +313,15 @@ def main():
     ap.add_argument("part", choices=["kw", "spk"])
     ap.add_argument("--model", default=os.path.join(MODELS, "best.pt"))
     ap.add_argument("--split", default="test", choices=["val", "test"])
+    ap.add_argument("--detector", default="device", choices=["device", "window_gate"],
+                    help="device = kws.detect.Detector (the firmware today); window_gate = proposed gate change")
     a = ap.parse_args()
     torch.set_num_threads(C["train_kw"]["torch_threads"])
     net = load_net(a.model)
-    (eval_kw if a.part == "kw" else eval_spk)(net, a.split, os.path.basename(a.model))
+    if a.part == "kw":
+        eval_kw(net, a.split, os.path.basename(a.model), a.detector)
+    else:
+        eval_spk(net, a.split, os.path.basename(a.model))
 
 
 if __name__ == "__main__":
