@@ -61,6 +61,14 @@ size_t kws_engine_work(const kws_model_t *m);
 /* feat: T x B raw log-mel values (row = frame). probs: ncls (softmax).
  * emb: spk_dim values of length 1, or NULL. */
 bool   kws_engine_run(const kws_model_t *m, const float *feat, float *work, float *probs, float *emb);
+/* v1.5.1: the same, but the window feat is the one of this work memory's last
+ * run moved on by shift frames (oldest dropped, newest added; -1 = unknown):
+ * the rows that did not change are reused (same result, much faster). The
+ * caller must be sure: compare kws_engine_stamp(work) with the value after
+ * its own last run (another user of the same work memory changes it). */
+bool   kws_engine_run_shift(const kws_model_t *m, const float *feat, float *work, float *probs, float *emb, int shift);
+uint32_t kws_engine_stamp(const float *work);     /* changes with every run, 0 = none yet */
+uint32_t kws_engine_macs(const float *work);      /* multiply-adds of the last run (tests) */
 /* label of class k ("help me"), copied into buf */
 const char *kws_label(const kws_model_t *m, int k, char *buf, size_t size);
 bool   kws_is_keyword(const kws_model_t *m, int k);
