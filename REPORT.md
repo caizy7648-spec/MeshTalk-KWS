@@ -276,3 +276,19 @@ Gender-balanced sampling (50 / 50). Device augmentation: `spk/device.py` (INMP44
 RT60 0.2-0.8 s, -45...-3 dBFS with clipping, shouting, noise). LibriTTS not used (same speakers as LibriSpeech).
 VoxCeleb / Common Voice not used (gated) - an HF token would add ~7000 in-the-wild speakers, but the student capacity is the
 main limit, so I would not expect a large gain from data alone.
+
+---
+
+# Phase B3 (2026-11) - larger speaker model from scratch: **stopped after the trial** (not promising)
+
+Structure: Conv1d 192/192/192/192/384, kernels 5/3/3/3/1, dilations 1/2/3/4/1, mean + std pooling -> 128, L2 (36.1 M MAC).
+Trial = 10 epochs (1/4 of the planned 40), ECAPA distillation + AAM, B2 data / device chain / teacher vectors reused.
+
+| | cosine student vs teacher | val mean EER (score = max(class, all), clean / far / shout / noisy) |
+|---|---|---|
+| spk-20261023 (old, 12.8 M MAC) | 0.37 (B2 fine-tuning) | **7.38 %** (5.7 / 6.3 / 8.1 / 9.4) |
+| new, trial after 10 epochs | **0.30** | **15.0 %** (12.9 / 13.2 / 15.7 / 18.2) |
+
+Decision: no full training, no engine. Note: with the firmware's max(class, all) scoring the OLD model is already at 7.4 %
+(< the 8 % gate); a 15 % gain needs ~6.3 %. The trial converges slowly (-0.4 points/epoch at the end) and its teacher
+similarity is below the old model's, so 4x more training is not expected to reach that.

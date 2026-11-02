@@ -201,3 +201,29 @@ finetune:
     min_rel_eer_gain: 0.15     # mean EER over clean / far / shout / noisy at least 15 % lower
     max_eer_loss: 0.005        # and no condition more than 0.5 points worse
     max_far_loss: 0.005        # cross-gender false accept (at the matched threshold) not more than 0.5 points higher
+
+# =====================================================================================================
+# Phase B3 (2026-11): larger SpkNet from scratch, same input (40 log-mel x 81) / output (128) / interface.
+# Reuses everything of B2 (data, device chain, teacher vectors, splits, eval). 45_finetune_spk.py --stage big
+# =====================================================================================================
+big:
+  net:
+    frames: 81
+    channels: [192, 192, 192, 192, 384]
+    kernels: [5, 3, 3, 3, 1]
+    dilations: [1, 2, 3, 4, 1]   # receptive field 23 frames (0.46 s)
+    dim: 128                     # ~36 M multiply-adds
+  trial_epochs: 10               # 1/4 of the training first: go on only if val EER < 8 % (score_max)
+  train:                         # values replacing finetune.train
+    freeze_layers: 0
+    freeze_bn_stats: false
+    epochs: 40
+    lr: 0.002                    # from scratch (spk-20261023 used 0.002 too)
+    lr_heads: 0.002
+    warmup_frac: 0.05
+    loss_distill: 1.0            # = B2 attempt A (the best of B2): distillation + AAM only
+    loss_aam: 0.5
+    loss_relational: 0.0
+    loss_consistency: 0.0
+    norm_windows: 4000
+    score: score_max             # validation scored like the firmware: max(class template, all template)

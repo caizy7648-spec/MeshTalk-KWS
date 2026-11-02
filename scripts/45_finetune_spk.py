@@ -1,6 +1,8 @@
 """45_finetune_spk.py - warm-start fine-tuning of the speaker model (phase B2).
 
-    python scripts/45_finetune_spk.py        # models/spk_best_v1.pt -> models/spk_ft.pt (+ spk_ft_log.csv, docs/spk_ft_training_curves.png)
+    python scripts/45_finetune_spk.py                     # B2: models/spk_best_v1.pt -> models/spk_ft.pt
+    python scripts/45_finetune_spk.py --stage big --trial # B3: larger SpkNet from scratch, 1/4 of the training -> models/spk_big_trial.pt
+    python scripts/45_finetune_spk.py --stage big         # B3: full training -> models/spk_big.pt
 
 Starts from spk-20261023 (same SpkNet: 40 log-mel x 81 frames -> 128).
   * the first layer (convs[0], bns[0]) is frozen, BN statistics included
@@ -33,11 +35,25 @@ from kws.features import logmel  # noqa: E402
 from spk import device, eval_dev  # noqa: E402
 from spk.data import load_cfg  # noqa: E402
 from spk.export import load as load_spk  # noqa: E402
+from spk.model import SpkNet  # noqa: E402
 from spk.voices import AamWindows, DistillWindows, Voices  # noqa: E402
 
 C, P = load_cfg()
+import argparse  # noqa: E402
+
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--stage", default="ft", choices=["ft", "big"], help="ft: warm start (B2); big: larger SpkNet from scratch (B3)")
+_ap.add_argument("--trial", action="store_true", help="big only: big.trial_epochs instead of the full training")
+ARGS = _ap.parse_args()
 FT = P["finetune"]
+if ARGS.stage == "big":                 # B3: values of big.train replace finetune.train (the datasets read them too)
+    FT["train"] = dict(FT["train"], **P["big"]["train"])
+    if ARGS.trial:
+        FT["train"]["epochs"] = P["big"]["trial_epochs"]
 T = FT["train"]
+TAG = "" if ARGS.stage == "ft" else ("_big_trial" if ARGS.trial else "_big")
+OUT = FT["out"] if ARGS.stage == "ft" else "models/spk%s.pt" % TAG
+SCORE = T.get("score", "score_cls")     # big: score_max = max(class template, all template), as the firmware
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 MODELS, DOCS = C["paths"]["models"], C["paths"]["docs"]
 
@@ -77,7 +93,7 @@ def val_eer(net, V):
     conds = T["select_conds"]
     tm, tests, g = eval_dev.build(net, V, P, "val", T["val_speakers"], conds, tag="evB2val")
     sc = eval_dev.scores(tm, tests, g, FT["eval"]["impostors_per_gender"], "val")
-    s = eval_dev.summary(sc, FT["eval"]["threshold"])
+    s = eval_dev.summary(sc, FT["eval"]["threshold"], SCORE)
     return float(np.mean([s[c]["eer"] for c in conds])), s
 
 
@@ -86,17 +102,28 @@ def main():
     torch.use_deterministic_algorithms(True)
     torch.set_num_threads(T["torch_threads"])
     t0 = time.time()
-    net = load_spk(os.path.join(ROOT, FT["init"]))
+    old = load_spk(os.path.join(ROOT, FT["init"]))
     V = Voices(C)
     aam = AamWindows(V, C, P, T["steps_per_epoch"] * T["batch_aam"])
     dis = DistillWindows(V, C, P, T["steps_per_epoch"] * T["batch_distill"])
     print("AAM speakers %d (F %d / M %d), bank %d (F %d / M %d)" % (
         len(aam.names), len(aam.by_gender["FEMALE"]), len(aam.by_gender["MALE"]), len(dis.bank),
         len(dis.by_gender["FEMALE"]), len(dis.by_gender["MALE"])), flush=True)
-    net.eval()
-    e0, s0 = val_eer(net, V)
-    print("start (spk-20261023): val mean EER %.4f %s" % (e0, json.dumps({c: v["eer"] for c, v in s0.items()})), flush=True)
-    head = AAM(centroids(net, V, aam), T["aam_margin"], T["aam_scale"])
+    old.eval()
+    e0, s0 = val_eer(old, V)
+    print("spk-20261023: val mean EER %.4f %s" % (e0, json.dumps({c: v["eer"] for c, v in s0.items()})), flush=True)
+    if ARGS.stage == "ft":
+        net = old
+        head = AAM(centroids(net, V, aam), T["aam_margin"], T["aam_scale"])
+    else:                               # from scratch: new sizes, in_mean / in_std from training windows
+        net = SpkNet(**P["big"]["net"])
+        aam.epoch = 999999
+        X = torch.stack([aam[i][0] for i in range(T["norm_windows"])])
+        net.in_mean.copy_(X.mean(dim=(0, 1)))
+        net.in_std.copy_(X.std(dim=(0, 1)))
+        print("SpkNet %s: %d multiply-adds" % (net.cfg, net.macs()), flush=True)
+        head = AAM(torch.randn(len(aam.names), net.cfg["dim"]) * 0.01, T["aam_margin"], T["aam_scale"])
+        e0 = 9.0                        # keep the best epoch of the new model
     proj = torch.nn.Linear(net.cfg["dim"], dis.teacher.shape[1])
     frozen = []
     for i in range(T["freeze_layers"]):
@@ -163,9 +190,9 @@ def main():
         print(json.dumps({k: round(v, 4) if isinstance(v, float) else v for k, v in row.items()}), flush=True)
         if e < best:
             best = e
-            torch.save({"cfg": net.cfg, "state": net.state_dict(), "epoch": ep + 1, "val_eer": e, "init": FT["init"]},
-                       os.path.join(ROOT, FT["out"]))
-    pd.DataFrame(log).to_csv(os.path.join(MODELS, "spk_ft_log.csv"), index=False)
+            torch.save({"cfg": net.cfg, "state": net.state_dict(), "epoch": ep + 1, "val_eer": e, "stage": ARGS.stage},
+                       os.path.join(ROOT, OUT))
+    pd.DataFrame(log).to_csv(os.path.join(MODELS, "spk%s_log.csv" % (TAG or "_ft")), index=False)
     print("best val mean EER %.4f (start %.4f), %.0f min" % (best, e0, (time.time() - t0) / 60))
     plot(log)
 
@@ -184,7 +211,7 @@ def plot(log):
     ax[1].set_xlabel("epoch (0 = spk-20261023)"), ax[1].set_ylabel("validation EER %"), ax[1].legend(), ax[1].grid(alpha=.3)
     fig.suptitle("speaker model fine-tuning (warm start, distillation from ECAPA)")
     fig.tight_layout()
-    fig.savefig(os.path.join(DOCS, "spk_ft_training_curves.png"), dpi=130)
+    fig.savefig(os.path.join(DOCS, "spk%s_training_curves.png" % (TAG or "_ft")), dpi=130)
 
 
 if __name__ == "__main__":
