@@ -1,0 +1,11 @@
+# separate venv for scripts/44_teacher.py only (SpeechBrain needs torchaudio; CPU wheels):
+#   pip install torch==2.11.0 torchaudio==2.11.0 --index-url https://download.pytorch.org/whl/cpu
+huggingface_hub==2.4.0
+numpy==2.5.4
+pandas==3.1.0
+pyarrow==26.0.0
+PyYAML==6.0.3
+soundfile==0.14.0
+speechbrain==1.1.2
+torch==2.11.0+cpu
+torchaudio==2.11.0+cpu

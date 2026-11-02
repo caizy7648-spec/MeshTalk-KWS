@@ -1,0 +1,14 @@
+{
+ "libri_heldout_segments": 920,
+ "libri_heldout_accuracy": 0.9337,
+ "mswc_labelled_segments": 5737,
+ "mswc_accuracy": 0.7844,
+ "teacher": "speechbrain/spkrec-ecapa-voxceleb",
+ "bank": 33145,
+ "gender_counts": {
+  "MALE": 12802,
+  "FEMALE": 5990
+ },
+ "libri_speaker_level_accuracy": 0.9583,
+ "mswc_speaker_level_agreement": 0.8348
+}

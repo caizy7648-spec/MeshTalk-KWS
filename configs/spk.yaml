@@ -79,3 +79,125 @@ export:
   threshold: 0.60              # chosen on val by 41_eval_spk.py: highest owner rate with other-person rate <= 3 % (see REPORT.md)
   enrol_takes: 10
   name: spk-20261023
+
+# =====================================================================================================
+# Phase B2 (2026-11): warm-start fine-tuning of spk_best.pt (spk-20261023) with distillation from a
+# large teacher and device-like augmentation. Same network, input, output, C engine, export format.
+# scripts: 43_spk_extra.py (data) -> 44_teacher.py (teacher vectors, separate venv) ->
+#          45_finetune_spk.py (training) -> 46_compare_spk.py (old vs new, device protocol) -> 42_export_spk.py
+# =====================================================================================================
+finetune:
+  init: models/spk_best_v1.pt  # spk-20261023 (id 0x4A5BDC6D), kept unchanged under this name
+  out: models/spk_ft.pt
+  extra:                       # 43_spk_extra.py: more voices, no login needed
+    vctk:                      # 110 speakers, British English accents, 48 kHz studio (mirror at 22.05 kHz), CC-BY 4.0
+      url: https://huggingface.co/datasets/arampacha/vctk_22kHz/resolve/main/raw_data.zip
+      licence: CC-BY 4.0
+      utts_per_speaker: 40     # hash order; members read from the remote zip with HTTP ranges (no 10.7 GB download)
+      max_s: 4.0
+      threads: 8
+    peoples_speech:            # many speakers (public speeches, hearings, interviews), no speaker labels -> distillation only
+      repo: MLCommons/peoples_speech
+      licence: CC-BY 4.0 / CC-BY-SA 4.0 (per source)
+      shards: [0, 130, 260, 390, 520, 650, 780]   # clean/train-XXXXX-of-00804, spread over the corpus
+      segs_per_shard: 1500
+      seg_s: 3.0
+      min_s: 3.5               # utterances shorter than this are skipped
+    librispeech_speakers_url: https://www.openslr.org/resources/12/raw-metadata.tar.gz   # SPEAKERS.TXT: gender
+    not_used:
+      libritts: same speakers as LibriSpeech (it is cut from LibriSpeech) - adds no new voices
+      voxceleb: gated - the owner offered an HF token if needed
+      common_voice: gated - same
+  device:                      # spk/device.py training augmentation (the device microphone, 0.3-1 m away)
+    p_shout: 0.3
+    shout_gain_db: [6, 18]     # drive into tanh soft clipping
+    p_room: 0.9
+    rt60_s: [0.2, 0.8]
+    distance_m: [0.3, 1.0]
+    critical_distance_m: [0.4, 0.8]   # small rooms: DRR +8 dB at 0.3 m ... -8 dB at 1 m
+    rir_len_s: 0.6
+    p_noise: 0.6
+    snr_db: [0, 25]
+    highpass_hz: [60, 150]     # INMP441 low-frequency roll-off (-3 dB ~ 60 Hz) + case / DC block
+    low_shelf_hz: 250
+    low_shelf_db: [-4, 2]
+    high_shelf_hz: 4000
+    high_shelf_db: [-3, 3]     # INMP441 is flat +-2 dB 100 Hz - 10 kHz; case / angle / distance colour
+    level_dbfs: [-45, -3]      # speech RMS; loud shouts clip at full scale (int16)
+    noise_floor_dbfs: [-80, -62]   # INMP441 self-noise (SNR 61 dBA) after the firmware gain
+  teacher:                     # 44_teacher.py (venv with speechbrain)
+    model: speechbrain/spkrec-ecapa-voxceleb   # ECAPA-TDNN, VoxCeleb 1+2, Apache-2.0, 192-dim
+    per_speaker: 3             # clips per labelled training speaker (5224 speakers)
+    gender_clips: 2            # clips per val / test speaker (gender model)
+    max_s: 3.0                 # teacher sees at most 3 s of clean audio around the word
+    batch: 32
+    threads: 4
+  train:                       # 45_finetune_spk.py: warm start, small steps, first layer frozen
+    freeze_layers: 1           # convs[0] + bns[0] stay as in spk-20261023 (BN statistics frozen too)
+    max_clips_per_speaker: 10  # AAM stream: fixed subset per speaker (fine-tuning; keeps the audio in the page cache)
+    epochs: 16
+    steps_per_epoch: 150
+    batch_aam: 128             # labelled windows (AAM-softmax)
+    batch_distill: 128         # bank windows (cosine distillation to the teacher)
+    lr: 0.0001                 # peak for the network (spk-20261023 was trained with 0.002; attempts A/B: 0.0003)
+    freeze_bn_stats: true      # keep every BN layer's running statistics of spk-20261023 (attempts A/B: false)
+    lr_heads: 0.003            # projection 128 -> 192 and AAM weights (new, start from the current geometry)
+    weight_decay: 0.0005
+    warmup_frac: 0.1
+    final_lr_frac: 0.05
+    loss_distill: 0.5          # weight of (1 - cos(proj(student), teacher))   (attempt A: 1.0)
+    loss_aam: 0.5              # weight of AAM-softmax
+    loss_relational: 10.0      # weight of mean squared difference of the batch's pairwise cosines (student vs teacher; attempt A: 0)
+    loss_consistency: 1.0      # weight of (1 - cos(device view, enrolment view)) of the same audio (attempt A: 0)
+    aam_margin: 0.2
+    aam_scale: 30.0
+    centroid_clips: 3          # AAM weights start at each speaker's mean vector (clean windows of spk-20261023)
+    workers: 4
+    torch_threads: 2
+    val_speakers: 150
+    select_conds: [clean, far, shout, noisy]   # epoch kept = lowest mean EER over these on val speakers
+  eval:                        # 46_compare_spk.py / spk/eval_dev.py (device protocol, device conditions)
+    enrol_takes: 10
+    enrol_classes: ["help", "help me", "sos"]
+    test_takes: 6
+    test_takes_min: 4
+    impostors_per_gender: 15
+    speakers: 600
+    threshold: 0.52            # firmware "Normal"
+    conditions:
+      enrol: &enrol             # recorded on the device: close, quiet room, normal voice
+        p_shout: 0.0
+        shout_gain_db: 0
+        p_room: 1.0
+        rt60_s: [0.2, 0.4]
+        distance_m: [0.3, 0.5]
+        critical_distance_m: [0.4, 0.8]
+        rir_len_s: 0.6
+        p_noise: 0.0
+        snr_db: 20
+        highpass_hz: [60, 150]
+        low_shelf_hz: 250
+        low_shelf_db: [-2, 2]
+        high_shelf_hz: 4000
+        high_shelf_db: [-2, 2]
+        level_dbfs: [-30, -18]
+        noise_floor_dbfs: [-80, -70]
+      clean: *enrol
+      far:                      # 0.8-1 m, echoing room, quieter
+        <<: *enrol
+        rt60_s: [0.4, 0.8]
+        distance_m: [0.8, 1.0]
+        level_dbfs: [-42, -30]
+      shout:                    # shouted, close, loud enough to clip
+        <<: *enrol
+        p_shout: 1.0
+        shout_gain_db: [10, 18]
+        level_dbfs: [-12, -3]
+      noisy:
+        <<: *enrol
+        p_noise: 1.0
+        snr_db: [5, 15]
+  deliver_if:                  # 46_compare_spk.py: the new model is exported only when clearly better (test speakers)
+    min_rel_eer_gain: 0.15     # mean EER over clean / far / shout / noisy at least 15 % lower
+    max_eer_loss: 0.005        # and no condition more than 0.5 points worse
+    max_far_loss: 0.005        # cross-gender false accept (at the matched threshold) not more than 0.5 points higher

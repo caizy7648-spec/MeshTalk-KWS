@@ -213,3 +213,66 @@ and the 6 calls repeat one "help" recording; on the device the owner enrols the 
 **Recommendation:** keep "anyone triggers" (as planned). The speaker model and engine are ready; with 10 of the owner's
 own takes recorded on the device (`data/own/`), threshold and possibly a short fine-tune can be re-checked with
 `scripts/41_eval_spk.py` - this is the most effective next step.
+
+---
+
+# Phase B2 (2026-11) - speaker model warm-start fine-tuning with distillation: **NOT delivered** (not clearly better)
+
+`out/spk_model.c` stays **spk-20261023 (id 0x4A5BDC6D)** - no new speaker files, no re-enrolment needed.
+
+Test: 568 test speakers (140 female; gender predicted for 244, see below), 10 enrolment takes (close, quiet, normal voice),
+6 test takes each (other recordings; LibriSpeech: other chapters = other session first) in 4 device conditions,
+15 same-gender + 15 cross-gender impostor templates per take; identical audio for both models (fixed seeds).
+Score = cosine to the template of the take's class (what the firmware does). Threshold "Normal" 0.52.
+
+| condition | EER old -> new | FRR @0.52 old -> new | FAR @0.52 old -> new (same / cross gender) |
+|---|---|---|---|
+| clean (0.3-0.5 m) | 7.4 % -> 7.6 % | 12.8 % -> 20.5 % | 6.7 / 2.5 % -> 3.4 / 1.2 % |
+| far (0.8-1 m, RT60 0.4-0.8 s, quieter) | 8.6 % -> 8.4 % | 16.6 % -> 26.6 % | 6.3 / 2.3 % -> 3.0 / 1.1 % |
+| shouted (clipping) | 10.2 % -> 9.6 % | 20.0 % -> 30.1 % | 7.9 / 3.1 % -> 3.7 / 1.5 % |
+| noisy (SNR 5-15 dB) | 10.8 % -> 11.1 % | 26.3 % -> 38.4 % | 6.2 / 2.1 % -> 2.6 / 0.9 % |
+| **mean EER** | **9.25 % -> 9.17 %** | | |
+
+Score distributions (5 / 25 / 50 / 75 / 95 %, old model; `docs/spk_compare_test.png`): owner clean 0.45 / 0.59 / 0.67 / 0.74 / 0.82,
+far 0.42 / 0.56 / 0.65 / 0.72 / 0.80, shouted 0.40 / 0.54 / 0.62 / 0.69 / 0.78; impostor same gender 95 % at 0.54,
+cross gender 95 % at 0.46 (the device numbers 0.65-0.84 own / 0.17-0.45 female imitation fit this).
+Same-gender impostors are about twice as hard as cross-gender (EER 9.0 vs 5.4 % clean).
+
+**Why not delivered:** the mean EER improves by 1 % (criterion: >= 15 %). The fine-tuned model only shifts all scores
+down by ~0.04 (FAR halves, FRR almost doubles at 0.52) - that is a threshold change, not a better model.
+Three attempts, all warm-started from spk-20261023 with the first layer frozen, chosen on val (150 speakers), test only reported:
+
+| attempt | losses | lr | val mean EER (start 9.33 %) | test mean EER (old 9.25 %) |
+|---|---|---|---|---|
+| A | AAM 0.5 + cosine distillation 1.0 | 3e-4 | 8.93 % | 8.90 % |
+| B | + relational distillation 10 + consistency (device view = enrolment view) 1.0, distillation 0.5 | 3e-4 | 9.30 % | - |
+| C | as B, all BatchNorm statistics frozen | 1e-4 | 9.05 % | 9.17 % |
+
+The student (fixed: 220 k parameters, 1.62 s input) cannot follow the teacher: after the 128 -> 192 projection
+its cosine with ECAPA stays at ~0.37 (distillation loss 0.63), and the old model was already trained with noise /
+reverb / shouting, so device robustness gains are small. More capacity or longer input would be needed (CONTRACT unchanged -> not done).
+
+**What helps without a new model (firmware scoring, same spk-20261023):** compare with the template of ALL 10 takes
+instead of the class template (each class has only 3-4 takes):
+
+| condition | EER class -> all | FRR @0.52 class -> all | FAR @0.52 class -> all (same / cross) |
+|---|---|---|---|
+| clean | 7.4 -> **5.4 %** | 12.8 -> **4.6 %** | 6.7 / 2.5 -> 8.8 / 3.3 % |
+| far | 8.6 -> **6.1 %** | 16.6 -> **6.7 %** | 6.3 / 2.3 -> 8.3 / 2.9 % |
+| shouted | 10.2 -> **8.4 %** | 20.0 -> **9.9 %** | 7.9 / 3.1 -> 10.7 / 4.2 % |
+| noisy | 10.8 -> **9.0 %** | 26.3 -> **15.4 %** | 6.2 / 2.1 -> 8.2 / 2.8 % |
+
+(Caveat: the public data rarely has one person repeating the same keyword, so the class template here does not get
+the "same word" advantage it has on the device. The large SOS spread on the device (0.41-0.77) points the same way:
+few SOS takes -> unstable class template.) Suggested firmware option: score = max(class template, all template)
+(here EER 5.5 / 6.2 / 8.6 / 9.3 %), or all template for SOS; at 0.52 keep an eye on same-gender false accepts (~+2 points).
+Enrolling the 10 takes on different days / distances also makes the all-template more stable.
+
+Data added for this (no login needed): VCTK 110 speakers (4400 utterances, read with HTTP ranges from a 10.7 GB zip),
+People's Speech 10 439 segments (8.7 h, no speaker labels, distillation only); teacher SpeechBrain `spkrec-ecapa-voxceleb`
+(Apache-2.0) on 33 145 clean segments. Gender: LibriSpeech SPEAKERS.TXT + MSWC labels; others predicted by a logistic
+regression on teacher vectors (speaker-level accuracy 95.8 % on LibriSpeech; 83.5 % agreement with MSWC self-labels).
+Gender-balanced sampling (50 / 50). Device augmentation: `spk/device.py` (INMP441 high-pass + shelves, 0.3-1 m with
+RT60 0.2-0.8 s, -45...-3 dBFS with clipping, shouting, noise). LibriTTS not used (same speakers as LibriSpeech).
+VoxCeleb / Common Voice not used (gated) - an HF token would add ~7000 in-the-wild speakers, but the student capacity is the
+main limit, so I would not expect a large gain from data alone.

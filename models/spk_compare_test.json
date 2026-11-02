@@ -1,0 +1,986 @@
+{
+ "old": {
+  "model": "models/spk_best_v1.pt",
+  "speakers": 568,
+  "female": 140,
+  "gender_predicted": 244,
+  "per_class_template": {
+   "clean": {
+    "eer": 0.0745,
+    "frr": 0.1283,
+    "far": 0.0457,
+    "far_same_gender": 0.0666,
+    "eer_same_gender": 0.0898,
+    "far_cross_gender": 0.0249,
+    "eer_cross_gender": 0.0541,
+    "powner": [
+     0.445,
+     0.588,
+     0.671,
+     0.739,
+     0.822
+    ],
+    "psame_gender": [
+     -0.108,
+     0.092,
+     0.236,
+     0.372,
+     0.543
+    ],
+    "pcross_gender": [
+     -0.241,
+     -0.065,
+     0.082,
+     0.243,
+     0.459
+    ],
+    "frr_other_session": 0.1252,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "far": {
+    "eer": 0.0857,
+    "frr": 0.1655,
+    "far": 0.0429,
+    "far_same_gender": 0.0631,
+    "eer_same_gender": 0.1037,
+    "far_cross_gender": 0.0227,
+    "eer_cross_gender": 0.0617,
+    "powner": [
+     0.42,
+     0.562,
+     0.649,
+     0.719,
+     0.803
+    ],
+    "psame_gender": [
+     -0.099,
+     0.097,
+     0.237,
+     0.37,
+     0.539
+    ],
+    "pcross_gender": [
+     -0.232,
+     -0.056,
+     0.086,
+     0.243,
+     0.454
+    ],
+    "frr_other_session": 0.1558,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "noisy": {
+    "eer": 0.1079,
+    "frr": 0.2633,
+    "far": 0.0413,
+    "far_same_gender": 0.0616,
+    "eer_same_gender": 0.1297,
+    "far_cross_gender": 0.0209,
+    "eer_cross_gender": 0.0807,
+    "powner": [
+     0.358,
+     0.516,
+     0.611,
+     0.691,
+     0.781
+    ],
+    "psame_gender": [
+     -0.097,
+     0.099,
+     0.236,
+     0.369,
+     0.537
+    ],
+    "pcross_gender": [
+     -0.228,
+     -0.053,
+     0.088,
+     0.24,
+     0.45
+    ],
+    "frr_other_session": 0.2565,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "shout": {
+    "eer": 0.102,
+    "frr": 0.1998,
+    "far": 0.0551,
+    "far_same_gender": 0.0794,
+    "eer_same_gender": 0.1259,
+    "far_cross_gender": 0.0307,
+    "eer_cross_gender": 0.0744,
+    "powner": [
+     0.403,
+     0.542,
+     0.623,
+     0.694,
+     0.781
+    ],
+    "psame_gender": [
+     -0.092,
+     0.108,
+     0.254,
+     0.391,
+     0.555
+    ],
+    "pcross_gender": [
+     -0.219,
+     -0.043,
+     0.101,
+     0.262,
+     0.479
+    ],
+    "frr_other_session": 0.1727,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   }
+  },
+  "all_template": {
+   "clean": {
+    "eer": 0.0541,
+    "frr": 0.0461,
+    "far": 0.0604,
+    "far_same_gender": 0.0883,
+    "eer_same_gender": 0.0671,
+    "far_cross_gender": 0.0325,
+    "eer_cross_gender": 0.0382,
+    "powner": [
+     0.526,
+     0.65,
+     0.719,
+     0.779,
+     0.847
+    ],
+    "psame_gender": [
+     -0.101,
+     0.107,
+     0.257,
+     0.395,
+     0.566
+    ],
+    "pcross_gender": [
+     -0.244,
+     -0.065,
+     0.089,
+     0.259,
+     0.48
+    ],
+    "frr_other_session": 0.0448,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "far": {
+    "eer": 0.0612,
+    "frr": 0.0674,
+    "far": 0.0559,
+    "far_same_gender": 0.0827,
+    "eer_same_gender": 0.0751,
+    "far_cross_gender": 0.029,
+    "eer_cross_gender": 0.0426,
+    "powner": [
+     0.501,
+     0.623,
+     0.695,
+     0.758,
+     0.831
+    ],
+    "psame_gender": [
+     -0.091,
+     0.112,
+     0.257,
+     0.393,
+     0.561
+    ],
+    "pcross_gender": [
+     -0.235,
+     -0.055,
+     0.093,
+     0.257,
+     0.472
+    ],
+    "frr_other_session": 0.0658,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "noisy": {
+    "eer": 0.0904,
+    "frr": 0.1537,
+    "far": 0.055,
+    "far_same_gender": 0.0817,
+    "eer_same_gender": 0.1114,
+    "far_cross_gender": 0.0283,
+    "eer_cross_gender": 0.0647,
+    "powner": [
+     0.424,
+     0.57,
+     0.66,
+     0.731,
+     0.812
+    ],
+    "psame_gender": [
+     -0.088,
+     0.113,
+     0.256,
+     0.392,
+     0.559
+    ],
+    "pcross_gender": [
+     -0.23,
+     -0.053,
+     0.094,
+     0.255,
+     0.47
+    ],
+    "frr_other_session": 0.1528,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "shout": {
+    "eer": 0.0843,
+    "frr": 0.0993,
+    "far": 0.0745,
+    "far_same_gender": 0.1072,
+    "eer_same_gender": 0.1032,
+    "far_cross_gender": 0.0417,
+    "eer_cross_gender": 0.0597,
+    "powner": [
+     0.476,
+     0.598,
+     0.672,
+     0.735,
+     0.808
+    ],
+    "psame_gender": [
+     -0.085,
+     0.123,
+     0.275,
+     0.417,
+     0.583
+    ],
+    "pcross_gender": [
+     -0.222,
+     -0.041,
+     0.109,
+     0.277,
+     0.503
+    ],
+    "frr_other_session": 0.0877,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   }
+  },
+  "max_of_both": {
+   "clean": {
+    "eer": 0.055,
+    "frr": 0.0414,
+    "far": 0.0682,
+    "far_same_gender": 0.0991,
+    "eer_same_gender": 0.0683,
+    "far_cross_gender": 0.0374,
+    "eer_cross_gender": 0.0391,
+    "powner": [
+     0.529,
+     0.656,
+     0.725,
+     0.783,
+     0.849
+    ],
+    "psame_gender": [
+     -0.079,
+     0.126,
+     0.273,
+     0.409,
+     0.577
+    ],
+    "pcross_gender": [
+     -0.22,
+     -0.042,
+     0.109,
+     0.276,
+     0.494
+    ],
+    "frr_other_session": 0.041,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "far": {
+    "eer": 0.0618,
+    "frr": 0.06,
+    "far": 0.0641,
+    "far_same_gender": 0.0943,
+    "eer_same_gender": 0.0775,
+    "far_cross_gender": 0.0339,
+    "eer_cross_gender": 0.0437,
+    "powner": [
+     0.506,
+     0.63,
+     0.702,
+     0.763,
+     0.832
+    ],
+    "psame_gender": [
+     -0.071,
+     0.131,
+     0.273,
+     0.407,
+     0.572
+    ],
+    "pcross_gender": [
+     -0.21,
+     -0.032,
+     0.114,
+     0.276,
+     0.486
+    ],
+    "frr_other_session": 0.0593,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "noisy": {
+    "eer": 0.0928,
+    "frr": 0.1415,
+    "far": 0.0624,
+    "far_same_gender": 0.0922,
+    "eer_same_gender": 0.1134,
+    "far_cross_gender": 0.0326,
+    "eer_cross_gender": 0.0652,
+    "powner": [
+     0.433,
+     0.577,
+     0.664,
+     0.736,
+     0.814
+    ],
+    "psame_gender": [
+     -0.069,
+     0.131,
+     0.272,
+     0.405,
+     0.57
+    ],
+    "pcross_gender": [
+     -0.208,
+     -0.03,
+     0.115,
+     0.272,
+     0.483
+    ],
+    "frr_other_session": 0.1405,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "shout": {
+    "eer": 0.0863,
+    "frr": 0.0898,
+    "far": 0.0835,
+    "far_same_gender": 0.12,
+    "eer_same_gender": 0.1064,
+    "far_cross_gender": 0.0471,
+    "eer_cross_gender": 0.0624,
+    "powner": [
+     0.481,
+     0.603,
+     0.677,
+     0.74,
+     0.811
+    ],
+    "psame_gender": [
+     -0.065,
+     0.141,
+     0.29,
+     0.429,
+     0.592
+    ],
+    "pcross_gender": [
+     -0.197,
+     -0.019,
+     0.129,
+     0.295,
+     0.514
+    ],
+    "frr_other_session": 0.0781,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   }
+  }
+ },
+ "new": {
+  "model": "models/spk_ft.pt",
+  "speakers": 568,
+  "female": 140,
+  "gender_predicted": 244,
+  "per_class_template": {
+   "clean": {
+    "eer": 0.0759,
+    "frr": 0.2051,
+    "far": 0.0232,
+    "far_same_gender": 0.0342,
+    "eer_same_gender": 0.0916,
+    "far_cross_gender": 0.0123,
+    "eer_cross_gender": 0.0556,
+    "powner": [
+     0.393,
+     0.542,
+     0.632,
+     0.706,
+     0.799
+    ],
+    "psame_gender": [
+     -0.13,
+     0.052,
+     0.186,
+     0.32,
+     0.491
+    ],
+    "pcross_gender": [
+     -0.229,
+     -0.07,
+     0.06,
+     0.205,
+     0.411
+    ],
+    "frr_other_session": 0.2044,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "far": {
+    "eer": 0.0842,
+    "frr": 0.2663,
+    "far": 0.0209,
+    "far_same_gender": 0.0305,
+    "eer_same_gender": 0.1019,
+    "far_cross_gender": 0.0112,
+    "eer_cross_gender": 0.0633,
+    "powner": [
+     0.363,
+     0.513,
+     0.606,
+     0.682,
+     0.778
+    ],
+    "psame_gender": [
+     -0.129,
+     0.051,
+     0.184,
+     0.312,
+     0.484
+    ],
+    "pcross_gender": [
+     -0.225,
+     -0.068,
+     0.06,
+     0.202,
+     0.402
+    ],
+    "frr_other_session": 0.2588,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "noisy": {
+    "eer": 0.1108,
+    "frr": 0.3836,
+    "far": 0.0176,
+    "far_same_gender": 0.0265,
+    "eer_same_gender": 0.133,
+    "far_cross_gender": 0.0088,
+    "eer_cross_gender": 0.0845,
+    "powner": [
+     0.295,
+     0.455,
+     0.56,
+     0.648,
+     0.747
+    ],
+    "psame_gender": [
+     -0.125,
+     0.052,
+     0.179,
+     0.306,
+     0.475
+    ],
+    "pcross_gender": [
+     -0.22,
+     -0.064,
+     0.061,
+     0.195,
+     0.39
+    ],
+    "frr_other_session": 0.3809,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "shout": {
+    "eer": 0.0961,
+    "frr": 0.3011,
+    "far": 0.0259,
+    "far_same_gender": 0.0371,
+    "eer_same_gender": 0.1167,
+    "far_cross_gender": 0.0146,
+    "eer_cross_gender": 0.0718,
+    "powner": [
+     0.355,
+     0.497,
+     0.584,
+     0.656,
+     0.753
+    ],
+    "psame_gender": [
+     -0.12,
+     0.06,
+     0.195,
+     0.327,
+     0.499
+    ],
+    "pcross_gender": [
+     -0.214,
+     -0.056,
+     0.071,
+     0.215,
+     0.421
+    ],
+    "frr_other_session": 0.2787,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   }
+  },
+  "all_template": {
+   "clean": {
+    "eer": 0.052,
+    "frr": 0.0889,
+    "far": 0.0328,
+    "far_same_gender": 0.0479,
+    "eer_same_gender": 0.0638,
+    "far_cross_gender": 0.0178,
+    "eer_cross_gender": 0.0387,
+    "powner": [
+     0.48,
+     0.611,
+     0.686,
+     0.751,
+     0.826
+    ],
+    "psame_gender": [
+     -0.124,
+     0.064,
+     0.207,
+     0.342,
+     0.516
+    ],
+    "pcross_gender": [
+     -0.232,
+     -0.071,
+     0.065,
+     0.219,
+     0.432
+    ],
+    "frr_other_session": 0.0904,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "far": {
+    "eer": 0.0594,
+    "frr": 0.1315,
+    "far": 0.0287,
+    "far_same_gender": 0.0423,
+    "eer_same_gender": 0.0733,
+    "far_cross_gender": 0.0151,
+    "eer_cross_gender": 0.0431,
+    "powner": [
+     0.449,
+     0.581,
+     0.658,
+     0.727,
+     0.808
+    ],
+    "psame_gender": [
+     -0.123,
+     0.063,
+     0.202,
+     0.334,
+     0.506
+    ],
+    "pcross_gender": [
+     -0.227,
+     -0.067,
+     0.065,
+     0.214,
+     0.421
+    ],
+    "frr_other_session": 0.1336,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "noisy": {
+    "eer": 0.0884,
+    "frr": 0.2621,
+    "far": 0.0242,
+    "far_same_gender": 0.0361,
+    "eer_same_gender": 0.1088,
+    "far_cross_gender": 0.0122,
+    "eer_cross_gender": 0.0656,
+    "powner": [
+     0.358,
+     0.515,
+     0.611,
+     0.692,
+     0.782
+    ],
+    "psame_gender": [
+     -0.116,
+     0.064,
+     0.197,
+     0.326,
+     0.497
+    ],
+    "pcross_gender": [
+     -0.222,
+     -0.064,
+     0.065,
+     0.207,
+     0.41
+    ],
+    "frr_other_session": 0.2626,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "shout": {
+    "eer": 0.0768,
+    "frr": 0.1664,
+    "far": 0.0367,
+    "far_same_gender": 0.053,
+    "eer_same_gender": 0.0933,
+    "far_cross_gender": 0.0205,
+    "eer_cross_gender": 0.055,
+    "powner": [
+     0.426,
+     0.558,
+     0.635,
+     0.703,
+     0.784
+    ],
+    "psame_gender": [
+     -0.113,
+     0.072,
+     0.215,
+     0.352,
+     0.525
+    ],
+    "pcross_gender": [
+     -0.216,
+     -0.055,
+     0.076,
+     0.228,
+     0.445
+    ],
+    "frr_other_session": 0.1489,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   }
+  },
+  "max_of_both": {
+   "clean": {
+    "eer": 0.0547,
+    "frr": 0.0822,
+    "far": 0.0379,
+    "far_same_gender": 0.0551,
+    "eer_same_gender": 0.0664,
+    "far_cross_gender": 0.0206,
+    "eer_cross_gender": 0.0393,
+    "powner": [
+     0.486,
+     0.618,
+     0.693,
+     0.755,
+     0.828
+    ],
+    "psame_gender": [
+     -0.1,
+     0.084,
+     0.224,
+     0.357,
+     0.527
+    ],
+    "pcross_gender": [
+     -0.206,
+     -0.047,
+     0.087,
+     0.237,
+     0.447
+    ],
+    "frr_other_session": 0.0831,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "far": {
+    "eer": 0.0617,
+    "frr": 0.1217,
+    "far": 0.0339,
+    "far_same_gender": 0.0495,
+    "eer_same_gender": 0.0745,
+    "far_cross_gender": 0.0182,
+    "eer_cross_gender": 0.045,
+    "powner": [
+     0.455,
+     0.587,
+     0.665,
+     0.733,
+     0.811
+    ],
+    "psame_gender": [
+     -0.103,
+     0.083,
+     0.219,
+     0.35,
+     0.519
+    ],
+    "pcross_gender": [
+     -0.202,
+     -0.043,
+     0.088,
+     0.234,
+     0.436
+    ],
+    "frr_other_session": 0.1237,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "noisy": {
+    "eer": 0.091,
+    "frr": 0.2438,
+    "far": 0.0286,
+    "far_same_gender": 0.0428,
+    "eer_same_gender": 0.1108,
+    "far_cross_gender": 0.0145,
+    "eer_cross_gender": 0.0677,
+    "powner": [
+     0.367,
+     0.523,
+     0.617,
+     0.699,
+     0.785
+    ],
+    "psame_gender": [
+     -0.096,
+     0.084,
+     0.214,
+     0.341,
+     0.509
+    ],
+    "pcross_gender": [
+     -0.198,
+     -0.04,
+     0.086,
+     0.225,
+     0.424
+    ],
+    "frr_other_session": 0.2469,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "shout": {
+    "eer": 0.0786,
+    "frr": 0.1519,
+    "far": 0.0425,
+    "far_same_gender": 0.0611,
+    "eer_same_gender": 0.0949,
+    "far_cross_gender": 0.0238,
+    "eer_cross_gender": 0.0582,
+    "powner": [
+     0.433,
+     0.565,
+     0.642,
+     0.707,
+     0.787
+    ],
+    "psame_gender": [
+     -0.092,
+     0.092,
+     0.231,
+     0.366,
+     0.536
+    ],
+    "pcross_gender": [
+     -0.192,
+     -0.032,
+     0.098,
+     0.245,
+     0.457
+    ],
+    "frr_other_session": 0.1367,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   }
+  },
+  "matched_threshold": 0.4628,
+  "at_matched_threshold": {
+   "clean": {
+    "eer": 0.0759,
+    "frr": 0.1161,
+    "far": 0.0499,
+    "far_same_gender": 0.0716,
+    "eer_same_gender": 0.0916,
+    "far_cross_gender": 0.0283,
+    "eer_cross_gender": 0.0556,
+    "powner": [
+     0.393,
+     0.542,
+     0.632,
+     0.706,
+     0.799
+    ],
+    "psame_gender": [
+     -0.13,
+     0.052,
+     0.186,
+     0.32,
+     0.491
+    ],
+    "pcross_gender": [
+     -0.229,
+     -0.07,
+     0.06,
+     0.205,
+     0.411
+    ],
+    "frr_other_session": 0.1179,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "far": {
+    "eer": 0.0842,
+    "frr": 0.1551,
+    "far": 0.0444,
+    "far_same_gender": 0.0644,
+    "eer_same_gender": 0.1019,
+    "far_cross_gender": 0.0243,
+    "eer_cross_gender": 0.0633,
+    "powner": [
+     0.363,
+     0.513,
+     0.606,
+     0.682,
+     0.778
+    ],
+    "psame_gender": [
+     -0.129,
+     0.051,
+     0.184,
+     0.312,
+     0.484
+    ],
+    "pcross_gender": [
+     -0.225,
+     -0.068,
+     0.06,
+     0.202,
+     0.402
+    ],
+    "frr_other_session": 0.1508,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "noisy": {
+    "eer": 0.1108,
+    "frr": 0.2633,
+    "far": 0.039,
+    "far_same_gender": 0.0578,
+    "eer_same_gender": 0.133,
+    "far_cross_gender": 0.0203,
+    "eer_cross_gender": 0.0845,
+    "powner": [
+     0.295,
+     0.455,
+     0.56,
+     0.648,
+     0.747
+    ],
+    "psame_gender": [
+     -0.125,
+     0.052,
+     0.179,
+     0.306,
+     0.475
+    ],
+    "pcross_gender": [
+     -0.22,
+     -0.064,
+     0.061,
+     0.195,
+     0.39
+    ],
+    "frr_other_session": 0.2596,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   },
+   "shout": {
+    "eer": 0.0961,
+    "frr": 0.1758,
+    "far": 0.0538,
+    "far_same_gender": 0.0769,
+    "eer_same_gender": 0.1167,
+    "far_cross_gender": 0.0307,
+    "eer_cross_gender": 0.0718,
+    "powner": [
+     0.355,
+     0.497,
+     0.584,
+     0.656,
+     0.753
+    ],
+    "psame_gender": [
+     -0.12,
+     0.06,
+     0.195,
+     0.327,
+     0.499
+    ],
+    "pcross_gender": [
+     -0.214,
+     -0.056,
+     0.071,
+     0.215,
+     0.421
+    ],
+    "frr_other_session": 0.1604,
+    "n_other_session": 2612,
+    "n_owner": 3384,
+    "n_impostor": 101520
+   }
+  }
+ },
+ "mean_eer": {
+  "old": 0.0925,
+  "new": 0.0917
+ },
+ "deliver": false
+}

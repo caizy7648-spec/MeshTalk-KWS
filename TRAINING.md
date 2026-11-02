@@ -306,3 +306,57 @@ onnxruntime 1.31.0，kokoro-onnx 0.6.1，gcc 13.3。
 | 40_train_spk | 130 min | 40 轮（与挖掘并行） |
 | 41_eval_spk（val / test） | 19 / 6 min | |
 | 42_export_spk | <1 min | |
+
+---
+
+## 7. 阶段 B2：声纹模型热启动微调 + 蒸馏（2026-11，结论：未交付）
+
+目的：在 spk-20261023（`models/spk_best_v1.pt`，与 `models/spk_best.pt` 相同）的基础上继续训练，让本人跨天、跨距离的分数更稳定，
+同时不降低防冒充能力。网络结构、输入（40 维 log-mel × 81 帧）、128 维输出、C 引擎、导出格式都不变。
+结果：三次尝试都没有"明显更好"（测试集平均 EER 9.25% → 最好 8.90%，标准是至少好 15%），所以没有导出新的 `spk_model.c`，详见 `REPORT.md`。
+
+### 7.1 参数（`configs/spk.yaml` 的 `finetune:` 段）
+
+| 参数 | 值 | 说明 / 理由 |
+|---|---|---|
+| `init` / `out` | spk_best_v1.pt / spk_ft.pt | 热启动，不从头训练 |
+| `extra.vctk` | 每人 40 句、≤4 s | 110 个英式口音说话人；从 10.7 GB 的 zip 里用 HTTP Range 只取需要的文件 |
+| `extra.peoples_speech` | 7 个分片 × 1500 段 × 3 s | 公开演讲、听证、访谈，说话人多样；没有说话人标签，只做蒸馏 |
+| `teacher.model` | speechbrain/spkrec-ecapa-voxceleb | ECAPA-TDNN（VoxCeleb 1+2 训练，Apache-2.0），192 维 |
+| `teacher.per_speaker` / `max_s` | 3 段 / 3 s | 老师看**干净**的、最长 3 s 的音频；学生看同一段经过设备链的 1.62 s 窗口 |
+| `device.*` | 见配置 | INMP441 高通 60–150 Hz + 低/高频搁架 ±2–4 dB；距离 0.3–1 m（临界距离 0.4–0.8 m → DRR +8…−8 dB）；RT60 0.2–0.8 s；电平 −45…−3 dBFS（满幅硬削波）；喊叫 30%；噪声 60%（0–25 dB）；底噪 −80…−62 dBFS |
+| `train.freeze_layers` | 1 | 冻结第一层卷积和它的 BN（你的要求） |
+| `train.freeze_bn_stats` | true（尝试 C） | 所有 BN 层沿用旧模型的运行统计量，避免强增强数据一开始就把归一化推偏（A/B 开头会先掉点） |
+| `train.lr` / `lr_heads` | 1e-4（A/B：3e-4）/ 3e-3 | 网络用小学习率；新加的投影层和 AAM 权重用大一些 |
+| `train.epochs` × `steps_per_epoch` × 批 | 16 × 150 × (128 AAM + 128 蒸馏) | |
+| `train.loss_aam` / `aam_margin` / `aam_scale` | 0.5 / 0.2 / 30 | 有标签数据（5302 人，含 VCTK）保留 AAM；AAM 权重从旧模型的说话人中心初始化 |
+| `train.loss_distill` | 0.5（A：1.0） | 1 − cos(投影(学生), 老师)，投影层 128→192 只在训练时用，导出时去掉 |
+| `train.loss_relational` | 10（A：0） | batch 内两两余弦矩阵与老师的均方差（与维度无关） |
+| `train.loss_consistency` | 1.0（A：0） | 同一段音频的"设备视图"和"录入视图"向量一致 |
+| `train.max_clips_per_speaker` | 10 | AAM 流每人取 10 段（工作集能放进内存） |
+| 性别平衡 | 两个数据流都 50/50 | 数据里男声约为女声的 2.5 倍 |
+| `eval.*` | 10 段录入、6 段测试、同/跨性别各 15 个冒充者、0.52 | 设备录入协议；条件 clean / far / shout / noisy 见配置 |
+| `deliver_if` | 平均 EER 至少好 15%，且各条件不变差 > 0.5 点 | 交付标准 |
+
+### 7.2 复现命令
+
+```bash
+python scripts/43_spk_extra.py                                # VCTK + People's Speech + LibriSpeech 性别表 -> data/cache/spk_extra.*
+python3 -m venv venv_teacher && venv_teacher/bin/pip install torch==2.11.0 torchaudio==2.11.0 --index-url https://download.pytorch.org/whl/cpu
+venv_teacher/bin/pip install -r requirements_teacher.txt
+venv_teacher/bin/python scripts/44_teacher.py                 # 老师向量 + 性别 -> data/cache/distill_*, spk_gender.csv
+python scripts/45_finetune_spk.py                             # -> models/spk_ft.pt（尝试 C 的设置；A/B 的值写在配置注释里）
+python scripts/46_compare_spk.py --split test                 # 新旧对比 -> models/spk_compare_test.json, docs/spk_compare_test.png
+# 只有 46 给出 "deliver": true 时才导出：把 spk_ft.pt 复制为 models/spk_best.pt，再运行 scripts/42_export_spk.py
+```
+
+### 7.3 耗时（4 vCPU）
+
+| 步骤 | 耗时 |
+|---|---|
+| 43_spk_extra | 约 12 min |
+| 44_teacher（33 145 段） | 78 min（另加约 13 min 冷缓存随机读） |
+| 45_finetune_spk | A 24 min，B 31 min，C 31 min |
+| 46_compare_spk | 3 min |
+
+图：`docs/spk_ft_a_training_curves.png`、`docs/spk_ft_b_training_curves.png`、`docs/spk_ft_training_curves.png`（C）、`docs/spk_compare_test.png`（新旧分数分布）。
