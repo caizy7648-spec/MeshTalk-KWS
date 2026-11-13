@@ -3,3 +3,4 @@ data/cache/
 logs/
 __pycache__/
 *.pyc
+data/own/

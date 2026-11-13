@@ -13,6 +13,29 @@ paths:
 
 labels: ["help", "help me", "sos", "_other"]   # output order of the network (CONTRACT 3)
 
+# ------------------------------------------------- Phase C (r4): own recordings
+# The owner's recordings from MeshTalk DataRec v1.0 (the device microphone, the
+# exact signal Voice SOS hears). Imported by scripts/04_import_own.py into
+# data/own (NOT in git: the repository is public and these are a real voice).
+own:
+  dir: data/own                # imported clips + manifest.csv
+  categories:                  # DataRec folder -> network label
+    HELP: help
+    HELPME: help me
+    SOS: sos
+    COUGH: _other              # (DataRec v1.0 records only the three keywords;
+    THROAT: _other             #  these folders are accepted if they ever appear)
+    BREATH: _other
+    LAUGH: _other
+    WORDS: _other
+    CHATEN: _other
+    CHATZH: _other
+    NOISE: _other
+  rate: 16000                  # DataRec writes 16 kHz / 16 bit / mono WAV; anything else is skipped
+  min_clips_per_speaker: 30    # a speaker with fewer clips goes to test as a whole (unseen speaker)
+  test_pct: 20                 # the others: per file (hash of the file name)
+  val_pct: 10
+
 # ---------------------------------------------------------------- Step 1: data
 sources:
   mswc:                        # Multilingual Spoken Words Corpus, English, CC-BY 4.0
