@@ -1,103 +1,69 @@
 # PLAN_R4 - Phase C: keyword model r4 (fewer false SOS from coughs and talk)
 
-Read first: `CONTRACT.md` (unchanged - same network, same sizes limits, same
-export), `TRAINING.md` (how r1-r3 were made), `REPORT.md` (r3 numbers).
+**The code is written and tested** (`python tools/smoke_r4.py` runs every step on synthetic
+audio: 14/14 PASS). The job of this phase is to **run it on the real data, watch it, check the
+numbers and report** - not to write new training code. Read `CONTRACT.md` (firmware limits,
+unchanged) and `TRAINING.md` section 8 (Phase C, every parameter and why).
 
 ## Why
-Firmware v1.6.7 with model r3 (`models/best.pt`): on the device, single
-**"help"** is triggered by **coughs** (a hard cough scores ~0.65 for "help")
-and sometimes by people talking nearby. Causes found:
-1. `_other` never contained a cough, throat-clear, sneeze, laugh or breath
-   as a clip of its own - ESC-50 was only used as background noise under
-   speech. A cough is out of distribution and the softmax puts it on the
-   shortest, breathiest class: "help".
-2. Hard negatives were mined on LibriSpeech (read audiobooks) only - no
-   conversational English, no Chinese at all (the owner and the people around
-   him speak Chinese: he / hei / hao / hai / ha are short h- syllables).
-3. No real recording through the device microphone was ever used.
+Firmware v1.6.7 with model r3: single **"help"** is triggered by **coughs** (a hard cough scores
+~0.65 for "help") and sometimes by people talking nearby. Causes:
+1. `_other` never contained a cough, throat-clear, sneeze, laugh or breath as a clip of its own
+   (ESC-50 was only background noise under speech) - a cough is out of distribution and the
+   softmax puts it on the shortest, breathiest class, "help";
+2. hard negatives came only from LibriSpeech (read audiobooks): no conversation, no Mandarin;
+3. no recording through the device microphone was ever used.
+v1.6.7 already raised single "help" by +0.05 and removed its confirm-drop / word-slack
+(`c_ref_v167/svc_kws.c`, `HELP_EXTRA`). Everything is measured with that firmware logic.
 
-Firmware v1.6.7 already raised single "help" by +0.05 and removed the
-confirm-drop / word-slack relaxations for it (`c_ref_v167/svc_kws.c`,
-`HELP_EXTRA`, `kws_det_t.cls_extra / no_relax`). Evaluate with that logic.
-
-## Data
-### A. The owner's recordings (positives, the device microphone)
-Recorded with MeshTalk DataRec v1.0 (16 kHz / 16 bit / mono WAV, 2.5 s per
-take, one call per take, styles NORMAL / LOUD / SOFT / HOARSE / FAR,
-speaker letters A = owner, B-E = friends). Expected ~150 HELP, ~100 HELPME,
-~100 SOS. Import:
-
-    python scripts/04_import_own.py --src <path to DATASET folder or zip>
-
--> `data/own/` + `data/own/manifest.csv` (split already decided: a speaker
-with < 30 clips is test as a whole, otherwise 20 % test / 10 % val per file).
-**`data/own` is never committed** (the repo is public, it is a real voice) -
-no audio of it in `docs/` either; numbers and plots only.
-
-Before training: run r3 on every own clip (keyword fully inside a 1.22 s
-window, best position) and list clips where r3's top class is confidently a
-*different keyword* or the take is silent / two calls - possible wrong takes.
-Show the owner the list (file names) and continue without those clips only if
-he agrees; otherwise keep them.
-
-### B. Public negatives, as standalone `_other` clips (new)
-Non-call vocal sounds - each clip placed in the window like a word, at full
-level, also 2-3 of them in a row (coughing fits), also with background noise:
-| need | candidates (licence - verify, write in REPORT) |
+## What is new (all in the repository)
+| file | what |
 |---|---|
-| cough | COUGHVID (Zenodo, CC-BY 4.0); FSD50K class Cough (Zenodo, per-clip CC licences, keep CC0/CC-BY); ESC-50 `coughing` (already downloaded, CC-BY-NC) |
-| throat clearing, sneeze, sniff, breathing, gasp, laughter | FSD50K (Throat clearing, Sneeze, Sniff, Breathing, Gasp, Laughter ...); ESC-50 `sneezing`, `breathing`, `laughing`, `snoring` |
-| conversational English | something spontaneous, not read: e.g. AMI meeting corpus (CC-BY 4.0) or People's Speech conversational parts (used in phase B2) |
-| Chinese speech | AISHELL-1 (openslr 33, Apache-2.0) and/or Common Voice zh-CN (CC0) or MAGICDATA (openslr 68, check licence) |
+| `scripts/04_import_own.py` | the owner's DataRec recordings -> `data/own/` + `manifest.csv` (split fixed) |
+| `tools/check_own.py` | r3 (or r4) listens to every take with the device logic: hit rate per word / style, possible wrong takes |
+| `scripts/05_download_r4.py` | VocalSound (cough, throat clearing, sneeze, sniff, sigh, laughter; 3 365 speakers), AMI meetings (English conversation) + word transcripts, AISHELL-1 (Mandarin, streamed) |
+| `scripts/06_prepare_r4.py` | caches `own`, `vocal`, `chat`, false-alarm streams `fa4_val/test` |
+| `scripts/13_mine_r4.py` | where r3 fires on the new training audio -> `hardneg_r4` |
+| `kws/dataset.py` | loads the new caches; `own_share` of keyword windows from the owner (lighter `augment_own`) |
+| `scripts/10_train_kw.py --stage r4` | warm start from r3, `train_kw_r4` in the config |
+| `kws/fwdet.py` + `c_ref_v167/harness.c` | the **firmware v1.6.7 detector in C** (front end, sound segments, words mode, 2 calls in 10 s, help +0.05) called from Python; `--native` = the int8 C engine of an exported `kws_model.c` |
+| `scripts/21_eval_r4.py` | r3 vs r4: calls (own / public), talk (AMI, AISHELL, LibriSpeech), vocal sounds; threshold sweep on val; comparison figure |
+| `scripts/30_export.py --section export_r4` | export with the r4 settings |
+| `scripts/run_r4.sh <step>` | the steps below, each logged to `logs/r4_step<N>.log` |
+| `tools/smoke_r4.py` | the whole pipeline on synthetic data in `build/smoke_r4/` (a few minutes) |
 
-Keep ESC-50 fold 5, a held-out part of every new source (by speaker /
-recording id) and >= 2 h of the conversational sets for **test only**.
-If a host is blocked: write exact URL / size into REPORT.md and stop, as before.
+## Steps (`bash scripts/run_r4.sh N`)
+| N | what | time (24 cores) | check before going on |
+|---|---|---|---|
+| 0 | packages, gcc, `kws.check_c`, firmware detector check, smoke test, disk | 5-10 min | `0 failed` everywhere; >= 100 GB free |
+| 1 | import the owner's DATASET + r3 check of every take | 2 min | counts per label / style; the "may be wrong takes" list -> **ask the owner** |
+| 2 | Step-1 data on this machine: 01_download (~75 GB streamed), 03_tts, 02_prepare | 2-6 h (network) | `data/raw/MANIFEST.json` checksums; `data/cache/counts.json` close to REPORT.md (r1-r3) |
+| 3 | old hard negatives: 12_mine (r1 model), 12_mine --stage r3 (r2 model) | 2-5 h (network) | `mine_stats_r2.json` / `_r3.json` similar to REPORT.md |
+| 4 | new data: 05_download_r4, 06_prepare_r4 | 1-2 h | `counts_r4.json`: vocal clips per type / split, chat, fa4 hours |
+| 5 | **before**: r3 on val and test with the firmware detector | 10-20 min | `models/eval_r4_r3_{val,test}.json` |
+| 6 | 13_mine_r4 | 10-30 min | `mine_stats_r4.json`: share of coughs etc. where r3 fires (the problem, in numbers) |
+| 7 | train r4 (20 epochs from r3) | 20-60 min | `models/kw_r4_log.csv`: loss falls, val accuracy does not collapse |
+| 8 | sweep thresholds of r4 on val | 30-60 min | `eval_r4_sweep_val.json` "recommended" -> copy `thr` and `help_extra` into `export_r4:` of the config |
+| 9 | **after**: r4 on test + `docs/kw_r4_compare_test.png` | 10-20 min | compare with step 5 (targets below) |
+| 10 | export + the int8 C engine on test + r4 check of the owner's takes | 5-10 min | `check_c` 0 failed; int8 numbers ~= step 9 |
 
-## Training
-- **Warm start from r3** (`models/best.pt`), same network (CONTRACT), stage
-  `r4` in `scripts/10_train_kw.py`; all new parameters in `configs/train.yaml`
-  (sampling weights of the new sources, own-clip weight, epochs, lr).
-- Own clips: oversample (they are few), with the usual augmentation but
-  lighter (they are already the real microphone).
-- One round of hard-negative mining with r4-pre on the new conversational /
-  Chinese / vocal-sound training parts (`scripts/12_mine.py`), then the final
-  fine-tune.
-- Re-choose `thr` (low/medium/high) and `cls_off` on val; say whether the
-  firmware's `HELP_EXTRA` (+0.05 on help) is still needed with r4 or can be 0.
+If step 2 or 3 cannot be done (disk / time): r4 still trains - groups without data are left out
+of the mix automatically - but say so in REPORT.md (the old hard negatives keep r3's low false
+alarms on LibriSpeech; without them check the `libri` line of step 9 carefully).
 
-## Evaluation (r3 vs r4, same test sets, same detector)
-Use the **firmware v1.6.7 detector**: compile `c_ref_v167/` (kws_frontend.c,
-kws_engine.c, kws_detect.c) into a small harness (CLI or ctypes) that feeds
-16 kHz audio in 20 ms blocks exactly as `svc_kws.c` does, with medium
-sensitivity, rule "2 calls in 10 s" (words mode on) and help
-`cls_extra = 0.05, no_relax = 1`. Check it against `kws.detect` on the r3 test
-set and explain any difference. Report, for r3 and r4:
+## Targets (test, medium sensitivity, 2 calls in 10 s, firmware v1.6.7 logic)
+- coughs: false hits per 100 at least **5x lower** than r3 (`vocal.per_type.cough`, `coughing`);
+- talk (AMI + AISHELL + LibriSpeech): false SOS **<= 1 per 24 h**;
+- the owner's calls (`own_*`): hit rate **not lower than r3**, aim >= 90 % for help;
+- public calls (`real_help`, `real_help_me`, `tts_sos`): not more than 2 points below r3.
+A missed target is reported plainly - **never tune on test**; thresholds come from val (step 8).
 
-| metric | test set |
-|---|---|
-| hit rate per keyword, per style (single call, and SOS with 2 calls) | own test split (device mic) |
-| false hits per 100 coughs / throat clears / ...; false SOS per 100 coughing fits | held-out vocal sounds |
-| false hits per hour, false SOS per 24 h | held-out conversational EN, Chinese, and the old r3 test hours |
-| the old r3 numbers | old test sets (must not get worse by more than 2 points) |
-
-Targets (medium): cough false hits at least **5x lower** than r3; false SOS
-<= 1 / 24 h on talk + vocal sounds; own-recording hit rate for help / help me /
-SOS **not lower than r3** (aim >= 90 % for help). If a target is missed, say
-so plainly - do not tune on test.
-
-Figures in `docs/` (prefix `kw_r4_`): training curves, confusion matrix,
-r3-vs-r4 bar chart of the table above, histogram of the "help" score on coughs
-(r3 vs r4), trigger-vs-false-alarm curves.
-
-## Export and hand back
-- `python scripts/30_export.py` -> `out/kws_model.c`, `out/kws_model_test.c`,
-  `python -m kws.check_c out` 0 failed; also run the exported model through
-  the `c_ref_v167` harness once (same numbers as Python, within rounding).
-- `models/best.pt` = r4 (keep r3 as `models/kw_r3.pt`).
-- `REPORT.md`: Phase C section, numbers first; data counts and licences;
-  the r3-vs-r4 table; thresholds; whether HELP_EXTRA should stay.
-- `TRAINING.md`: Phase C section in Chinese - every new parameter with its
-  value and why, exact commands to reproduce (including 04_import_own.py with
-  the owner's DATASET path), environment, time per step.
-- Commit + push after every step. Never commit `data/`.
+## Rules
+- Do not change the training code or the network. If a step crashes, show the error and the
+  smallest fix, and apply it only after the owner agrees; note it in REPORT.md.
+- `data/` is never committed (public repository; `data/own` is the owner's real voice).
+- After each step: a short note in REPORT.md (numbers first), commit + push (code, configs,
+  `models/*.json`, `models/kw_r4.pt`, `docs/*.png`, `out/`). Never commit `data/`, `build/`, `logs/`.
+- At the end: REPORT.md Phase C section (r3 vs r4 table from steps 5 / 9 / 10, data counts and
+  licences, chosen thresholds, HELP_EXTRA recommendation), TRAINING.md section 8 results table
+  filled in, `out/kws_model.c` for the firmware.

@@ -360,3 +360,72 @@ python scripts/46_compare_spk.py --split test                 # 新旧对比 -> 
 | 46_compare_spk | 3 min |
 
 图：`docs/spk_ft_a_training_curves.png`、`docs/spk_ft_b_training_curves.png`、`docs/spk_ft_training_curves.png`（C）、`docs/spk_compare_test.png`（新旧分数分布）。
+
+---
+
+## 8. 阶段 C：关键词模型 r4（减少咳嗽和说话误触发，2026-11）
+
+**为什么**：固件 v1.6.7 + r3 在设备上，单词 "help" 常被咳嗽（用力咳一声 help 概率可到 0.65）和旁边的人说话误触发。原因：
+① `_other` 里从来没有单独的咳嗽、清嗓、喷嚏、呼吸、笑声（ESC-50 只作为语音底下的背景噪声），模型没见过，softmax 把它分给最短、气声最重的 help；
+② 难负样本只来自 LibriSpeech 有声书朗读，没有日常对话，也没有中文；
+③ 从没用过设备麦克风的真实录音。
+
+**做法**：从 r3 热启动微调（网络、窗口、特征都不变，固件只需换 `kws_model.c`），加入：主人用 DataRec 在设备上录的 help / help me / SOS（正样本）；VocalSound + ESC-50 的人声非语音（负样本）；AMI 英文会议对话、AISHELL-1 中文（负样本）；r3 在这些新数据上误报的窗口（难负样本 r4）。**所有评估都用固件 v1.6.7 的检测逻辑本身**（C 代码 `c_ref_v167/` 编译后由 Python 调用，`kws/fwdet.py`），不是 Python 近似。
+
+### 8.1 新增代码
+| 文件 | 作用 |
+|---|---|
+| `scripts/04_import_own.py` | 导入 DataRec 录音（文件夹或 zip）：检查格式（16 kHz/16 bit/单声道）、文件夹→标签、固定划分（每人 ≥30 条时按文件名哈希 20 % 测试 / 10 % 验证；不足 30 条的人整体作测试 = 没见过的人）→ `data/own/manifest.csv`。`data/own` 不进仓库（公开仓库，真人声音） |
+| `tools/check_own.py` | 用固件逻辑让 r3（或 r4）听每一条录音：每个词、每种风格的命中率；列出疑似录错的条目 |
+| `scripts/05_download_r4.py` | 下载 VocalSound（1.7 GB）、AMI 会议（约 4 GB）+ 逐词转写、AISHELL-1（15 GB 流式，只留选中的人） |
+| `scripts/06_prepare_r4.py` | 生成缓存 `own`、`vocal`（每个声音事件一段，连咳保持在一起）、`chat`（AMI 2 s 片段、AISHELL 整句）、误报测试流 `fa4_val/test`（AMI 整场会议、AISHELL 每人连续说、人声非语音按人连在一起） |
+| `scripts/13_mine_r4.py` | r3 在新训练音频上触发的窗口 → `hardneg_r4`；统计每类声音被 r3 误触发的比例（"优化前"的证据） |
+| `kws/dataset.py` | 读新缓存；关键词窗口按 `own_share` 取主人录音，用较轻的 `augment_own` |
+| `kws/fwdet.py`、`c_ref_v167/harness.c` | 固件 v1.6.7 检测器（C）：20 ms 一块 → `kws_dbfs` → C 前端 → `kws_det_frame`（声音分段、连说两次、10 s 内 2 次、help +0.05 不放宽）；概率来自 PyTorch 模型，或 `--native` 用导出的 int8 C 引擎 |
+| `scripts/21_eval_r4.py` | r3 / r4 系统级评估、验证集阈值扫描、对比图 |
+| `scripts/run_r4.sh` | 按步骤运行（0–10），每步日志 `logs/r4_step<N>.log` |
+| `tools/smoke_r4.py` | 用合成音频把整条流程跑一遍（几分钟），检查环境和代码 |
+
+检验：`python -m kws.fwdet --check`：C 前端与 `kws.features.logmel` 最大差 9e-6；脚本化场景与固件单元测试一致（help 0.70+0.45：v1.6.7 之前 SOS、之后不 SOS；SOS 0.70+0.45 仍 SOS）。合成数据上 PyTorch 模型与 int8 C 引擎的评估结果一致（误报 14 vs 13，int8 舍入）。
+
+### 8.2 参数（`configs/train.yaml`）
+| 参数 | 值 | 理由 |
+|---|---|---|
+| `own.min_clips_per_speaker` / `test_pct` / `val_pct` | 30 / 20 / 10 | 主人（A）的录音按文件分出测试、验证；朋友录得少就整体作测试，检验没见过的人 |
+| `r4_sources.vocalsound` | 官方说话人划分 tr/val/te | 3 365 人的咳嗽、清嗓、喷嚏、吸鼻、叹气、笑；按人划分，测试的人训练时没见过 |
+| `r4_sources.esc50_vocal` | coughing, sneezing, breathing, laughing, snoring；fold 5 测试、4 验证 | 原来只当背景噪声，现在也作为独立的 `_other` 片段；fold 5 与以前一样只用于测试 |
+| `r4_sources.ami` | train 36 场 / val 12 场 / test 16 场（full-corpus-asr 划分） | 自然对话（抢话、笑、语气词），和有声书很不一样；逐词转写用来排除真的说了 "help" 的地方 |
+| `r4_sources.aishell` | 每个划分取 120 / 20 / 20 人，每人 60 / 100 / 120 句 | 中文里大量 h 开头的短音节（喝、嘿、好、还、哈）；按 AISHELL 的说话人划分 |
+| `r4_prepare.event_*` | 比最响帧低 30 dB 以内且高于背景 10 dB；间隔 < 0.6 s 合并；前后各留 0.25 s；最长 4 s | 一个片段 = 一次声音事件，连咳保持在一起（设备上最容易凑成两次） |
+| `r4_prepare.ami_chunk_s` / `ami_chunk_every_s` | 2.0 / 6.0 | 每 6 s 取一段 2 s，覆盖整场会议又不过多；离 "help" 1 s 以内的不用 |
+| `r4_prepare.fa_hours` | val：AMI 6 h + AISHELL 1.5 h；test：AMI 9 h + AISHELL 2.5 h | 误报测试流的上限 |
+| `mine_r4.threshold` | 0.35 | r3 中档 help 阈值 0.45（设备上 +0.05 = 0.50）；比它低一点，抓住"差一点就误报"的窗口 |
+| `mine_r4.max_per_source` | 对话英 6000、中 4000、人声 6000 | 每类最有把握的那些，避免某一类占满 |
+| `augment_own` | 增益 −10…+6 dB，噪声概率 0.6、SNR 5–25 dB，混响 0.15，变速 0.3，变调 0.15，喊叫 0.05，高通 0.3 | 主人录音已经是设备麦克风和真实房间，增强轻一些，避免失真 |
+| `train_kw_r4.init` / `epochs` / `lr` | r3 / 20 / 0.0005 | 微调：学习率比 r3（0.0007）再低，保留 r3 已学会的东西 |
+| `train_kw_r4.own_share` | help 0.25、help me 0.25、sos 0.35 | 关键词窗口里主人录音的比例；SOS 以前只有合成语音，所以比例更高 |
+| `train_kw_r4.other_mix` | 人声 0.14、r4 难负样本 0.12、英文对话 0.07、中文 0.08，其余为 r1–r3 的来源（按比例缩小） | 新问题的数据占 41 %，旧数据仍占多数，防止遗忘（LibriSpeech 误报不能变差） |
+| `eval_r4.device` | 中档、10 s 内 2 次（连说模式）、help +0.05 | 固件 v1.6.7 的默认设置 |
+| `eval_r4.sweep_med_thr` × `sweep_help_extra` | 0.45–0.70 × {0, 0.05, 0.10} | 只在验证集上选：对话误触发 SOS ≤ 1 次/24 h 的前提下单次命中率最高；low = 中档 +0.10，high = 中档 −0.05（与 r3 相同的间距） |
+
+### 8.3 运行（在 WSL Ubuntu 的笔记本上）
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu   # 版本装不上时用最接近的，并记录
+pip install -r requirements.txt
+sudo apt install -y build-essential          # gcc（固件检测器要编译）
+bash scripts/run_r4.sh 0                     # 环境 + 冒烟测试
+bash scripts/run_r4.sh 1 /mnt/c/Users/Caizy/Desktop/MeshTalk_KWS_Data/DATASET
+bash scripts/run_r4.sh 2                     # … 一直到 10（见 PLAN_R4.md 的表）
+```
+
+### 8.4 结果（由运行后填写，数字来自 `models/eval_r4_*.json`）
+| 指标（测试集，中档，固件 v1.6.7 逻辑） | r3 | r4 | r4 int8（C 引擎） |
+|---|---|---|---|
+| 主人 help / help me / SOS 单次命中率 | 待填 | 待填 | 待填 |
+| 公开 real_help / real_help_me / tts_sos 单次命中率 | 待填 | 待填 | 待填 |
+| 咳嗽每 100 声误触发（VocalSound / ESC-50） | 待填 | 待填 | 待填 |
+| 其他人声每 100 声误触发（清嗓、喷嚏、吸鼻、叹气、笑） | 待填 | 待填 | 待填 |
+| 对话每小时误触发（AMI / AISHELL / LibriSpeech） | 待填 | 待填 | 待填 |
+| 对话每 24 h 误触发 SOS | 待填 | 待填 | 待填 |
+| 选定阈值（低/中/高）、HELP_EXTRA | 0.65/0.55/0.50、0.05 | 待填 | |

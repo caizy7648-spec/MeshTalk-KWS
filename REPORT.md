@@ -292,3 +292,23 @@ Trial = 10 epochs (1/4 of the planned 40), ECAPA distillation + AAM, B2 data / d
 Decision: no full training, no engine. Note: with the firmware's max(class, all) scoring the OLD model is already at 7.4 %
 (< the 8 % gate); a 15 % gain needs ~6.3 %. The trial converges slowly (-0.4 points/epoch at the end) and its teacher
 similarity is below the old model's, so 4x more training is not expected to reach that.
+
+# Phase C (2026-11) - keyword model r4: fewer false SOS from coughs and talk - **in progress**
+
+Plan: `PLAN_R4.md`; parameters and reasons: `TRAINING.md` section 8. Code ready and smoke-tested
+(`tools/smoke_r4.py` 14/14 PASS on synthetic audio; firmware detector check 0 failed; PyTorch vs
+int8 C engine agree). Steps run on the owner's laptop (WSL Ubuntu); results are added below as
+each step finishes (`bash scripts/run_r4.sh N`).
+
+| step | result |
+|---|---|
+| 0 environment | |
+| 1 own recordings (counts, r3 check) | |
+| 2-3 Step-1 data, old hard negatives | |
+| 4 new data (counts, licences) | |
+| 5 r3 "before" (test) | |
+| 6 r4 hard negatives | |
+| 7 training | |
+| 8 thresholds (val) | |
+| 9 r4 "after" (test) | |
+| 10 export, int8 | |

@@ -313,3 +313,130 @@ export:
   hits_ms: 20000
   name: kws-20261023-r3
   check_windows_per_class: 100 # validation windows for the int8-vs-float check
+
+# =====================================================================================
+# Phase C - keyword model r4 (PLAN_R4.md): fewer false calls from coughs and talk.
+# Scripts: 04_import_own.py, 05_download_r4.py, 06_prepare_r4.py, 13_mine_r4.py,
+#          10_train_kw.py --stage r4, 21_eval_r4.py, 30_export.py --section export_r4
+# =====================================================================================
+r4_sources:
+  vocalsound:                  # VocalSound (Gong et al., ICASSP 2022): 21 024 recordings, 3 365 speakers
+    licence: CC BY-SA 4.0
+    url: https://www.dropbox.com/s/c5ace70qh1vbyzb/vs_release_16k.zip?dl=1   # 1.7 GB, 16 kHz version (github.com/YuanGongND/vocalsound)
+    # laughter, sigh, cough, throatclearing, sneeze, sniff; the official speaker split
+    # (datafiles/tr.json, val.json, te.json) is used as train / val / test
+  esc50_vocal:                 # from the ESC-50 download of Step 1 (CC-BY-NC 3.0): these classes also become _other clips
+    categories: [coughing, sneezing, breathing, laughing, snoring]
+    val_fold: 4                # fold 5 = test (as before), fold 4 = val, folds 1-3 = train
+  ami:                         # AMI meeting corpus, headset mix (16 kHz): spontaneous English conversation
+    licence: CC BY 4.0
+    audio_url: https://groups.inf.ed.ac.uk/ami/AMICorpusMirror/amicorpus/{m}/audio/{m}.Mix-Headset.wav
+    annotations_url: https://groups.inf.ed.ac.uk/ami/AMICorpusAnnotations/ami_public_manual_1.6.2.zip
+    # meetings: AMI full-corpus-asr partition (dev / test as published; train: a part of the train list)
+    train: [ES2002a, ES2002b, ES2002c, ES2002d, ES2003a, ES2003b, ES2003c, ES2003d, ES2005a, ES2005b, ES2005c, ES2005d,
+            ES2006a, ES2006b, ES2006c, ES2006d, IS1000a, IS1000b, IS1000c, IS1000d, IS1001a, IS1001b, IS1001c, IS1001d,
+            TS3005a, TS3005b, TS3005c, TS3005d, TS3006a, TS3006b, TS3006c, TS3006d, EN2001a, EN2001b, EN2001d, EN2001e]
+    val: [ES2011a, ES2011b, ES2011c, ES2011d, IS1008a, IS1008b, IS1008c, IS1008d, TS3004a, TS3004b, TS3004c, TS3004d]
+    test: [ES2004a, ES2004b, ES2004c, ES2004d, IS1009a, IS1009b, IS1009c, IS1009d, TS3003a, TS3003b, TS3003c, TS3003d,
+           EN2002a, EN2002b, EN2002c, EN2002d]
+  aishell:                     # AISHELL-1 (openslr 33): Mandarin speech, 400 speakers, speaker split train / dev / test
+    licence: Apache-2.0
+    urls:                      # the same 15 GB file on three openslr mirrors (tried in this order); streamed
+      - https://www.openslr.org/resources/33/data_aishell.tgz
+      - https://us.openslr.org/resources/33/data_aishell.tgz
+      - https://openslr.elda.org/resources/33/data_aishell.tgz
+    speakers: {train: 120, dev: 20, test: 20}      # kept per AISHELL split (hash order)
+    utts_per_speaker: {train: 60, dev: 100, test: 120}
+
+r4_prepare:                    # 06_prepare_r4.py
+  event_rel_db: -30            # a vocal sound = frames louder than (loudest - 30 dB) ...
+  event_min_above_floor_db: 10 # ... and this far above the recording's background
+  event_merge_gap_s: 0.6       # events closer than this are one clip (a coughing fit stays together)
+  event_min_s: 0.06
+  event_pad_s: 0.25            # kept around an event
+  event_max_s: 4.0             # longer clips are cut
+  ami_chunk_s: 2.0             # AMI training audio: chunks of this length ...
+  ami_chunk_every_s: 6.0       # ... one per this many seconds of meeting (hash position inside)
+  keyword_guard_s: 1.0         # no AMI chunk / no false alarm counted this close to a spoken "help"
+  fa_hours: {val: {ami: 6.0, aishell: 1.5}, test: {ami: 9.0, aishell: 2.5}}   # caps of the false-alarm streams
+  aishell_gap_s: [0.3, 1.2]    # pause between two AISHELL utterances of a speaker in a stream
+  vocal_gap_s: [1.5, 3.5]      # pause between two vocal sounds in a vocal test stream
+
+mine_r4:                       # 13_mine_r4.py: where r3 fires on the new training audio
+  model: models/kw_r3.pt
+  threshold: 0.35              # best keyword probability of a window (r3's medium help threshold is 0.45, +0.05 on the device)
+  min_gap_s: 1.0
+  clip_s: 2.0
+  clip_after_s: 0.2
+  max_per_source: {chat_en: 6000, chat_zh: 4000, vocal: 6000}
+  torch_threads: 8
+
+augment_own:                   # the owner's clips are already the device microphone: lighter augmentation
+  gain_db: [-10, 6]
+  p_noise: 0.6
+  snr_db: [5, 25]
+  p_reverb: 0.15
+  p_speed: 0.3
+  p_pitch: 0.15
+  p_shout: 0.05
+  p_highpass: 0.3
+
+train_kw_r4:                   # values replacing train_kw (10_train_kw.py --stage r4)
+  init: models/kw_r3.pt        # warm start from r3
+  epochs: 20
+  lr: 0.0005
+  warmup_frac: 0.05
+  max_other_per_group: 15000
+  select: last
+  class_mix: {help: 0.17, help me: 0.16, sos: 0.17, _other: 0.5}
+  own_share: {help: 0.25, help me: 0.25, sos: 0.35}   # share of keyword windows taken from the owner's recordings
+  workers: 10                  # DataLoader processes (the laptop has 24 cores); the windows do not depend on it
+  torch_threads: 4
+  other_mix:
+    vocal: 0.14                # VocalSound + ESC-50 vocal sounds as _other clips (new)
+    hard_neg_r4: 0.12          # where r3 fired on talk / vocal sounds (new)
+    chat_en: 0.07              # AMI conversation (new)
+    chat_zh: 0.08              # AISHELL-1 Mandarin (new)
+    hard_neg_r3: 0.11
+    hard_neg_r3_noise: 0.04
+    hard_neg: 0.06
+    hard_neg_noise: 0.02
+    mswc_lookalike: 0.07
+    mswc_random: 0.04
+    speech_commands: 0.02
+    libri_words: 0.04
+    libri_chunk: 0.07
+    tts_other: 0.05
+    noise_only: 0.05
+    silence: 0.02
+
+eval_r4:                       # 21_eval_r4.py - everything with the firmware v1.6.7 detector (kws/fwdet.py)
+  device: {sens: 1, rule: 0, help_extra: 0.05}     # v1.6.7 defaults: medium, 2 calls within 10 s, help +0.05 / no relax
+  lead_s: 1.0                  # quiet (mic noise) before a call
+  tail_s: 2.0
+  noise_floor_dbfs: -70
+  call_level_dbfs: [-34, -18]  # public keyword clips are set to this level (the owner's are used as recorded)
+  pair_gap_s: [0.6, 2.5]       # two calls of a pair (SOS needs 2 within 10 s)
+  max_per_set: 400             # keyword clips per set (hash order)
+  pairs_per_set: 200
+  libri_hours: {val: 3.0, test: 6.0}   # the old LibriSpeech false-alarm speech also run (30 min streams)
+  fa_noise_prob: 0.5           # share of false-alarm streams with test noise added
+  fa_noise_snr_db: [5, 20]
+  procs: 8
+  sweep_med_thr: [0.45, 0.50, 0.55, 0.60, 0.65, 0.70]
+  sweep_help_extra: [0.0, 0.05, 0.10]
+  low_minus_med: 0.10          # low = medium + 0.10, high = medium - 0.05 (as r3: 0.65 / 0.55 / 0.50)
+  high_minus_med: -0.05
+  target_false_sos_24h: 1.0    # on the val talk streams
+  target_cough_factor: 5.0     # r4 false hits on coughs at least 5x fewer than r3 (test)
+
+export_r4:                     # 30_export.py --section export_r4 (thresholds filled in after 21_eval_r4.py --sweep)
+  model: kw_r4.pt
+  thr: [0.65, 0.55, 0.50]      # TO BE SET from models/eval_r4_sweep_val.json ("recommended")
+  cls_off: {help: -0.10, help me: 0.0, sos: 0.05}
+  help_extra: 0.05             # TO BE SET from the sweep: the firmware's HELP_EXTRA (Svc/kws.c) to use with r4
+  spk_thr: 0.70
+  hits: 3
+  hits_ms: 20000
+  name: kws-r4
+  check_windows_per_class: 100

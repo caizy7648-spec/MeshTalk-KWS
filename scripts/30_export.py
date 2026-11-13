@@ -1,6 +1,7 @@
 """30_export.py - thresholds -> kws.export -> kws.check_c (Step 4).
 
     python scripts/30_export.py              # models/<export.model> -> models/best.pt -> out/kws_model.c, out/kws_model_test.c
+    python scripts/30_export.py --section export_r4   # Phase C: the settings of export_r4: (r4)
 
 The chosen round (export.model, e.g. kw_r3.pt) is copied to models/best.pt
 without the unused round-1 speaker head (spk_dim = 0, v1.4.1). Thresholds
@@ -24,8 +25,12 @@ from kws.cfg import ROOT, load  # noqa: E402
 from kws.dataset import Data, FixedKwWindows  # noqa: E402
 from kws.model import KwsNet  # noqa: E402
 
+import argparse  # noqa: E402
+
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--section", default="export", help="the config section with model / thresholds (export, export_r4)")
 C = load()
-X = C["export"]
+X = C[_ap.parse_args().section]
 
 
 def best_pt():

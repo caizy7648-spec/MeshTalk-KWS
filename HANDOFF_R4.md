@@ -1,36 +1,60 @@
-# 第三阶段（r4）提示词：在电脑上的 Ubuntu（WSL）里用 Claude Code 终端版训练
+# 第三阶段（r4）：在 WSL Ubuntu 里用 Claude Code 终端版**监督训练**
 
-## 开始前
-1. 用 MeshTalk DataRec v1.0 录好 help / help me / SOS，拔卡，把卡里的 **`DATASET` 整个文件夹** 拷到
+训练代码已经全部写好并测试过（`tools/smoke_r4.py` 用合成音频跑通全部 14 步）。
+终端里的 Claude Code **不需要写训练代码**，它的工作是：按步骤运行、盯进度、检查每一步的数字是否合理、遇到问题停下来问你、把结果写进报告并推送。
+
+## 一、开始前（你自己做，约 10 分钟）
+1. **录音**：用 MeshTalk DataRec v1.0 录 help / help me / SOS，拔卡，把卡里整个 `DATASET` 文件夹拷到
    `C:\Users\Caizy\Desktop\MeshTalk_KWS_Data\DATASET`
-   在 Ubuntu 里它的路径是 `/mnt/c/Users/Caizy/Desktop/MeshTalk_KWS_Data/DATASET`（直接读，不用拷进仓库）。
-2. 打开 Ubuntu 终端，把仓库克隆到 **Linux 自己的目录**（不要放在 /mnt/c 下，那里读写很慢）：
+   （在 Ubuntu 里路径是 `/mnt/c/Users/Caizy/Desktop/MeshTalk_KWS_Data/DATASET`）
+2. **磁盘**：WSL 的磁盘在 C 盘上，C 盘至少留 **100 GB** 空闲（下载约 75 GB 流式处理，最后保留约 50 GB）。
+3. **打开 Ubuntu 终端**，把仓库放在 Linux 自己的目录（不要放在 /mnt/c 下，那里很慢）：
    ```bash
    cd ~
-   git clone https://github.com/caizy7648-spec/MeshTalk-KWS.git    # 已经克隆过就 cd ~/MeshTalk-KWS && git pull
+   git clone https://github.com/caizy7648-spec/MeshTalk-KWS.git    # 以前克隆过就：cd ~/MeshTalk-KWS && git pull
    cd MeshTalk-KWS
    claude
    ```
-3. 把下面整段粘贴进 Claude Code（路径不同就改第一行）。
+4. 把下面分割线以下的整段粘贴进 Claude Code。
+5. 之后它每完成一步会停下来汇报，你看一眼回"继续"就行；有需要你决定的事（比如疑似录错的录音）它会问你。
+   第 2、3 步要下载很多数据，可能要几个小时，可以挂着过夜。
 
 ---
 
-我的录音在：`/mnt/c/Users/Caizy/Desktop/MeshTalk_KWS_Data/DATASET`（Windows 桌面上的文件夹）
+我的录音在：`/mnt/c/Users/Caizy/Desktop/MeshTalk_KWS_Data/DATASET`
 
-运行环境：我的笔记本（Windows + WSL Ubuntu），Intel Core Ultra 9 275HX（24 核）、96 GB 内存、RTX 5070 8 GB。按 `requirements.txt` 建 Python 虚拟环境；训练和以前一样用 CPU 版 torch 即可（模型很小，结果可复现）。如果你判断某一步用 GPU 明显更快，RTX 5070 需要 CUDA 12.8 以上的 torch 版本，先问我再装。公开数据下载到仓库的 `data/`（WSL 自己的磁盘），开始前先告诉我大概要多少空间。
+这个仓库是我毕业设计 MeshTalk（ESP32-S3 LoRa 对讲机）"语音 SOS"的关键词模型训练包。现在做第三阶段 **r4**：设备上单词 "help" 常被咳嗽和旁边的人说话误触发，r4 要减少误报，同时不降低真实呼救的识别率。
 
-这个仓库是我毕业设计 MeshTalk（ESP32-S3 LoRa 对讲机）"语音 SOS"的训练包。r1–r3 和声纹阶段都已完成（见 `REPORT.md`、`TRAINING.md`）。现在做第三阶段 **r4**：设备上单词 "help" 经常被**咳嗽**和旁边的人**说话**误触发，要减少误报，同时不降低真实呼救的识别率。
+**训练代码已经全部写好、测试过，你不要写新的训练代码，也不要改网络或训练逻辑。** 你的任务是在我这台电脑上按步骤运行、监督、检查结果、汇报和打包。
 
-请先完整读 `PLAN_R4.md`（这一阶段的原因、数据、训练、评估、验收标准），以及 `CONTRACT.md`（固件对模型的硬性要求，不能改），然后按 PLAN_R4.md 做：
+请先完整读这三个文件：`PLAN_R4.md`（步骤表、每步要检查什么、验收目标、规则）、`TRAINING.md` 第 8 节（每个参数和理由）、`CONTRACT.md`（固件对模型的硬性要求）。
 
-1. **导入我的录音**：运行 `python scripts/04_import_own.py --src <上面的路径>`，把统计表（每类、每种风格、训练/验证/测试条数）发给我。再用 r3 检查一遍，把可能录错的条目列给我确认。**我的录音（data/own）和任何我的音频都不要提交到仓库**（仓库是公开的）。
-2. **公开负样本**：咳嗽、清嗓、喷嚏、呼吸、笑声、英文对话、中文语音，按 PLAN_R4.md 的候选数据集下载，核实许可证写进 REPORT.md；下载不了的把确切网址和大小写进 REPORT.md 后停下来告诉我。需要我在网页上登录/同意条款的数据集（比如 Common Voice）也先问我。
-3. **先测基线**：按 PLAN_R4.md 用 `c_ref_v167/` 编译固件 v1.6.7 的检测器，r3 在所有新测试集上的数字先出来（这就是"优化前"）。
-4. **训练 r4**：从 r3 热启动微调，加一轮难负样本挖掘；所有新参数写进 `configs/train.yaml`。
-5. **对比和导出**：r3 vs r4 对比表和图（`docs/kw_r4_*.png`），选阈值，说明固件里 help 的 +0.05（HELP_EXTRA）还要不要；导出 `out/kws_model.c`，`python -m kws.check_c out` 0 failed。
+运行环境：我的笔记本，Windows + WSL Ubuntu，Intel Core Ultra 9 275HX（24 核）、96 GB 内存、RTX 5070（不用 GPU，全部用 CPU 版 torch，结果可复现）。
 
-要求（和前两个阶段一样）：
-- 训练代码和参数是交付物（答辩要用）：所有代码放进仓库并 push，参数全在 `configs/train.yaml`，`TRAINING.md` 加中文的第三阶段说明（每个新参数的值和理由、完整复现命令、环境、耗时）。
-- 每完成一步更新 `REPORT.md`（数字写在前面，简洁）并 commit + push。
-- 达不到目标或数据拿不到就停下来汇报，不要硬凑，不要在测试集上调参。
+**准备环境**（做之前先告诉我你要执行的命令）：
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+```
+某个固定版本装不上时，用最接近的版本，并写进 REPORT.md。需要 `sudo apt install build-essential`（gcc）时先问我。之后每次运行前都要 `source .venv/bin/activate`。
+
+**然后按顺序一步一步运行** `bash scripts/run_r4.sh <步骤号>`（第 1 步：`bash scripts/run_r4.sh 1 <上面的录音路径>`），步骤 0 到 10，每步的日志在 `logs/r4_step<N>.log`。
+
+每一步做完后：
+1. 对照 `PLAN_R4.md` 步骤表的"check before going on"那一列，检查输出文件和数字是否合理；
+2. 用中文给我一个简短汇报：这一步做了什么、关键数字（表格）、有没有异常；
+3. 在 `REPORT.md` 最后的 Phase C 表里填上这一步的结果（数字在前，简洁），然后 `git add` 代码、配置、`models/*.json`、`models/kw_r4.pt`、`docs/*.png`、`out/`，commit 并 push；
+4. **等我回复"继续"再做下一步**。第 2、3 步很长，可以在后台运行（比如 `nohup ... &` 或 tmux），隔一段时间看日志汇报进度。
+
+特别注意：
+- **第 1 步**：把 `tools/check_own.py` 列出的"may be wrong takes"给我看（文件名、听成了什么、分数）。我确认哪些是录错的，你再把那些文件从 `data/own` 和 `data/own/manifest.csv` 里去掉（不要删我桌面上的原始文件），然后重新跑 `python scripts/04_import_own.py --src <路径>` 之前先问我。"missed"（r3 没听到）是正常的，正是 r4 要学的，不用删。
+- **第 8 步**：把 `models/eval_r4_sweep_val.json` 的 "recommended"（thr 和 help_extra）给我看，经我同意后填进 `configs/train.yaml` 的 `export_r4:`（`thr` 和 `help_extra` 两行），再做第 9 步。
+- **第 9、10 步**：给我 r3 和 r4 的对比表（主人录音命中率、公开数据命中率、咳嗽和其他人声每 100 声误触发、对话每小时误触发和每 24 h 误触发 SOS），对照 `PLAN_R4.md` 的 Targets 逐条说达到没有。没达到就如实说，**不要在测试集上调参数**。
+- 最后：补全 `REPORT.md` 的 Phase C 部分和 `TRAINING.md` 8.4 节的结果表（数字来自 `models/eval_r4_*.json`），说明推荐的阈值和 HELP_EXTRA，推送。告诉我 `out/kws_model.c` 已经生成（我会把它交给固件那边）。
+
+规则：
+- **`data/` 目录永远不要提交**（仓库是公开的，`data/own` 是我本人的声音）；`build/`、`logs/` 也不提交。
+- 某一步报错：把错误信息和你认为最小的修改方案给我看，**我同意后**再改，并在 REPORT.md 里记下改了什么。不要自己绕过问题或换方法。
+- 删除文件、安装系统软件、用 sudo 之前都先问我。
 - 用中文和我交流。

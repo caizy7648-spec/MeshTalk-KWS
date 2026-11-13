@@ -35,7 +35,7 @@ import wave
 import zipfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from kws.cfg import load, stable_hash  # noqa: E402
+from kws.cfg import ROOT, load, stable_hash  # noqa: E402
 
 
 def find_dataset(root):
@@ -144,7 +144,7 @@ def main():
             c["split"] = "test" if h < O["test_pct"] else "val" if h < O["test_pct"] + O["val_pct"] else "train"
 
     # copy + manifest
-    out = O["dir"]
+    out = os.path.join(ROOT, O["dir"])
     if os.path.isdir(out) and not a.keep:
         shutil.rmtree(out)
     rows = []

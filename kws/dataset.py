@@ -44,7 +44,8 @@ class Data:
         self.C = C
         # clips.npy (02_prepare.py) and, when present, hardneg*.npy (12_mine.py): one table, store = which file
         frames, self.audios = [], []
-        for k, name in enumerate(("clips", "hardneg", "hardneg_r3")):
+        # r4 (Phase C): + hardneg_r4 (13_mine_r4.py), own / vocal / chat (06_prepare_r4.py)
+        for k, name in enumerate(("clips", "hardneg", "hardneg_r3", "hardneg_r4", "own", "vocal", "chat")):
             if not os.path.exists(os.path.join(cache, name + ".npy")):
                 continue
             frames.append(pd.read_csv(os.path.join(cache, name + ".csv"), keep_default_na=False).assign(store=len(self.audios)))
@@ -196,6 +197,9 @@ class KwWindows(torch.utils.data.Dataset):
         self.labels = C["labels"]
         K = C["train_kw"]
         self.B = Builder(D, C, split)
+        # r4: the owner's clips (device microphone) get the lighter augment_own
+        self.B_own = Builder(D, C, split, dict(C["augment"], **C.get("augment_own", {})))
+        self.own_share = K.get("own_share", {})
         self.class_p = np.array([K["class_mix"][l] for l in self.labels], float)
         self.class_p /= self.class_p.sum()
         self.other = [(g, p) for g, p in K["other_mix"].items() if p > 0]
@@ -207,6 +211,8 @@ class KwWindows(torch.utils.data.Dataset):
         P["help me", "real"] = D.pool("help me", ["libri_help_me"], split)
         P["help me", "tts"] = D.pool("help me", ["tts"], tts_split)
         P["sos", "tts"] = D.pool("sos", ["tts"], tts_split)
+        for lab in ("help", "help me", "sos"):
+            P[lab, "own"] = D.pool(lab, ["own"], split)
         for g, _ in self.other:
             if g == "libri_words":
                 P[g] = D.pool("_other", ["libri_words", "libri_me"], split)
@@ -232,7 +238,18 @@ class KwWindows(torch.utils.data.Dataset):
         return np.random.default_rng([self.C["seed"], stable_hash(self.tag + self.split) & 0xFFFFFFFF, self.epoch, i])
 
     def pick(self, rng, k):
-        """(audio, s, e) of one clip of class k"""
+        """(audio, s, e) of one clip of class k (or "noise_only" / "silence")"""
+        return self.pick2(rng, k)[0]
+
+    def pick2(self, rng, k):
+        """(clip, builder): the owner's clips use B_own"""
+        lab = self.labels[k]
+        own = self.P.get((lab, "own"), [])
+        if len(own) and rng.random() < self.own_share.get(lab, 0.0):
+            return self.D.clip(own[rng.integers(len(own))]), self.B_own
+        return self.pick1(rng, k), self.B
+
+    def pick1(self, rng, k):
         K = self.C["train_kw"]
         lab = self.labels[k]
         if lab.startswith("_"):
@@ -252,10 +269,10 @@ class KwWindows(torch.utils.data.Dataset):
     def make(self, rng, k):
         kw = not self.labels[k].startswith("_")
         for _ in range(20):
-            c = self.pick(rng, k)
+            c, B = self.pick2(rng, k)
             if isinstance(c, str):
                 return self.B.noise_window(rng, silence=(c == "silence"))
-            w = self.B.window(rng, *c, keyword=kw)
+            w = B.window(rng, *c, keyword=kw)
             if w is not None:
                 return w
         raise RuntimeError("no clip fits the window for class %s" % self.labels[k])
