@@ -4,7 +4,7 @@
 1. 用 MeshTalk DataRec v1.0 录好 help / help me / SOS，拔卡，把卡里的 **`DATASET` 整个文件夹** 拷到
    `C:\Users\Caizy\Desktop\MeshTalk_KWS_Data\DATASET`
    （也可以右键压缩成 `DATASET.zip` 放在同一个文件夹，传得更快）。
-2. 在 **Claude 桌面 App** 里开新会话，选 GitHub 仓库 `caizy7648-spec/meshtalk-kws`，并**连接这台电脑**（会话才能读到桌面上的文件夹）。
+2. 在 **Claude 桌面 App** 里开新会话，选 GitHub 仓库 `caizy7648-spec/MeshTalk-KWS`，并**连接这台电脑**（会话才能读到桌面上的文件夹）。
    如果连不上电脑：把 `DATASET.zip` 直接作为附件拖进对话也可以。
 3. 把下面整段粘贴进去（路径不同就改第一行）。
 
