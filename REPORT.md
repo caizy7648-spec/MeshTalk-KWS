@@ -302,7 +302,7 @@ each step finishes (`bash scripts/run_r4.sh N`).
 
 | step | result |
 |---|---|
-| 0 environment | |
+| 0 environment | **PASS**: `.venv` packages complete (torch 2.14.1, CPU); gcc 13.3 already installed (no apt needed); `kws.check_c` 19 checks **0 failed**; firmware v1.6.7 detector build + check **0 failed** (C front end vs Python max diff 9.1e-6; help/sos call logic matches v1.6.7); `tools/smoke_r4.py` **14/14 PASS**; disk **916 GB** free. |
 | 1 own recordings (counts, r3 check) | |
 | 2-3 Step-1 data, old hard negatives | |
 | 4 new data (counts, licences) | |
