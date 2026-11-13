@@ -303,7 +303,7 @@ each step finishes (`bash scripts/run_r4.sh N`).
 | step | result |
 |---|---|
 | 0 environment | **PASS**: `.venv` packages complete (torch 2.14.1, CPU); gcc 13.3 already installed (no apt needed); `kws.check_c` 19 checks **0 failed**; firmware v1.6.7 detector build + check **0 failed** (C front end vs Python max diff 9.1e-6; help/sos call logic matches v1.6.7); `tools/smoke_r4.py` **14/14 PASS**; disk **916 GB** free. |
-| 1 own recordings (counts, r3 check) | |
+| 1 own recordings (counts, r3 check) | Imported **240 takes** (help 80 = train 61 / val 6 / test 13; help me 80 = 55 / 5 / 20; sos 80 = 54 / 6 / 20; styles FAR/LOUD/NORMAL 20/20/40 each; speakers A 180, B 60; 37 clipped takes kept). r3 with the firmware logic (medium): **heard as the right keyword** help 95 % FAR / 35 % LOUD / 60 % NORMAL, help me 65 / 30 / 37.5, sos 85 / 75 / 45 %. Verdicts: help 50 ok / 12 missed / 18 two_calls; help me 34 ok / 33 heard as plain "help" / 13 two_calls; sos 50 ok / 30 missed. The 60 takes listed as "may be wrong" are r3's known confusion (help me -> help, two detections in one take), not obviously bad recordings; **nothing deleted**. |
 | 2-3 Step-1 data, old hard negatives | |
 | 4 new data (counts, licences) | |
 | 5 r3 "before" (test) | |
