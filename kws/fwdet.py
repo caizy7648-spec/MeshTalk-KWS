@@ -83,7 +83,8 @@ class FwDet:
     def __init__(self, net=None, thr=None, cls_off=None, labels=("help", "help me", "sos", "_other"), T=None,
                  sens=1, rule=0, help_extra=0.05, native=False, model_c=None, probs_fn=None):
         """net: KwsNet (or probs_fn(window[T,40]) -> probs); thr: [low, medium, high];
-        cls_off: per class; rule 0 = 2 calls within 10 s (words mode on), 1 = 3 within 20 s"""
+        cls_off: per class; rule 0 = 2 calls within 10 s (words mode on, v1.6.7), 1 = 3 within 20 s,
+        2 = 2 calls within 10 s with words mode OFF (each sound counts once - a firmware option to test)"""
         self.L = _lib(model_c if native else None)
         self.labels = list(labels)
         ncls = len(self.labels)
@@ -107,8 +108,8 @@ class FwDet:
         self.h = self.L.h_new(1 if native else 0, int(T or 0), ncls, "|".join(self.labels).encode(),
                               None if thr_a is None else thr_a.ctypes.data,
                               None if off_a is None else off_a.ctypes.data,
-                              extra.ctypes.data, norel.ctypes.data, int(sens), 3 if rule else 2,
-                              20000 if rule else 10000, 0 if rule else 1, self._cb)
+                              extra.ctypes.data, norel.ctypes.data, int(sens), 3 if rule == 1 else 2,
+                              20000 if rule == 1 else 10000, 1 if rule == 0 else 0, self._cb)
         self.runs = 0
         self.ev = np.zeros(4 * 4096, np.int32)
 

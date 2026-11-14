@@ -362,8 +362,8 @@ def main():
     ap.add_argument("--help-extra", type=float, default=None)
     ap.add_argument("--from-export", default="export", help="config section for thr / cls_off / help_extra (export = r3, export_r4)")
     ap.add_argument("--sweep", action="store_true")
-    ap.add_argument("--rule", type=int, choices=[0, 1], default=None,
-                    help="0 = 2 calls within 10 s (words mode, v1.6.7 default), 1 = 3 calls within 20 s (default: eval_r4.device.rule)")
+    ap.add_argument("--rule", type=int, choices=[0, 1, 2], default=None,
+                    help="0 = 2 calls within 10 s (words mode, v1.6.7 default), 1 = 3 calls within 20 s, 2 = 2 calls within 10 s, words mode off (default: eval_r4.device.rule)")
     ap.add_argument("--quick", action="store_true")
     ap.add_argument("--plot", nargs="+")
     a = ap.parse_args()
