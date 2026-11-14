@@ -5,3 +5,5 @@ __pycache__/
 *.pyc
 data/own/
 build/
+models/spk_*_last.pt
+models/spk_*_last.pt.tmp

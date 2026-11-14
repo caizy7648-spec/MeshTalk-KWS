@@ -10,6 +10,7 @@ built once) clean / far / shout / noisy + imitation (mimic_f2m) - the epoch with
 phase_d.select_metric (mean of the 5 EERs, firmware scoring "max") is kept.
 """
 import argparse
+import faulthandler
 import json
 import math
 import os
@@ -54,7 +55,9 @@ def main():
     ap.add_argument("--variant", required=True, choices=sorted(Q["variants"]))
     ap.add_argument("--epochs", type=int, help="override (smoke test)")
     ap.add_argument("--steps", type=int, help="override steps per epoch (smoke test)")
+    ap.add_argument("--fresh", action="store_true", help="ignore models/spk_<variant>_last.pt and start again")
     a = ap.parse_args()
+    faulthandler.enable()                                  # a crash in C code prints the Python stack of every thread
     T = dict(Q["train"])
     if a.epochs:
         T["epochs"] = a.epochs
@@ -71,11 +74,20 @@ def main():
     print("variant %s %s: %d speakers (%d AISHELL), %d classes, device %s" % (
         a.variant, json.dumps(Q["variants"][a.variant]), ds.K, len(ds.ais), ds.n_classes, dev), flush=True)
     net = SpkNet(**P["net"])
-    ds.epoch = 999999
-    X = torch.stack([ds[i][0] for i in range(min(T["norm_windows"], n))])
-    net.in_mean.copy_(X.mean(dim=(0, 1)))
-    net.in_std.copy_(X.std(dim=(0, 1)))
-    print("in_mean / in_std (%.0f s), %d multiply-adds per vector" % (time.time() - t0, net.macs()), flush=True)
+    last = os.path.join(MODELS, "spk_%s_last.pt" % a.variant)   # resume point, written every epoch (not committed)
+    sig = json.dumps(dict(variant=Q["variants"][a.variant], train=T, net=P["net"], n_classes=ds.n_classes), sort_keys=True)
+    R = None
+    if os.path.exists(last) and not a.fresh:
+        R = torch.load(last, map_location="cpu", weights_only=False)
+        if R.get("sig") != sig:
+            print("%s is from other settings - starting again (--fresh to silence)" % last, flush=True)
+            R = None
+    if R is None:
+        ds.epoch = 999999
+        X = torch.stack([ds[i][0] for i in range(min(T["norm_windows"], n))])
+        net.in_mean.copy_(X.mean(dim=(0, 1)))
+        net.in_std.copy_(X.std(dim=(0, 1)))
+        print("in_mean / in_std (%.0f s), %d multiply-adds per vector" % (time.time() - t0, net.macs()), flush=True)
     t1 = time.time()
     vt = phase_d.make_trials(V, P, "val", Q["eval"]["speakers_val"])
     cw = phase_d.cohort_windows(V, P, Q["eval"]["cohort_speakers"])
@@ -94,7 +106,13 @@ def main():
         return lo + (T["lr"] - lo) * 0.5 * (1 + math.cos(math.pi * q))
 
     out = os.path.join(MODELS, "spk_%s.pt" % a.variant)
-    log, best, step = [], float("inf"), 0
+    log, best, step, ep0 = [], float("inf"), 0, 0
+    if R is not None:                                      # continue after a crash: same weights, optimiser, step, log
+        net.load_state_dict(R["net"])
+        head.load_state_dict(R["head"])
+        opt.load_state_dict(R["opt"])
+        log, best, step, ep0 = R["log"], R["best"], R["step"], R["epoch"]
+        print("resumed from %s after epoch %d (best %.4f)" % (last, ep0, best), flush=True)
     # one DataLoader for the whole run: workers started once with "spawn" (fork after CUDA / OpenMP init can
     # deadlock - it did twice at the start of an epoch), kept alive (persistent_workers); the epoch travels
     # with every index (EpochSampler), so the windows are the same as with a new loader per epoch
@@ -102,8 +120,8 @@ def main():
     ds.epoch = 0
     kw = dict(multiprocessing_context="spawn", persistent_workers=True, prefetch_factor=4) if T["workers"] > 0 else {}
     dl = torch.utils.data.DataLoader(ds, batch_size=T["batch"], sampler=sampler, num_workers=T["workers"], drop_last=True,
-                                     worker_init_fn=worker_init, pin_memory=(dev == "cuda"), **kw)
-    for ep in range(T["epochs"]):
+                                     worker_init_fn=worker_init, pin_memory=False, **kw)   # no pin-memory thread (WSL segfaults)
+    for ep in range(ep0, T["epochs"]):
         sampler.epoch = ep
         net.train()
         t1, tl, ta, k = time.time(), 0.0, 0.0, 0
@@ -137,6 +155,9 @@ def main():
         log.append(row)
         print(json.dumps({k2: round(v, 4) if isinstance(v, float) else v for k2, v in row.items()}), flush=True)
         pd.DataFrame(log).to_csv(os.path.join(MODELS, "spk_%s_log.csv" % a.variant), index=False)
+        torch.save(dict(sig=sig, net=net.state_dict(), head=head.state_dict(), opt=opt.state_dict(), log=log, best=best,
+                        step=step, epoch=ep + 1), last + ".tmp")
+        os.replace(last + ".tmp", last)                    # atomic: a crash while saving keeps the previous one
     print("best validation select metric %.4f -> %s, %.0f min" % (best, out, (time.time() - t0) / 60), flush=True)
     plot(log, a.variant)
 

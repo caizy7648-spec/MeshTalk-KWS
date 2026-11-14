@@ -42,8 +42,21 @@ PY
   run python scripts/48_eval_spk_d.py --split val --models old big120
   ;;
 2|3|4)
+  # a training run that crashes (WSL: SIGSEGV seen twice at random epochs) is restarted and continues from
+  # models/spk_<v>_last.pt (written after every epoch) - up to 6 tries; PYTHONFAULTHANDLER prints the stack
   V=$([ "$STEP" = 2 ] && echo d0 || ([ "$STEP" = 3 ] && echo d1 || echo d2))
-  run python scripts/47_train_spk_d.py --variant "$V"
+  export PYTHONFAULTHANDLER=1
+  for TRY in 1 2 3 4 5 6; do
+    echo "+ try $TRY: python scripts/47_train_spk_d.py --variant $V" | tee -a "$LOG"
+    set +e
+    python scripts/47_train_spk_d.py --variant "$V" 2>&1 | tee -a "$LOG"
+    RC=${PIPESTATUS[0]}
+    set -e
+    [ "$RC" = 0 ] && break
+    echo "!!! training exited with $RC (try $TRY) - continuing from the last epoch" | tee -a "$LOG"
+    sleep 20
+  done
+  [ "$RC" = 0 ] || { echo "training failed 6 times"; exit 1; }
   ;;
 5)
   run python scripts/48_eval_spk_d.py --split val
