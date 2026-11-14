@@ -372,3 +372,21 @@ r4 caches reused.
 5. talk false SOS and coughs not worse - **MET** (2.02 / 3.03 vs 9.10 per 24 h; cough 0 vs 0.33).
 
 **Conclusion:** r4b meets the "hel" target, but **not by learning the missing /p/**: at every threshold the owner's real help and his cut help are accepted or rejected together (val sweep: 66.7/66.7, 50/50, 33.3/33.3, 16.7/16.7, 0/0), i.e. the model lowered his whole "help" score. On test his real help collapses from 100 % to 38.5 % (check_own: 41 of 80 takes now missed, mostly FAR and NORMAL) and public real_help drops 14 points, while "help me" and SOS improve. **r4b is therefore not a replacement for r4.** The delivered `out/kws_model.c` is `kws-r4b` as requested, but the firmware should keep **r4** (`export_r4` -> `kws-r4`, exactly 3x better on this point) unless the owner decides otherwise. A next attempt would have to separate the /p/ without lowering the owner's real help (e.g. fewer / gentler cut negatives, or keeping `own_share` at the r4 level); that is a training change, not done here. No test tuning; no code changes.
+
+---
+
+# Phase C3 (2026-11) - keyword model r4c: cut "help" negatives from public clips only
+
+Plan: `HANDOFF_R4C.md`; steps `bash scripts/run_r4c.sh N` (0-4), logs `logs/r4c_step<N>.log`;
+parameters in `configs/train.yaml` `train_kw_r4c` / `export_r4c`. r4b removed the "hel" false accept only
+by lowering the owner's whole "help" score: at every threshold his real help and his cut help moved together
+(his /p/ is not audible in his takes), so his help fell from 100 % to 38.5 % on test. r4c keeps the cut-tail
+negatives (`kws/dataset.py` `cut_tail`, group `cut_help`) but takes them **only from public clips**
+(`cut_help: {own_p: 0.0}`), lowers their weight from 0.08 to **0.05**, warm-starts from **r4** (not r4b) for
+8 epochs at lr 3e-4, and restores `own_share` to r4's 0.25 / 0.25 / 0.35. Thresholds start as r4:
+`thr [0.80, 0.70, 0.65]`, `help_extra 0.05`. No data download, r4 caches reused. The r4 "before" numbers with
+the cut sets are already in `models/eval_r4_r4_{val,test}.json` / `eval_r4_r4_int8_test.json`.
+
+| step | result |
+|---|---|
+| 0 environment | **PASS**: `tools/smoke_r4.py` includes the r4c steps (public-only cut clips, 1-epoch r4c train) - **23/23 PASS, 0 failed**; venv torch 2.14.1 CPU, 24 cores, disk 893 GB free; r4 / r4b weights and data caches present. |
