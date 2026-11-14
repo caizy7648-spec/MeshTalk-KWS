@@ -1,0 +1,4453 @@
+{
+ "model": "models/kw_r4.pt",
+ "split": "val",
+ "rows": [
+  {
+   "setting": {
+    "thr": [
+     0.55,
+     0.45,
+     0.4
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.0,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.4
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.975,
+     "right": 0.8775
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 1.0
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.9233,
+     "right": 0.9233
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.9467
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 70,
+     "false_sos": 5,
+     "false_hits_per_h": 44.092,
+     "false_sos_per_24h": 75.586
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 351,
+     "false_sos": 63,
+     "false_hits_per_h": 59.198,
+     "false_sos_per_24h": 255.008
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 270,
+     "false_sos": 28,
+     "false_hits_per_h": 45.0,
+     "false_sos_per_24h": 112.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 691,
+     "false_sos": 96,
+     "false_hits_per_h": 51.122,
+     "false_sos_per_24h": 170.455
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 148,
+    "false_sos": 15,
+    "false_hits_per_100": 5.518,
+    "false_sos_per_100": 0.559,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 3,
+      "per_100": 16.667
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 1,
+      "per_100": 16.667
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 33,
+      "per_100": 7.112
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 25,
+      "per_100": 6.614
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 20,
+      "per_100": 4.415
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 39,
+      "per_100": 9.007
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 8,
+      "per_100": 1.717
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 19,
+      "per_100": 4.45
+     }
+    }
+   },
+   "mean_heard": 0.9712
+  },
+  {
+   "setting": {
+    "thr": [
+     0.55,
+     0.45,
+     0.4
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.05,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.4
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.9675,
+     "right": 0.8675
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.98
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.9233,
+     "right": 0.9233
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.9467
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 40,
+     "false_sos": 1,
+     "false_hits_per_h": 25.195,
+     "false_sos_per_24h": 15.117
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 197,
+     "false_sos": 23,
+     "false_hits_per_h": 33.225,
+     "false_sos_per_24h": 93.098
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 173,
+     "false_sos": 8,
+     "false_hits_per_h": 28.833,
+     "false_sos_per_24h": 32.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 410,
+     "false_sos": 32,
+     "false_hits_per_h": 30.333,
+     "false_sos_per_24h": 56.818
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 86,
+    "false_sos": 0,
+    "false_hits_per_100": 3.207,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 1,
+      "per_100": 16.667
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 21,
+      "per_100": 4.526
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 17,
+      "per_100": 4.497
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 5,
+      "per_100": 1.104
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 26,
+      "per_100": 6.005
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 3,
+      "per_100": 0.644
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 13,
+      "per_100": 3.044
+     }
+    }
+   },
+   "mean_heard": 0.9699
+  },
+  {
+   "setting": {
+    "thr": [
+     0.55,
+     0.45,
+     0.4
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.1,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.4
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.95,
+     "right": 0.8425
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.98
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.9233,
+     "right": 0.9233
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.9467
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 27,
+     "false_sos": 1,
+     "false_hits_per_h": 17.007,
+     "false_sos_per_24h": 15.117
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 156,
+     "false_sos": 19,
+     "false_hits_per_h": 26.31,
+     "false_sos_per_24h": 76.907
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 132,
+     "false_sos": 5,
+     "false_hits_per_h": 22.0,
+     "false_sos_per_24h": 20.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 315,
+     "false_sos": 25,
+     "false_hits_per_h": 23.304,
+     "false_sos_per_24h": 44.389
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 59,
+    "false_sos": 0,
+    "false_hits_per_100": 2.2,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 1,
+      "per_100": 16.667
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 14,
+      "per_100": 3.017
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 12,
+      "per_100": 3.175
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 2,
+      "per_100": 0.442
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 18,
+      "per_100": 4.157
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 12,
+      "per_100": 2.81
+     }
+    }
+   },
+   "mean_heard": 0.9392
+  },
+  {
+   "setting": {
+    "thr": [
+     0.6,
+     0.5,
+     0.45
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.0,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.4
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.9675,
+     "right": 0.8725
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 1.0
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.91,
+     "right": 0.91
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.92
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 40,
+     "false_sos": 2,
+     "false_hits_per_h": 25.195,
+     "false_sos_per_24h": 30.235
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 218,
+     "false_sos": 33,
+     "false_hits_per_h": 36.767,
+     "false_sos_per_24h": 133.576
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 178,
+     "false_sos": 8,
+     "false_hits_per_h": 29.667,
+     "false_sos_per_24h": 32.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 436,
+     "false_sos": 43,
+     "false_hits_per_h": 32.256,
+     "false_sos_per_24h": 76.349
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 93,
+    "false_sos": 3,
+    "false_hits_per_100": 3.468,
+    "false_sos_per_100": 0.112,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 1,
+      "per_100": 16.667
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 24,
+      "per_100": 5.172
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 17,
+      "per_100": 4.497
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 8,
+      "per_100": 1.766
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 26,
+      "per_100": 6.005
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 4,
+      "per_100": 0.858
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 13,
+      "per_100": 3.044
+     }
+    }
+   },
+   "mean_heard": 0.9677
+  },
+  {
+   "setting": {
+    "thr": [
+     0.6,
+     0.5,
+     0.45
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.05,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.4
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.95,
+     "right": 0.8525
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.98
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.91,
+     "right": 0.91
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.92
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 23,
+     "false_sos": 1,
+     "false_hits_per_h": 14.487,
+     "false_sos_per_24h": 15.117
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 137,
+     "false_sos": 14,
+     "false_hits_per_h": 23.106,
+     "false_sos_per_24h": 56.669
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 116,
+     "false_sos": 3,
+     "false_hits_per_h": 19.333,
+     "false_sos_per_24h": 12.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 276,
+     "false_sos": 18,
+     "false_hits_per_h": 20.419,
+     "false_sos_per_24h": 31.96
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 55,
+    "false_sos": 0,
+    "false_hits_per_100": 2.051,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 1,
+      "per_100": 16.667
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 14,
+      "per_100": 3.017
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 10,
+      "per_100": 2.646
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 2,
+      "per_100": 0.442
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 17,
+      "per_100": 3.926
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 11,
+      "per_100": 2.576
+     }
+    }
+   },
+   "mean_heard": 0.937
+  },
+  {
+   "setting": {
+    "thr": [
+     0.6,
+     0.5,
+     0.45
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.1,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.6
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.9325,
+     "right": 0.8325
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.97
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.91,
+     "right": 0.91
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.92
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 14,
+     "false_sos": 1,
+     "false_hits_per_h": 8.818,
+     "false_sos_per_24h": 15.117
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 100,
+     "false_sos": 8,
+     "false_hits_per_h": 16.866,
+     "false_sos_per_24h": 32.382
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 92,
+     "false_sos": 3,
+     "false_hits_per_h": 15.333,
+     "false_sos_per_24h": 12.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 206,
+     "false_sos": 12,
+     "false_hits_per_h": 15.24,
+     "false_sos_per_24h": 21.307
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 35,
+    "false_sos": 0,
+    "false_hits_per_100": 1.305,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 10,
+      "per_100": 2.155
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 8,
+      "per_100": 2.116
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 8,
+      "per_100": 1.848
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 9,
+      "per_100": 2.108
+     }
+    }
+   },
+   "mean_heard": 0.9341
+  },
+  {
+   "setting": {
+    "thr": [
+     0.65,
+     0.55,
+     0.5
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.0,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.4
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.9475,
+     "right": 0.8525
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.99
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.89,
+     "right": 0.89
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.9067
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 21,
+     "false_sos": 0,
+     "false_hits_per_h": 13.228,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 134,
+     "false_sos": 17,
+     "false_hits_per_h": 22.6,
+     "false_sos_per_24h": 68.812
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 111,
+     "false_sos": 4,
+     "false_hits_per_h": 18.5,
+     "false_sos_per_24h": 16.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 266,
+     "false_sos": 21,
+     "false_hits_per_h": 19.679,
+     "false_sos_per_24h": 37.287
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 56,
+    "false_sos": 0,
+    "false_hits_per_100": 2.088,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 1,
+      "per_100": 16.667
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 14,
+      "per_100": 3.017
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 10,
+      "per_100": 2.646
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 2,
+      "per_100": 0.442
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 18,
+      "per_100": 4.157
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 11,
+      "per_100": 2.576
+     }
+    }
+   },
+   "mean_heard": 0.9332
+  },
+  {
+   "setting": {
+    "thr": [
+     0.65,
+     0.55,
+     0.5
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.05,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.6
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.9275,
+     "right": 0.8325
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.97
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.89,
+     "right": 0.89
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.9067
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 10,
+     "false_sos": 0,
+     "false_hits_per_h": 6.299,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 77,
+     "false_sos": 4,
+     "false_hits_per_h": 12.987,
+     "false_sos_per_24h": 16.191
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 80,
+     "false_sos": 3,
+     "false_hits_per_h": 13.333,
+     "false_sos_per_24h": 12.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 167,
+     "false_sos": 7,
+     "false_hits_per_h": 12.355,
+     "false_sos_per_24h": 12.429
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 35,
+    "false_sos": 0,
+    "false_hits_per_100": 1.305,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 10,
+      "per_100": 2.155
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 8,
+      "per_100": 2.116
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 8,
+      "per_100": 1.848
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 9,
+      "per_100": 2.108
+     }
+    }
+   },
+   "mean_heard": 0.9299
+  },
+  {
+   "setting": {
+    "thr": [
+     0.65,
+     0.55,
+     0.5
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.1,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.6
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.9,
+     "right": 0.8025
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.95
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.89,
+     "right": 0.89
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.9067
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 8,
+     "false_sos": 0,
+     "false_hits_per_h": 5.039,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 60,
+     "false_sos": 3,
+     "false_hits_per_h": 10.119,
+     "false_sos_per_24h": 12.143
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 66,
+     "false_sos": 2,
+     "false_hits_per_h": 11.0,
+     "false_sos_per_24h": 8.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 134,
+     "false_sos": 5,
+     "false_hits_per_h": 9.914,
+     "false_sos_per_24h": 8.878
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 22,
+    "false_sos": 0,
+    "false_hits_per_100": 0.82,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 7,
+      "per_100": 1.509
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 5,
+      "per_100": 1.323
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 5,
+      "per_100": 1.155
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 5,
+      "per_100": 1.171
+     }
+    }
+   },
+   "mean_heard": 0.9253
+  },
+  {
+   "setting": {
+    "thr": [
+     0.7,
+     0.6,
+     0.5499999999999999
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.0,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.6
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.925,
+     "right": 0.835
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.97
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.87,
+     "right": 0.87
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.88
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 8,
+     "false_sos": 0,
+     "false_hits_per_h": 5.039,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 75,
+     "false_sos": 6,
+     "false_hits_per_h": 12.649,
+     "false_sos_per_24h": 24.287
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 74,
+     "false_sos": 2,
+     "false_hits_per_h": 12.333,
+     "false_sos_per_24h": 8.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 157,
+     "false_sos": 8,
+     "false_hits_per_h": 11.615,
+     "false_sos_per_24h": 14.205
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 36,
+    "false_sos": 0,
+    "false_hits_per_100": 1.342,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 10,
+      "per_100": 2.155
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 9,
+      "per_100": 2.381
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 8,
+      "per_100": 1.848
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 9,
+      "per_100": 2.108
+     }
+    }
+   },
+   "mean_heard": 0.9262
+  },
+  {
+   "setting": {
+    "thr": [
+     0.7,
+     0.6,
+     0.5499999999999999
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.05,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.6
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.8975,
+     "right": 0.805
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.95
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.87,
+     "right": 0.87
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.88
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 6,
+     "false_sos": 0,
+     "false_hits_per_h": 3.779,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 46,
+     "false_sos": 2,
+     "false_hits_per_h": 7.758,
+     "false_sos_per_24h": 8.096
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 56,
+     "false_sos": 1,
+     "false_hits_per_h": 9.333,
+     "false_sos_per_24h": 4.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 108,
+     "false_sos": 3,
+     "false_hits_per_h": 7.99,
+     "false_sos_per_24h": 5.327
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 22,
+    "false_sos": 0,
+    "false_hits_per_100": 0.82,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 7,
+      "per_100": 1.509
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 5,
+      "per_100": 1.323
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 5,
+      "per_100": 1.155
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 5,
+      "per_100": 1.171
+     }
+    }
+   },
+   "mean_heard": 0.9216
+  },
+  {
+   "setting": {
+    "thr": [
+     0.7,
+     0.6,
+     0.5499999999999999
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.1,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.8
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.8625,
+     "right": 0.77
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.9
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.8929,
+     "right": 0.8571
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.87,
+     "right": 0.87
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.88
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 3,
+     "false_sos": 0,
+     "false_hits_per_h": 1.89,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 34,
+     "false_sos": 1,
+     "false_hits_per_h": 5.734,
+     "false_sos_per_24h": 4.048
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 48,
+     "false_sos": 1,
+     "false_hits_per_h": 8.0,
+     "false_sos_per_24h": 4.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 85,
+     "false_sos": 2,
+     "false_hits_per_h": 6.288,
+     "false_sos_per_24h": 3.551
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 10,
+    "false_sos": 0,
+    "false_hits_per_100": 0.373,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 4,
+      "per_100": 0.862
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 3,
+      "per_100": 0.794
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 2,
+      "per_100": 0.462
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 1,
+      "per_100": 0.234
+     }
+    }
+   },
+   "mean_heard": 0.9098
+  },
+  {
+   "setting": {
+    "thr": [
+     0.75,
+     0.65,
+     0.6
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.0,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.6
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.8925,
+     "right": 0.8075
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.95
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.9286,
+     "right": 0.8214
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.8567,
+     "right": 0.8567
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.8267
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 6,
+     "false_sos": 0,
+     "false_hits_per_h": 3.779,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 46,
+     "false_sos": 3,
+     "false_hits_per_h": 7.758,
+     "false_sos_per_24h": 12.143
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 52,
+     "false_sos": 2,
+     "false_hits_per_h": 8.667,
+     "false_sos_per_24h": 8.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 104,
+     "false_sos": 5,
+     "false_hits_per_h": 7.694,
+     "false_sos_per_24h": 8.878
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 22,
+    "false_sos": 0,
+    "false_hits_per_100": 0.82,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 7,
+      "per_100": 1.509
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 5,
+      "per_100": 1.323
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 5,
+      "per_100": 1.155
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 5,
+      "per_100": 1.171
+     }
+    }
+   },
+   "mean_heard": 0.9185
+  },
+  {
+   "setting": {
+    "thr": [
+     0.75,
+     0.65,
+     0.6
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.05,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.8
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.8575,
+     "right": 0.77
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.89
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.8929,
+     "right": 0.8571
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.8567,
+     "right": 0.8567
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.8267
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 3,
+     "false_sos": 0,
+     "false_hits_per_h": 1.89,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 30,
+     "false_sos": 1,
+     "false_hits_per_h": 5.06,
+     "false_sos_per_24h": 4.048
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 41,
+     "false_sos": 1,
+     "false_hits_per_h": 6.833,
+     "false_sos_per_24h": 4.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 74,
+     "false_sos": 2,
+     "false_hits_per_h": 5.475,
+     "false_sos_per_24h": 3.551
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 10,
+    "false_sos": 0,
+    "false_hits_per_100": 0.373,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 4,
+      "per_100": 0.862
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 3,
+      "per_100": 0.794
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 2,
+      "per_100": 0.462
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 1,
+      "per_100": 0.234
+     }
+    }
+   },
+   "mean_heard": 0.9067
+  },
+  {
+   "setting": {
+    "thr": [
+     0.75,
+     0.65,
+     0.6
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.1,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.825,
+     "right": 0.7375
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.85
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.8929,
+     "right": 0.8571
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 1.0
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.8567,
+     "right": 0.8567
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.8267
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 24,
+     "false_sos": 1,
+     "false_hits_per_h": 4.048,
+     "false_sos_per_24h": 4.048
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 33,
+     "false_sos": 1,
+     "false_hits_per_h": 5.5,
+     "false_sos_per_24h": 4.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 58,
+     "false_sos": 2,
+     "false_hits_per_h": 4.291,
+     "false_sos_per_24h": 3.551
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 9,
+    "false_sos": 0,
+    "false_hits_per_100": 0.336,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 4,
+      "per_100": 0.862
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 3,
+      "per_100": 0.794
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 2,
+      "per_100": 0.462
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.9013
+  },
+  {
+   "setting": {
+    "thr": [
+     0.7999999999999999,
+     0.7,
+     0.6499999999999999
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.0,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 0.8
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.8475,
+     "right": 0.7725
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.93
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.8214,
+     "right": 0.7857
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.8571
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.8133,
+     "right": 0.8133
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.8133
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 3,
+     "false_sos": 0,
+     "false_hits_per_h": 1.89,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 26,
+     "false_sos": 1,
+     "false_hits_per_h": 4.385,
+     "false_sos_per_24h": 4.048
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 37,
+     "false_sos": 1,
+     "false_hits_per_h": 6.167,
+     "false_sos_per_24h": 4.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 66,
+     "false_sos": 2,
+     "false_hits_per_h": 4.883,
+     "false_sos_per_24h": 3.551
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 9,
+    "false_sos": 0,
+    "false_hits_per_100": 0.336,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 4,
+      "per_100": 0.862
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 2,
+      "per_100": 0.529
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 2,
+      "per_100": 0.462
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 1,
+      "per_100": 0.234
+     }
+    }
+   },
+   "mean_heard": 0.8859
+  },
+  {
+   "setting": {
+    "thr": [
+     0.7999999999999999,
+     0.7,
+     0.6499999999999999
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.05,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.815,
+     "right": 0.7375
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.85
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.8214,
+     "right": 0.7857
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.8571
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.8133,
+     "right": 0.8133
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.8133
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 18,
+     "false_sos": 1,
+     "false_hits_per_h": 3.036,
+     "false_sos_per_24h": 4.048
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 28,
+     "false_sos": 0,
+     "false_hits_per_h": 4.667,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 47,
+     "false_sos": 1,
+     "false_hits_per_h": 3.477,
+     "false_sos_per_24h": 1.776
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 8,
+    "false_sos": 0,
+    "false_hits_per_100": 0.298,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 4,
+      "per_100": 0.862
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 2,
+      "per_100": 0.529
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 2,
+      "per_100": 0.462
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.8805
+  },
+  {
+   "setting": {
+    "thr": [
+     0.7999999999999999,
+     0.7,
+     0.6499999999999999
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.1,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.7675,
+     "right": 0.69
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.79
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.7857,
+     "right": 0.7857
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.7143
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.8133,
+     "right": 0.8133
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.8133
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 10,
+     "false_sos": 1,
+     "false_hits_per_h": 1.687,
+     "false_sos_per_24h": 4.048
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 21,
+     "false_sos": 0,
+     "false_hits_per_h": 3.5,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 32,
+     "false_sos": 1,
+     "false_hits_per_h": 2.367,
+     "false_sos_per_24h": 1.776
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 5,
+    "false_sos": 0,
+    "false_hits_per_100": 0.186,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 1,
+      "per_100": 0.216
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 2,
+      "per_100": 0.529
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 2,
+      "per_100": 0.462
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.8666
+  },
+  {
+   "setting": {
+    "thr": [
+     0.85,
+     0.75,
+     0.7
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.0,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.7975,
+     "right": 0.7375
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.89
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.7143,
+     "right": 0.6786
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.7143
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.7533,
+     "right": 0.7533
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.7733
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 16,
+     "false_sos": 0,
+     "false_hits_per_h": 2.699,
+     "false_sos_per_24h": 0.0
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 23,
+     "false_sos": 0,
+     "false_hits_per_h": 3.833,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 40,
+     "false_sos": 0,
+     "false_hits_per_h": 2.959,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 8,
+    "false_sos": 0,
+    "false_hits_per_100": 0.298,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 4,
+      "per_100": 0.862
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 2,
+      "per_100": 0.529
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 2,
+      "per_100": 0.462
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.822
+  },
+  {
+   "setting": {
+    "thr": [
+     0.85,
+     0.75,
+     0.7
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.05,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.75,
+     "right": 0.69
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.76
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.6786,
+     "right": 0.6786
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.5714
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.7533,
+     "right": 0.7533
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.7733
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 7,
+     "false_sos": 0,
+     "false_hits_per_h": 1.181,
+     "false_sos_per_24h": 0.0
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 15,
+     "false_sos": 0,
+     "false_hits_per_h": 2.5,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 23,
+     "false_sos": 0,
+     "false_hits_per_h": 1.702,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 5,
+    "false_sos": 0,
+    "false_hits_per_100": 0.186,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 1,
+      "per_100": 0.216
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 2,
+      "per_100": 0.529
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 2,
+      "per_100": 0.462
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.8081
+  },
+  {
+   "setting": {
+    "thr": [
+     0.85,
+     0.75,
+     0.7
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.1,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.7125,
+     "right": 0.6525
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.7
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.6786,
+     "right": 0.6786
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.5714
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.7533,
+     "right": 0.7533
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.7733
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 3,
+     "false_sos": 0,
+     "false_hits_per_h": 0.506,
+     "false_sos_per_24h": 0.0
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 12,
+     "false_sos": 0,
+     "false_hits_per_h": 2.0,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 16,
+     "false_sos": 0,
+     "false_hits_per_h": 1.184,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 3,
+    "false_sos": 0,
+    "false_hits_per_100": 0.112,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 1,
+      "per_100": 0.216
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 1,
+      "per_100": 0.265
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 1,
+      "per_100": 0.231
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.8018
+  },
+  {
+   "setting": {
+    "thr": [
+     0.9,
+     0.8,
+     0.75
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.0,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 0.6667,
+     "right": 0.6667
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.74,
+     "right": 0.69
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.8
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.6429,
+     "right": 0.6429
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.5714
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.6567,
+     "right": 0.6567
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.64
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 7,
+     "false_sos": 0,
+     "false_hits_per_h": 1.181,
+     "false_sos_per_24h": 0.0
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 10,
+     "false_sos": 0,
+     "false_hits_per_h": 1.667,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 18,
+     "false_sos": 0,
+     "false_hits_per_h": 1.332,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 4,
+    "false_sos": 0,
+    "false_hits_per_100": 0.149,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 2,
+      "per_100": 0.529
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 2,
+      "per_100": 0.462
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.7566
+  },
+  {
+   "setting": {
+    "thr": [
+     0.9,
+     0.8,
+     0.75
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.05,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 0.6667,
+     "right": 0.6667
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.7025,
+     "right": 0.6525
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.69
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.6429,
+     "right": 0.6429
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.5714
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.6567,
+     "right": 0.6567
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.64
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 3,
+     "false_sos": 0,
+     "false_hits_per_h": 0.506,
+     "false_sos_per_24h": 0.0
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 7,
+     "false_sos": 0,
+     "false_hits_per_h": 1.167,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 11,
+     "false_sos": 0,
+     "false_hits_per_h": 0.814,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 2,
+    "false_sos": 0,
+    "false_hits_per_100": 0.075,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 1,
+      "per_100": 0.265
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 1,
+      "per_100": 0.231
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.7504
+  },
+  {
+   "setting": {
+    "thr": [
+     0.9,
+     0.8,
+     0.75
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.1,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 1.0,
+     "right": 1.0
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 0.6667,
+     "right": 0.6667
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.66,
+     "right": 0.61
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.61
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.6429,
+     "right": 0.6429
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.5714
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.6567,
+     "right": 0.6567
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.64
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 3,
+     "false_sos": 0,
+     "false_hits_per_h": 0.506,
+     "false_sos_per_24h": 0.0
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 3,
+     "false_sos": 0,
+     "false_hits_per_h": 0.5,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 7,
+     "false_sos": 0,
+     "false_hits_per_h": 0.518,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 1,
+    "false_sos": 0,
+    "false_hits_per_100": 0.037,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 1,
+      "per_100": 0.231
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.7433
+  },
+  {
+   "setting": {
+    "thr": [
+     0.95,
+     0.85,
+     0.7999999999999999
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.0,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 0.8,
+     "right": 0.8
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 0.3333,
+     "right": 0.3333
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 0.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.6925,
+     "right": 0.6525
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.73
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.4286,
+     "right": 0.4286
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.2857
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.5133,
+     "right": 0.5133
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.4533
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 4,
+     "false_sos": 0,
+     "false_hits_per_h": 0.675,
+     "false_sos_per_24h": 0.0
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 6,
+     "false_sos": 0,
+     "false_hits_per_h": 1.0,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 11,
+     "false_sos": 0,
+     "false_hits_per_h": 0.814,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 2,
+    "false_sos": 0,
+    "false_hits_per_100": 0.075,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 1,
+      "per_100": 0.265
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 1,
+      "per_100": 0.231
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.6002
+  },
+  {
+   "setting": {
+    "thr": [
+     0.95,
+     0.85,
+     0.7999999999999999
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.05,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 0.8,
+     "right": 0.8
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 0.3333,
+     "right": 0.3333
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 0.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.65,
+     "right": 0.61
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.6
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.4286,
+     "right": 0.4286
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.2857
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.5133,
+     "right": 0.5133
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.4533
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 3,
+     "false_sos": 0,
+     "false_hits_per_h": 0.506,
+     "false_sos_per_24h": 0.0
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 2,
+     "false_sos": 0,
+     "false_hits_per_h": 0.333,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 6,
+     "false_sos": 0,
+     "false_hits_per_h": 0.444,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 1,
+    "false_sos": 0,
+    "false_hits_per_100": 0.037,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 1,
+      "per_100": 0.231
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.5931
+  },
+  {
+   "setting": {
+    "thr": [
+     0.95,
+     0.85,
+     0.7999999999999999
+    ],
+    "cls_off": [
+     -0.1,
+     0.0,
+     0.05,
+     0.0
+    ],
+    "help_extra": 0.1,
+    "rule": 1
+   },
+   "calls": {
+    "own_help": {
+     "n": 6,
+     "heard": 0.8333,
+     "right": 0.8333
+    },
+    "own_help@x4": {
+     "n": 1,
+     "sos_rate": 1.0
+    },
+    "own_help_me": {
+     "n": 5,
+     "heard": 0.8,
+     "right": 0.8
+    },
+    "own_sos": {
+     "n": 6,
+     "heard": 0.3333,
+     "right": 0.3333
+    },
+    "own_sos@x4": {
+     "n": 1,
+     "sos_rate": 0.0
+    },
+    "real_help": {
+     "n": 400,
+     "heard": 0.5475,
+     "right": 0.5075
+    },
+    "real_help@x4": {
+     "n": 100,
+     "sos_rate": 0.43
+    },
+    "real_help_me": {
+     "n": 28,
+     "heard": 0.4286,
+     "right": 0.4286
+    },
+    "real_help_me@x4": {
+     "n": 7,
+     "sos_rate": 0.2857
+    },
+    "tts_sos": {
+     "n": 300,
+     "heard": 0.5133,
+     "right": 0.5133
+    },
+    "tts_sos@x4": {
+     "n": 75,
+     "sos_rate": 0.4533
+    }
+   },
+   "talk": {
+    "aishell": {
+     "hours": 1.59,
+     "false_hits": 1,
+     "false_sos": 0,
+     "false_hits_per_h": 0.63,
+     "false_sos_per_24h": 0.0
+    },
+    "ami": {
+     "hours": 5.93,
+     "false_hits": 0,
+     "false_sos": 0,
+     "false_hits_per_h": 0.0,
+     "false_sos_per_24h": 0.0
+    },
+    "libri": {
+     "hours": 6.0,
+     "false_hits": 2,
+     "false_sos": 0,
+     "false_hits_per_h": 0.333,
+     "false_sos_per_24h": 0.0
+    },
+    "all": {
+     "hours": 13.52,
+     "false_hits": 3,
+     "false_sos": 0,
+     "false_hits_per_h": 0.222,
+     "false_sos_per_24h": 0.0
+    }
+   },
+   "vocal": {
+    "sounds": 2682,
+    "false_hits": 0,
+    "false_sos": 0,
+    "false_hits_per_100": 0.0,
+    "false_sos_per_100": 0.0,
+    "per_type": {
+     "breathing": {
+      "sounds": 18,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "coughing": {
+      "sounds": 10,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughing": {
+      "sounds": 6,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneezing": {
+      "sounds": 11,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "snoring": {
+      "sounds": 16,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "cough": {
+      "sounds": 464,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "laughter": {
+      "sounds": 378,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sigh": {
+      "sounds": 453,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sneeze": {
+      "sounds": 433,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "sniff": {
+      "sounds": 466,
+      "false_hits": 0,
+      "per_100": 0.0
+     },
+     "throatclearing": {
+      "sounds": 427,
+      "false_hits": 0,
+      "per_100": 0.0
+     }
+    }
+   },
+   "mean_heard": 0.576
+  }
+ ],
+ "recommended": {
+  "thr": [
+   0.85,
+   0.75,
+   0.7
+  ],
+  "cls_off": [
+   -0.1,
+   0.0,
+   0.05,
+   0.0
+  ],
+  "help_extra": 0.0,
+  "rule": 1
+ },
+ "target_met": true,
+ "rule_calls": 1,
+ "rule": "highest mean single-call hit rate on val with talk false SOS <= 1.0 / 24 h (ties: higher thr); if no row meets it: the fewest talk false SOS (ties: higher hit rate)",
+ "minutes": 10.6
+}
