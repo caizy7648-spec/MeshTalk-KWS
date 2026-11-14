@@ -11,13 +11,38 @@
    0.05,
    0.0
   ],
-  "help_extra": 0.05
+  "help_extra": 0.05,
+  "rule": 0
  },
  "calls": {
+  "cut_own_help": {
+   "n": 13,
+   "heard": 0.9231,
+   "right": 0.9231,
+   "score_median": 0.729,
+   "score_p90": 0.899
+  },
+  "cut_own_help@pair": {
+   "n": 6,
+   "sos_rate": 0.8333
+  },
+  "cut_real_help": {
+   "n": 400,
+   "heard": 0.79,
+   "right": 0.7775,
+   "score_median": 0.859,
+   "score_p90": 0.959
+  },
+  "cut_real_help@pair": {
+   "n": 200,
+   "sos_rate": 0.665
+  },
   "own_help": {
    "n": 13,
    "heard": 1.0,
-   "right": 1.0
+   "right": 1.0,
+   "score_median": 0.711,
+   "score_p90": 0.922
   },
   "own_help@pair": {
    "n": 6,
@@ -26,7 +51,9 @@
   "own_help_me": {
    "n": 20,
    "heard": 1.0,
-   "right": 0.9
+   "right": 0.9,
+   "score_median": 0.951,
+   "score_p90": 0.981
   },
   "own_help_me@pair": {
    "n": 10,
@@ -35,7 +62,9 @@
   "own_sos": {
    "n": 20,
    "heard": 0.65,
-   "right": 0.65
+   "right": 0.65,
+   "score_median": 0.762,
+   "score_p90": 0.919
   },
   "own_sos@pair": {
    "n": 9,
@@ -44,7 +73,9 @@
   "real_help": {
    "n": 400,
    "heard": 0.82,
-   "right": 0.74
+   "right": 0.74,
+   "score_median": 0.871,
+   "score_p90": 0.97
   },
   "real_help@pair": {
    "n": 200,
@@ -53,7 +84,9 @@
   "real_help_me": {
    "n": 34,
    "heard": 0.7941,
-   "right": 0.7941
+   "right": 0.7941,
+   "score_median": 0.891,
+   "score_p90": 0.976
   },
   "real_help_me@pair": {
    "n": 17,
@@ -62,7 +95,9 @@
   "tts_sos": {
    "n": 300,
    "heard": 0.89,
-   "right": 0.89
+   "right": 0.89,
+   "score_median": 0.876,
+   "score_p90": 0.961
   },
   "tts_sos@pair": {
    "n": 150,
