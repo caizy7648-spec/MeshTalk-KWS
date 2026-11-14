@@ -430,3 +430,41 @@ the cut sets are already in `models/eval_r4_r4_{val,test}.json` / `eval_r4_r4_in
    `cut_own_help` was expected to improve only a little: int8 92.31 -> 84.62 %, @pair 83.33 -> 83.33 % (PyTorch @pair 83.33 -> 66.67 %), because the /p/ is not audible in the owner's takes.
 
 **Conclusion:** r4c does what r4b could not: it keeps the owner's real help (92.3 % vs r4b 38.5 %; check_own's help row is identical to r4: 90 / 35 / 75 %) while cutting the public "hel" false accept substantially (int8 81.75 -> 60.0 %, @pair 71.0 -> 34.5 %). Talk false SOS (10.11 vs 12.13 / 24 h) and coughs (0 vs 0.65 / 100) are not worse, and "help me" / SOS are at or above r4. The remaining cost is public real_help: 74.0 % int8 (r4 85.5 %) - **11.5 points below r4, so the "within 5 points" target is missed**; PyTorch shows the same -9.25. Compared with r4, the trade is "fewer 'hel' false accepts on public speech, ~10 points fewer public help hits", with the owner's own voice unchanged. The owner's own "hel" still false-accepts at 84.6 % because his /p/ is inaudible - that part cannot be fixed by adding cut negatives from his voice (r4b showed it only lowers his real help). The delivered `out/kws_model.c` is **`kws-r4c`**, but the firmware choice between r4 and r4c is the owner's: r4 keeps public help, r4c reduces the "hel" false accept.
+
+---
+
+# Phase C 结论 (2026-11) - firmware keeps r4
+
+**Decision: the firmware keeps r4.** `out/kws_model.c` was re-exported from `export_r4`
+(name **`kws-r4`**, id `64F79F75`, 73 472 B; `kws.check_c` **20 checks, 0 failed**, int8 vs float argmax
+97.75 %). r4b and r4c are kept as comparison experiments (`export_r4b` / `export_r4c`; weights and
+eval JSONs in `models/`).
+
+**Why r4 (int8 test, medium 0.70, 2 calls in 10 s, help +0.05):**
+1. **Recall first for a distress keyword.** r4 has the highest real-help recall: owner **100 %**,
+   public **85.5 %**, vs r4c 92.3 % / 74.0 % and r4b 38.5 % / 65.3 %. Missing a genuine "help" is worse
+   than a false accept from "hel", which is not a call for help.
+2. **The owner's "hel" cannot be separated with his recordings.** The final /p/ is not distinguishable
+   in the INMP441 takes: adding his cut "help" as negatives made r4b accept or reject his real help and
+   his "hel" together at every threshold, collapsing his help from 100 % to 38.5 %. r4c avoids that
+   collapse (own help 92.3 %, check_own per style identical to r4) but still accepts his "hel" at
+   84.6 % (@pair SOS 83.3 % int8, unchanged from r4) - it did not separate them either.
+3. **r4c's public trade is not worth it here.** It cuts public "hel" false accepts by ~22 points
+   (81.75 -> 60.0 %, @pair 71.0 -> 34.5 %) but costs ~11.5 points of public real help (85.5 -> 74.0 %).
+   For a distress call that recall loss outweighs the "hel" improvement. PyTorch shows the same:
+   `cut_real_help` 77.75 -> 58.0 %, real_help 82.0 -> 72.75 %.
+
+| metric (int8 test, 0.70) | r4 (kept) | r4b | r4c |
+|---|---|---|---|
+| owner help / help me / SOS single-call hit | **100 / 100 / 65 %** | 38.5 / 100 / 90 % | 92.31 / 100 / 75 % |
+| public real_help / real_help_me / tts_sos | **85.5 / 79.4 / 89.3 %** | 65.3 / 79.4 / 92.0 % | 74.0 / 79.4 / 89.7 % |
+| `cut_own_help` right (@pair SOS) | 92.31 (83.33) % | 30.77 (0) % | 84.62 (83.33) % |
+| `cut_real_help` right (@pair SOS) | 81.75 (71.0) % | 48.5 (23.5) % | 60.0 (34.5) % |
+| talk false SOS / 24 h (all) | 12.13 | **3.03** | 10.11 |
+| cough / 100 (VocalSound) | 0.65 | 0 | **0** |
+| other vocal sounds / 100 | 0.60 | **0.06** | 0.08 |
+
+r4's talk false-SOS rate is higher than r4b / r4c (12.1 vs 3.0 / 10.1 per 24 h), but talk false alarms
+were judged the cheaper error: the product is a distress call, and r4 keeps the most real "help" calls.
+r4c remains the best candidate if the "hel" false accept later becomes a practical problem and a
+~10-point public-help loss is acceptable.
