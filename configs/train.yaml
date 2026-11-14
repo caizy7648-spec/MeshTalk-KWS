@@ -423,7 +423,7 @@ eval_r4:                       # 21_eval_r4.py - everything with the firmware v1
   fa_noise_prob: 0.5           # share of false-alarm streams with test noise added
   fa_noise_snr_db: [5, 20]
   procs: 8
-  sweep_med_thr: [0.45, 0.50, 0.55, 0.60, 0.65, 0.70]
+  sweep_med_thr: [0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85]   # r4 run 1: the best row was at the old edge 0.70
   sweep_help_extra: [0.0, 0.05, 0.10]
   low_minus_med: 0.10          # low = medium + 0.10, high = medium - 0.05 (as r3: 0.65 / 0.55 / 0.50)
   high_minus_med: -0.05

@@ -5,6 +5,7 @@
     python scripts/21_eval_r4.py --model models/kw_r4.pt --split test --tag r4 --from-export export_r4
     python scripts/21_eval_r4.py --native out/kws_model.c --split test --tag r4_int8 # the exported int8 model, C engine
     python scripts/21_eval_r4.py --plot r3 r4                                       # docs/kw_r4_*.png from the two tests
+    python scripts/21_eval_r4.py --model models/kw_r4.pt --split val --sweep --rule 1   # the "3 calls in 20 s" setting
     (--quick: a small smoke test of everything)
 
 Every stream goes through the C detector exactly as Svc/kws.c feeds it (eval_r4.device:
@@ -136,9 +137,9 @@ def make_det(setting):
     net = G.get("net")
     if G.get("native"):
         return FwDet(native=True, model_c=G["native"], thr=setting.get("thr"), cls_off=setting.get("cls_off"),
-                     sens=E["device"]["sens"], rule=E["device"]["rule"], help_extra=setting["help_extra"])
+                     sens=E["device"]["sens"], rule=setting.get("rule", E["device"]["rule"]), help_extra=setting["help_extra"])
     return FwDet(net, thr=setting["thr"], cls_off=setting["cls_off"], sens=E["device"]["sens"],
-                 rule=E["device"]["rule"], help_extra=setting["help_extra"])
+                 rule=setting.get("rule", E["device"]["rule"]), help_extra=setting["help_extra"])
 
 
 def audio_of(ref):
@@ -356,6 +357,8 @@ def main():
     ap.add_argument("--help-extra", type=float, default=None)
     ap.add_argument("--from-export", default="export", help="config section for thr / cls_off / help_extra (export = r3, export_r4)")
     ap.add_argument("--sweep", action="store_true")
+    ap.add_argument("--rule", type=int, choices=[0, 1], default=None,
+                    help="0 = 2 calls within 10 s (words mode, v1.6.7 default), 1 = 3 calls within 20 s (default: eval_r4.device.rule)")
     ap.add_argument("--quick", action="store_true")
     ap.add_argument("--plot", nargs="+")
     a = ap.parse_args()
@@ -367,6 +370,7 @@ def main():
     thr = a.thr or X["thr"]
     off = a.cls_off or [X["cls_off"].get(l, 0.0) for l in LABELS]
     hx = a.help_extra if a.help_extra is not None else X.get("help_extra", E["device"]["help_extra"])
+    rule = E["device"]["rule"] if a.rule is None else a.rule
     t0 = time.time()
     from kws.fwdet import build, lib_path
     if not os.path.exists(lib_path()):
@@ -384,21 +388,26 @@ def main():
         rows = []
         for t in E["sweep_med_thr"]:
             for h in E["sweep_help_extra"]:
-                st = dict(thr=[t + E["low_minus_med"], t, t + E["high_minus_med"]], cls_off=off, help_extra=h)
+                st = dict(thr=[t + E["low_minus_med"], t, t + E["high_minus_med"]], cls_off=off, help_extra=h, rule=rule)
                 r = evaluate(st, a.split, a.quick, pool)
                 show(r)
                 rows.append(r)
         ok = [r for r in rows if r["talk"].get("all", {}).get("false_sos_per_24h", 0) <= E["target_false_sos_24h"]]
-        best = max(ok or rows, key=lambda r: (r["mean_heard"] or 0, r["setting"]["thr"][1]))
+        if ok:
+            best = max(ok, key=lambda r: (r["mean_heard"] or 0, r["setting"]["thr"][1]))
+        else:   # no row meets the target: the fewest false SOS (ties: the higher hit rate) - never the noisiest row
+            best = min(rows, key=lambda r: (r["talk"].get("all", {}).get("false_sos_per_24h", 1e9), -(r["mean_heard"] or 0)))
         out = dict(model=a.model, split=a.split, rows=rows, recommended=best["setting"],
-                   rule="highest mean single-call hit rate on val with talk false SOS <= %.1f / 24 h (ties: higher thr)"
+                   target_met=bool(ok), rule_calls=rule,
+                   rule="highest mean single-call hit rate on val with talk false SOS <= %.1f / 24 h (ties: higher thr); "
+                        "if no row meets it: the fewest talk false SOS (ties: higher hit rate)"
                         % E["target_false_sos_24h"], minutes=round((time.time() - t0) / 60, 1))
-        path = os.path.join(MODELS, "eval_r4_sweep_val.json")
+        path = os.path.join(MODELS, "eval_r4_sweep_val%s.json" % ("" if rule == 0 else "_rule%d" % rule))
         json.dump(out, open(path, "w"), indent=1)
         print("recommended:", best["setting"], "->", path)
     else:
         st = dict(thr=None if (a.native and not a.thr) else thr, cls_off=None if (a.native and not a.cls_off) else off,
-                  help_extra=hx)
+                  help_extra=hx, rule=rule)
         r = evaluate(st, a.split, a.quick, pool)
         show(r)
         r.update(model=a.model or a.native, split=a.split, minutes=round((time.time() - t0) / 60, 1))

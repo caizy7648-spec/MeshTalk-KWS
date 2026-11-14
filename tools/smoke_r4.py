@@ -82,7 +82,7 @@ def make_config():
     C["train_kw_r4"].update(epochs=1, workers=2, torch_threads=2, init=os.path.join(W, "models", "kw_r3.pt"))
     C["mine_r4"]["model"] = os.path.join(W, "models", "kw_r3.pt")
     C["mine_r4"]["threshold"] = 0.0                  # synthetic audio: make sure something is "mined"
-    C["eval_r4"].update(procs=2, sweep_med_thr=[0.5, 0.6], sweep_help_extra=[0.0, 0.05], max_per_set=6, pairs_per_set=3)
+    C["eval_r4"].update(procs=2, sweep_med_thr=[0.5, 0.95], sweep_help_extra=[0.0, 0.05], max_per_set=6, pairs_per_set=3)
     C["export_r4"]["check_windows_per_class"] = 4
     C["r4_prepare"]["fa_hours"] = {"val": {"ami": 1, "aishell": 1}, "test": {"ami": 1, "aishell": 1}}
     C["r4_sources"]["aishell"]["speakers"] = {"train": 2, "dev": 1, "test": 1}
@@ -241,6 +241,8 @@ def main():
                                           "--split", "test", "--tag", "r3", "--quick"]),
         ("21_eval_r4 --quick --sweep, r4 (val)", ["scripts/21_eval_r4.py", "--model", os.path.join(C["paths"]["models"], "kw_r4.pt"),
                                                  "--split", "val", "--sweep", "--quick"]),
+        ("21_eval_r4 --quick --sweep --rule 1, r4 (val)", ["scripts/21_eval_r4.py", "--model", os.path.join(C["paths"]["models"], "kw_r4.pt"),
+                                                         "--split", "val", "--sweep", "--quick", "--rule", "1"]),
         ("21_eval_r4 --quick, r4 (test)", ["scripts/21_eval_r4.py", "--model", os.path.join(C["paths"]["models"], "kw_r4.pt"),
                                           "--split", "test", "--tag", "r4", "--quick", "--from-export", "export_r4"]),
         ("30_export --section export_r4", ["scripts/30_export.py", "--section", "export_r4"]),
