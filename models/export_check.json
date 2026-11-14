@@ -5,10 +5,10 @@
  "work_bytes": 89760,
  "detector_buffers_bytes": 25920,
  "windows": 400,
- "max_prob_diff": 0.10414273844360239,
- "mean_prob_diff": 0.015880604252217125,
- "argmax_agree": 0.9875,
- "int8sim_vs_reference_max_diff": 8.530415976926164e-07,
+ "max_prob_diff": 0.10504120532574607,
+ "mean_prob_diff": 0.02181491753085467,
+ "argmax_agree": 0.9775,
+ "int8sim_vs_reference_max_diff": 1.111881054560726e-06,
  "emb_cos_min": null,
  "emb_cos_mean": null
 }
