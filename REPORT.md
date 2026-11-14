@@ -293,7 +293,7 @@ Decision: no full training, no engine. Note: with the firmware's max(class, all)
 (< the 8 % gate); a 15 % gain needs ~6.3 %. The trial converges slowly (-0.4 points/epoch at the end) and its teacher
 similarity is below the old model's, so 4x more training is not expected to reach that.
 
-# Phase C (2026-11) - keyword model r4: fewer false SOS from coughs and talk - **in progress**
+# Phase C (2026-11) - keyword model r4: fewer false SOS from coughs and talk - **done**
 
 Plan: `PLAN_R4.md`; parameters and reasons: `TRAINING.md` section 8. Code ready and smoke-tested
 (`tools/smoke_r4.py` 14/14 PASS on synthetic audio; firmware detector check 0 failed; PyTorch vs
@@ -311,4 +311,22 @@ each step finishes (`bash scripts/run_r4.sh N`).
 | 7 training | **Step 7 done** (16 min, CPU, 20 epochs warm start from r3, lr 5e-4): train loss 0.516 -> 0.488, train acc 0.859 -> 0.874; val balanced accuracy oscillated 0.708-0.820, final (selected, `select: last`) **0.7762**, val loss 0.556. `models/kw_r4.pt` (96 KB), `models/kw_r4_log.csv`; no divergence. |
 | 8 thresholds (val) | **Step 8 done** (7.5 min, 18 settings): **no setting reaches the <= 1 false SOS / 24 h target**; the best is **8.9 / 24 h** at thr [0.80, 0.70, 0.65] (help_extra 0.05 or 0.10), vs r3 val 28.4. Coughs fall from 38.5 to **0.86 / 100** at that row. The script's `recommended` ([0.55, 0.45, 0.40], help_extra 0.00) is its "no row satisfies the constraint" fallback (`max(ok or rows)`, i.e. highest hit rate) and has **459.9 false SOS / 24 h**, so it was **not** used. Chosen from the same val rows: **thr [0.80, 0.70, 0.65], help_extra 0.05** - own help / help me / sos 83.3 / 100 / 100 %, public real_help / real_help_me / tts_sos 81.5 / 82.1 / 81.3 %, talk false SOS 8.9 / 24 h, cough 0.86 / 100. Val only; test not used. Public hits are 4.7-10.7 points below r3 on val (target: <= 2 points). |
 | 9 r4 "after" (test) | **Step 9 done** (r4 at thr [0.80, 0.70, 0.65], help_extra 0.05; `models/eval_r4_r4_test.json`, `docs/kw_r4_compare_test.png`): own help **100 %**, help me **100 %**, sos **65 %** (r3 100 / 100 / 55); public real_help **82.0 %**, real_help_me **79.4 %**, tts_sos **89.0 %** (r3 90.0 / 94.1 / 94.3); talk false SOS / 24 h AMI **2.65**, AISHELL **0**, LibriSpeech **16.0**, all **9.10** (r3 21.2 / 26.8 / 22.0 / 22.2); vocal false hits / 100 cough **0.33**, coughing **0**, all sounds **0.33** (r3 38.5 / 33.3 / 14.7). Targets: coughs >= 5x lower **MET** (~117x); talk <= 1 / 24 h **NOT MET** (9.1); own calls not lower **MET**; public within 2 points **NOT MET** (-8.0 / -14.7 / -5.3). |
-| 10 export, int8 | |
+| 10 export, int8 | **Step 10 done**: `out/kws_model.c` (72 KB) + `out/kws_model_test.c` exported; `kws.check_c` **20 checks, 0 failed**. int8 C engine on test: own help / help me / sos **100 / 100 / 65 %**, public real_help / real_help_me / tts_sos **85.5 / 79.4 / 89.3 %**, cough **0.65 / 100** (ESC-50 coughing 0), other vocal 0.57 / 100, talk false SOS **12.1 / 24 h** (PyTorch r4 9.1; same magnitude, int8 rounding). r4 check_own on the owner's 240 takes: heard as the right keyword help **90 % FAR / 35 % LOUD / 75 % NORMAL** (r3 95 / 35 / 60), help me **85 / 35 / 55** (r3 65 / 30 / 37.5), sos **90 / 90 / 72.5** (r3 85 / 75 / 45); verdicts help 55 ok / 2 missed / 23 two_calls, help me 46 ok / 12 heard as "help" / 22 two_calls, sos 65 ok / 14 missed / 1 two_calls (r3: 50/12/18, 34/33/13, 50/30/0). `models/eval_r4_r4_int8_test.json`. |
+
+### Result (test, medium sensitivity, 2 calls in 10 s, firmware v1.6.7 logic)
+
+| metric | r3 | r4 | r4 int8 (C engine) |
+|---|---|---|---|
+| owner help / help me / SOS single-call hit | 100 / 100 / 55 % | **100 / 100 / 65 %** | **100 / 100 / 65 %** |
+| public real_help / real_help_me / tts_sos | 90.0 / 94.1 / 94.3 % | **82.0 / 79.4 / 89.0 %** | **85.5 / 79.4 / 89.3 %** |
+| coughs per 100 (VocalSound / ESC-50) | 38.5 / 33.3 | **0.33 / 0** | **0.65 / 0** |
+| other vocal sounds per 100 (throatclear, sneeze, sniff, sigh, laugh) | 9.6 | **0.33** | **0.57** |
+| talk false hits per hour (AMI / AISHELL / LibriSpeech) | 5.85 / 9.30 / 6.17 | **1.88 / 1.49 / 4.25** | **2.65 / 1.49 / 4.08** |
+| talk false SOS per 24 h (AMI / AISHELL / Libri / all) | 21.2 / 26.8 / 22.0 / 22.2 | **2.6 / 0 / 16.0 / 9.1** | **10.6 / 0 / 16.0 / 12.1** |
+| thresholds (low / medium / high), HELP_EXTRA | 0.65/0.55/0.50, 0.05 | **0.80/0.70/0.65, 0.05** | same |
+
+**Targets (PLAN_R4) against test:** coughs >= 5x lower - **MET** (~30-100x on every vocal type); owner's calls not lower than r3 - **MET** (help 100 %, help me 100 %, SOS 55 -> 65 %); talk <= 1 false SOS / 24 h - **NOT MET** (9.1); public calls within 2 points of r3 - **NOT MET** (-8.0 / -14.7 / -5.3). The val sweep found **no** threshold that meets the talk target: the lowest val false-SOS row is 8.9 / 24 h at [0.80, 0.70, 0.65]; lower thresholds raise talk false alarms steeply (e.g. 62 / 24 h at the r3 thresholds) while recovering public hits. Test was not used for any choice.
+
+**Recommended thresholds and HELP_EXTRA:** `thr: [0.80, 0.70, 0.65]`, `help_extra: 0.05` (written to `configs/train.yaml` `export_r4:`). HELP_EXTRA 0.10 gives the same talk false SOS on val but a lower mean hit rate, so 0.05 is kept (unchanged from firmware v1.6.7). Note: the automatic `recommended` in `eval_r4_sweep_val.json` ([0.55, 0.45, 0.40], help_extra 0.00) is the script's fallback when no row meets the constraint and would give 459.9 false SOS / 24 h; it was not used.
+
+**Caveat:** the host crashed during step 3 (`0x1A MEMORY_MANAGEMENT`) and a downloaded shard was silently corrupted after its checksum had passed; three WinDbg-analysed dumps point to memory-subsystem instability rather than a driver. The memory diagnostic is still pending, so these numbers should be re-checked on stable hardware (steps 5-10 re-run in ~1.5 h).
