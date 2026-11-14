@@ -468,3 +468,46 @@ r4's talk false-SOS rate is higher than r4b / r4c (12.1 vs 3.0 / 10.1 per 24 h),
 were judged the cheaper error: the product is a distress call, and r4 keeps the most real "help" calls.
 r4c remains the best candidate if the "hel" false accept later becomes a practical problem and a
 ~10-point public-help loss is acceptable.
+
+---
+
+# Phase D (spk, anti-imitation) - plan: `PLAN_SPK_D.md`
+
+Idea: train the same SpkNet from scratch three times with identical data / seeds / schedule, changing only
+two switches - `speaker_aug` (speed-perturbed copies = new speakers) and `f0_aug` (pitch-only copies =
+the same speaker, LPC source-filter keeps the formants). The goal is a model that ignores pitch and uses
+the vocal tract, so a woman imitating the owner by lowering her pitch cannot pass. d0 = neither switch,
+d1 = speaker_aug only, d2 = both. Data: B2 voices + device chain + AISHELL-zh; scoring `max` (firmware),
+plus `asn` / `pair` / `pasn`.
+
+## Step 0 - environment (val)
+
+GPU: RTX 5070 Laptop, torch 2.14.1+cu130, `cuda True`. All cache files `ok`, old model present,
+big120 present. Smoke test 6/6 PASS (`0 failed`). Disk free 893 GB, RAM 42 Gi available.
+Own recordings: own-A (owner) 60 NORMAL / 60 LOUD / 60 FAR; own-B (imitator) 60 NORMAL.
+
+## Step 1 - the "before" models on val + own (150 speakers, 37 female; cohort 300)
+
+| model | select_metric (max) | asn | clean | far | shout | noisy | mimic_f2m | plain_f2m | mimic far@5 % FRR |
+|---|---|---|---|---|---|---|---|---|---|
+| old (spk-20261023) | 0.0722 | 0.0662 | 5.85 | 6.37 | 8.77 | 9.64 | 5.49 | 4.32 | 5.57 % |
+| big120 (B3 local) | **0.0671** | 0.0650 | 5.83 | 6.28 | 6.84 | 8.97 | 5.64 | 4.02 | 6.36 % |
+
+EER in %. `select_metric` = mean of clean / far / shout / noisy / mimic_f2m. Imitation (pitch lowered,
+formants kept) costs the old model +1.17 points of EER over the same female takes unchanged
+(5.49 vs 4.32), and big120 +1.62 (5.64 vs 4.02): pitch still moves the embedding.
+Own real recordings (own-A 180 takes, 10 NORMAL enrolled, 30 random enrolments; own-B 60 takes):
+
+| model / scoring | own EER | owner 5-95 % | imitator 5-95 % | SOS within 2 / 6 / 10 / 20 tries | owner accept NORMAL / LOUD / FAR |
+|---|---|---|---|---|---|
+| old / max | 4.88 % | 0.508-0.863 | 0.128-0.502 | 0.25 / 2.0 / **3.45** / 6.95 % | 100 / 92.1 / 93.7 % |
+| old / pair | 1.77 % | 0.483-0.797 | 0.123-0.379 | 0.2 / 0.65 / **1.05** / 2.55 % | - |
+| big120 / max | 2.67 % | 0.510-0.858 | 0.079-0.433 | 0 / 0.05 / **0.15** / 1.05 % | 100 / 89.0 / 96.8 % |
+| big120 / pair | 0.34 % | 0.477-0.785 | 0.020-0.346 | 0 / 0 / **0** / 0 % | - |
+
+(SOS = two accepted calls within three attempts, at the threshold that rejects 5 % of the owner's calls.)
+big120's firmware thresholds matched to the old model's same-gender FAR: 0.46 -> 0.3078, 0.52 -> 0.3684,
+0.60 -> 0.4558.
+
+Check (PLAN step 1): pass - the old model's select_metric, mimic vs plain and the owner's own imitator
+SOS chance are all recorded; no file problems, so step 2 starts.
