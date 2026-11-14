@@ -349,3 +349,26 @@ r4 caches reused.
 | 2 training r4b | **Step 2 done** (5 min, CPU, 8 epochs warm start from r4, lr 3e-4): train loss 0.535 -> 0.518, train acc 0.847 -> 0.853; val balanced accuracy 0.741 final (range 0.714-0.754), val loss 0.611. `models/kw_r4b.pt`, `models/kw_r4b_log.csv`. One `Mean of empty slice` warning at start (a group with no windows yet); training unaffected. |
 | 3 r4b sweep on val | **Step 3 done** (`models/eval_r4_sweep_val_r4b.json`, rule 0, help_extra 0.05): medium 0.65 / 0.70 / 0.75 - own help **50.0 / 33.3 / 16.7 %**, own help me 100 / 100 / 100 %, own sos 100 / 100 / 100 %, public real_help **74.5 / 65.8 / 55.8 %**, real_help_me 92.9 / 78.6 / 67.9 %, tts_sos 87.3 / 85.3 / 79.0 %; `cut_own_help.right` **50.0 / 33.3 / 16.7 %**, `cut_real_help.right` 52.5 / 43.2 / 32.8 %; talk false SOS **8.88 / 5.33 / 3.55** per 24 h; cough 0.22 / 0.00 / 0.00. **Problem: `own_help.heard` equals `cut_own_help.right` at every threshold** (66.7/66.7 at 0.45, 50/50, 33.3/33.3, 16.7/16.7, 0/0 at 0.85) - r4b lowered the owner's help scores overall instead of separating "hel" from "help"; at the export medium 0.70 own help is only 33.3 %. Thresholds kept as `export_r4b` (0.80/0.70/0.65, help_extra 0.05) as the plan says; test next. |
 | 4 r4b "after" (test) | **Step 4 done** (r4b at export_r4b, thr 0.80/0.70/0.65, help_extra 0.05; `models/eval_r4_r4b_test.json`, `docs/kw_r4_r4b_compare_test.png`, `docs/kw_r4_r4b_cut_help_test.png`): `cut_own_help` right **30.77 %** (r4 92.31 %, exactly 3.0x lower - target >= 3x **MET**), @pair SOS **0 %** (r4 83.33 % - **MET**); `cut_real_help` right 52.75 % (r4 77.75 %), @pair 26.5 % (r4 66.5 %); own help **38.46 %** (r4 100 % - target >= 90 % **NOT MET**), own help me **100 %** (same), own sos **75 %** (r4 65 %); public real_help **68.0 %** (r4 82.0), real_help_me 76.5 % (r4 79.4), tts_sos 89.7 % (r4 89.0) - "not lower than r4" **NOT MET** for real_help / real_help_me; talk false SOS **2.02 / 24 h** (r4 9.10) and cough **0 / 100** (r4 0.33) - not worse **MET**. The model did not learn to separate "hel" from "help": the owner's real help and his cut help fall together (identical val sweep rates), and the owner's help hit rate collapses. No test tuning. |
+| 5 export, int8, check_own | **Step 5 done**: export `kws-r4b` (id `726AB84D`, `out/kws_model.c` 72 KB), `kws.check_c` **20 checks, 0 failed**; int8 test: `cut_own_help` 30.77 % / @pair 0, own help **38.46 %**, help me 100 %, sos 90 %, public 65.25 / 79.4 / 92.0 %, talk **3.03 / 24 h**, cough **0 / 100**. r4b check_own on the owner's 240 takes: heard as the right keyword help **35.0 FAR / 40.0 LOUD / 27.5 NORMAL %** (r4 90 / 35 / 75), help me 90 / 55 / 75 (r4 85 / 35 / 55), sos 95 / 90 / 77.5 (r4 90 / 90 / 72.5); verdicts help 26 ok / **41 missed** / 13 two_calls (r4 55 / 2 / 23), help me 59 / 1 / 20 (r4 46 / 0 / 22), sos 68 / 11 / 1 (r4 65 / 14 / 1). `models/eval_r4_r4b_int8_test.json`, `docs/kw_r4{,_int8}_r4b{,_int8}_compare_test.png`, `docs/kw_r4{,_int8}_r4b{,_int8}_cut_help_test.png`. |
+
+### Result (r4b vs r4, test, medium 0.70, 2 calls in 10 s, help +0.05)
+
+| metric | r4 (PyTorch) | r4b (PyTorch) | r4b int8 |
+|---|---|---|---|
+| owner help / help me / SOS single-call hit | 100 / 100 / 65 % | **38.5 / 100 / 75 %** | **38.5 / 100 / 90 %** |
+| public real_help / real_help_me / tts_sos | 82.0 / 79.4 / 89.0 % | **68.0 / 76.5 / 89.7 %** | **65.3 / 79.4 / 92.0 %** |
+| `cut_own_help.right` (owner's "hel" heard as help) | **92.31 %** | **30.77 %** | **30.77 %** |
+| `cut_own_help@pair` ("hel ... hel" -> SOS) | **83.33 %** | **0 %** | **0 %** |
+| `cut_real_help.right` / @pair | 77.75 / 66.5 % | 52.75 / 26.5 % | 48.5 / 23.5 % |
+| talk false SOS / 24 h | 9.10 | **2.02** | **3.03** |
+| cough / 100 | 0.33 | **0** | **0** |
+| other vocal sounds / 100 | 0.33 | **0.04** | **0.06** |
+
+**Targets (PLAN_R4B) against test:**
+1. `cut_own_help.right` at least 3x lower than r4 - **MET** (92.31 -> 30.77, exactly 3.0x; int8 same).
+2. `cut_own_help@pair.sos_rate` clearly lower - **MET** (83.33 -> 0 %).
+3. `own_help.heard` >= 90 %; help me / SOS not lower - **NOT MET** (38.5 %); help me 100 % (equal) and SOS 75 % (int8 90 %) are not lower.
+4. public calls not lower than r4 - **NOT MET** (real_help -14.0 points, real_help_me -2.9; tts_sos +0.7 is fine).
+5. talk false SOS and coughs not worse - **MET** (2.02 / 3.03 vs 9.10 per 24 h; cough 0 vs 0.33).
+
+**Conclusion:** r4b meets the "hel" target, but **not by learning the missing /p/**: at every threshold the owner's real help and his cut help are accepted or rejected together (val sweep: 66.7/66.7, 50/50, 33.3/33.3, 16.7/16.7, 0/0), i.e. the model lowered his whole "help" score. On test his real help collapses from 100 % to 38.5 % (check_own: 41 of 80 takes now missed, mostly FAR and NORMAL) and public real_help drops 14 points, while "help me" and SOS improve. **r4b is therefore not a replacement for r4.** The delivered `out/kws_model.c` is `kws-r4b` as requested, but the firmware should keep **r4** (`export_r4` -> `kws-r4`, exactly 3x better on this point) unless the owner decides otherwise. A next attempt would have to separate the /p/ without lowering the owner's real help (e.g. fewer / gentler cut negatives, or keeping `own_share` at the r4 level); that is a training change, not done here. No test tuning; no code changes.
