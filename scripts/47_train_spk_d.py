@@ -95,12 +95,16 @@ def main():
 
     out = os.path.join(MODELS, "spk_%s.pt" % a.variant)
     log, best, step = [], float("inf"), 0
+    # one DataLoader for the whole run: workers started once with "spawn" (fork after CUDA / OpenMP init can
+    # deadlock - it did twice at the start of an epoch), kept alive (persistent_workers); the epoch travels
+    # with every index (EpochSampler), so the windows are the same as with a new loader per epoch
+    sampler = phase_d.EpochSampler(n, P["seed"])
+    ds.epoch = 0
+    kw = dict(multiprocessing_context="spawn", persistent_workers=True, prefetch_factor=4) if T["workers"] > 0 else {}
+    dl = torch.utils.data.DataLoader(ds, batch_size=T["batch"], sampler=sampler, num_workers=T["workers"], drop_last=True,
+                                     worker_init_fn=worker_init, pin_memory=(dev == "cuda"), **kw)
     for ep in range(T["epochs"]):
-        ds.epoch = ep
-        g = torch.Generator()
-        g.manual_seed(P["seed"] + ep)
-        dl = torch.utils.data.DataLoader(ds, batch_size=T["batch"], shuffle=True, num_workers=T["workers"], generator=g,
-                                         drop_last=True, worker_init_fn=worker_init, pin_memory=(dev == "cuda"))
+        sampler.epoch = ep
         net.train()
         t1, tl, ta, k = time.time(), 0.0, 0.0, 0
         for x, y in dl:

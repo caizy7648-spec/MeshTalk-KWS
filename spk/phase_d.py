@@ -57,7 +57,7 @@ class DWindows(torch.utils.data.Dataset):
     f0_aug (pitch-only changes = same speaker)"""
 
     def __init__(self, V, C, P, variant, n, tag="phaseD"):
-        self.V, self.P, self.n, self.tag = V, P, n, tag
+        self.V, self.C, self.P, self.n, self.tag = V, C, P, n, tag
         Q = P["phase_d"]
         self.sw = Q["variants"][variant]
         cap = Q["data"]["max_clips_per_speaker"]
@@ -93,8 +93,22 @@ class DWindows(torch.utils.data.Dataset):
     def __len__(self):
         return self.n
 
+    def __getstate__(self):
+        """DataLoader workers are started with "spawn" (forking a process that already uses CUDA / OpenMP threads
+        deadlocks): do not pickle Voices - its memory-mapped audio would be copied in full into every worker;
+        each worker opens the cache itself"""
+        d = dict(self.__dict__)
+        d["V"] = None
+        return d
+
     def __getitem__(self, i):
-        rng = np.random.default_rng([self.P["seed"], stable_hash(self.tag) & 0xFFFFFFFF, self.epoch, i])
+        if self.V is None:
+            from .voices import Voices
+            self.V = Voices(self.C)
+        ep = self.epoch
+        if isinstance(i, tuple):                          # (epoch, index) from EpochSampler (persistent workers)
+            ep, i = i
+        rng = np.random.default_rng([self.P["seed"], stable_hash(self.tag) & 0xFFFFFFFF, ep, i])
         if self.ais and rng.random() < self.p_ais:
             k = self.ais[rng.integers(len(self.ais))]
         else:
@@ -111,6 +125,20 @@ class DWindows(torch.utils.data.Dataset):
             x = f0_shift(x, float(rng.uniform(*self.F0["semitones"])))   # pitch only -> the same speaker
         w = device.chain(rng, x, s, e, self.V, self.Q, "train")
         return torch.from_numpy(logmel(w)), k + self.K * j
+
+
+class EpochSampler(torch.utils.data.Sampler):
+    """shuffled (epoch, index) pairs: the epoch reaches workers that live through the whole training"""
+
+    def __init__(self, n, seed):
+        self.n, self.seed, self.epoch = n, seed, 0
+
+    def __len__(self):
+        return self.n
+
+    def __iter__(self):
+        g = np.random.default_rng([self.seed, self.epoch])
+        return iter([(self.epoch, int(i)) for i in g.permutation(self.n)])
 
 
 # ------------------------------------------------------------------ trials (built once, embedded per model)
