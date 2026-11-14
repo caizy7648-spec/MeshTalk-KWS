@@ -247,13 +247,18 @@ def evaluate(setting, split, quick, pool):
         by = {}
         for it in items:
             by.setdefault(it[2] if name.startswith("own") else "all", []).append(it)
+        # a person calling repeatedly: as many calls as the rule needs for an SOS
+        # (rule 0: 2 within 10 s -> "@pair"; rule 1: 3 within 20 s -> 4 calls, "@x4")
+        rule = setting.get("rule", E["device"]["rule"])
+        n_seq = E["sos_calls"][rule]
+        tag = "@pair" if n_seq == 2 else "@x%d" % n_seq
         pairs = []
         for spk, lst in sorted(by.items()):
             lst = sorted(lst, key=lambda it: stable_hash("pair:%d" % len(it[0])))
-            pairs += [(lst[i], lst[i + 1]) for i in range(0, len(lst) - 1, 2)]
+            pairs += [tuple(lst[i:i + n_seq]) for i in range(0, len(lst) - n_seq + 1, n_seq)]
         pairs = pairs[:E["pairs_per_set"] if not quick else 3]
         for k in range(0, len(pairs), 20):
-            jobs.append(("calls", setting, (name + "@pair", None, pairs[k:k + 20], k)))
+            jobs.append(("calls", setting, (name + tag, None, pairs[k:k + 20], k)))
     jobs += [("talk", setting, s) for s in G["talk"]]
     jobs += [("vocal", setting, s) for s in G["vocal"]]
     calls, talk, vocal = {}, [], []
@@ -270,7 +275,7 @@ def evaluate(setting, split, quick, pool):
 def summarise(setting, calls, talk, vocal):
     out = dict(setting=setting, calls={}, talk={}, vocal={})
     for name, res in sorted(calls.items()):
-        if name.endswith("@pair"):
+        if "@" in name:
             out["calls"][name] = dict(n=len(res), sos_rate=round(float(np.mean([r["sos"] for r in res])), 4))
         else:
             out["calls"][name] = dict(n=len(res), heard=round(float(np.mean([r["heard"] for r in res])), 4),

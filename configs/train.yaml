@@ -419,6 +419,7 @@ eval_r4:                       # 21_eval_r4.py - everything with the firmware v1
   pair_gap_s: [0.6, 2.5]       # two calls of a pair (SOS needs 2 within 10 s)
   max_per_set: 400             # keyword clips per set (hash order)
   pairs_per_set: 200
+  sos_calls: {0: 2, 1: 4}      # calls in a row of one caller for the SOS rate: rule 0 needs 2 (within 10 s), rule 1 needs 3 of them (within 20 s) - 4 calls are made
   libri_hours: {val: 3.0, test: 6.0}   # the old LibriSpeech false-alarm speech also run (30 min streams)
   fa_noise_prob: 0.5           # share of false-alarm streams with test noise added
   fa_noise_snr_db: [5, 20]
