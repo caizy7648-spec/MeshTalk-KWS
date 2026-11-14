@@ -227,3 +227,64 @@ big:
     loss_consistency: 0.0
     norm_windows: 4000
     score: score_max             # validation scored like the firmware: max(class template, all template)
+
+# =====================================================================================================
+# Phase D (2026-11): speaker model that an imitator cannot pass by changing her pitch.
+# Device test: a woman lowering her voice scored 0.38-0.61 against the owner's 0.53-0.83 and passed after
+# about a dozen tries. A person can change the PITCH of her voice, not the length of her vocal tract
+# (the formants). Same network as spk-20261023 (same C engine, size and speed), trained from scratch on
+# the GPU with (switches per variant, everything else identical):
+#   speaker_aug: speed-perturbed copies (F0 AND formants moved) are NEW speakers (Yamamoto et al. 2019)
+#   f0_aug:      pitch-only copies (formants kept, spk/voice_mod.py LPC source-filter) are the SAME speaker
+# and scored with cosine / AS-norm / two calls averaged. Owner's real test: own-A (owner) vs own-B
+# (the woman who imitated him), DataRec recordings through the device microphone - test only.
+# scripts: 47_train_spk_d.py (one variant) -> 48_eval_spk_d.py (all models, val / test / own) -> 42_export_spk.py
+# =====================================================================================================
+phase_d:
+  variants:                    # trained with the same data, seeds and schedule; only these switches differ
+    d0: {speaker_aug: false, f0_aug: false}   # the recipe alone (B2 data + device chain, GPU, from scratch)
+    d1: {speaker_aug: true,  f0_aug: false}   # + speaker augmentation
+    d2: {speaker_aug: true,  f0_aug: true}    # + pitch invariance (the anti-imitation idea)
+  data:
+    max_clips_per_speaker: 20  # as spk-20261023
+    aishell_p: 0.08            # share of windows from AISHELL-1 train speakers (r4 cache, group chat_zh; Mandarin voices; no gender labels)
+  speaker_aug:
+    factors: [0.9, 1.1]        # speed 0.9 / 1.1: formants and F0 -10 % / +10 % (Kaldi's speed perturbation)
+    p: [0.5, 0.25, 0.25]       # original / 0.9 / 1.1
+  f0_aug:
+    p: 0.5
+    semitones: [-5.0, 5.0]     # pitch only (shouting raises F0 too: the same voice must still match)
+  train:
+    epochs: 60
+    steps_per_epoch: 250
+    batch: 256
+    lr: 0.002                  # as spk-20261023
+    weight_decay: 0.0005
+    warmup_frac: 0.05
+    final_lr_frac: 0.02        # cosine down to lr * 0.02
+    aam_margin: 0.2
+    aam_scale: 30.0
+    workers: 16                # data loading (device chain, LPC pitch shifting) is the slow part, not the GPU
+    torch_threads: 4
+    device: auto               # cuda if available, else cpu
+    norm_windows: 4000
+    val_every: 2               # epochs between validation runs (the best is kept)
+  mimic:                       # evaluation only: another gender imitating the owner by moving the pitch, formants kept
+    f2m_semitones: [-8.0, -4.0]   # a woman lowering her voice (~210 Hz -> ~130-165 Hz)
+    m2f_semitones: [4.0, 8.0]
+  eval:
+    speakers_val: 150
+    speakers_test: 600
+    cohort_speakers: 300       # AS-norm cohort: training speakers, 3 clean windows each (on the device: 300 x 128 int8 = 38 KB)
+    asnorm_topk: 100
+    owner_frr_point: 0.05      # "far_at_frr": false accepts at the threshold that rejects 5 % of the owner's calls
+    old_model: models/spk_best_v1.pt   # spk-20261023 = what the firmware uses now
+    big_model: models/spk_big120.pt    # the local GPU run of B3 (if the file is there; gpu-train branch)
+    firmware_thresholds: [0.46, 0.52, 0.60]   # help Loose / Normal / Strict of the old model -> same-gender-FAR-matched values for a new model
+    own:
+      owner: own-A
+      imitator: own-B
+      enrol_takes: 10
+      enrol_style: NORMAL
+      draws: 30                # random enrolments of the owner (10 of his NORMAL takes each)
+      attempts: [2, 6, 10, 20]
