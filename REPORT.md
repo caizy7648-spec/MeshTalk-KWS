@@ -393,3 +393,40 @@ the cut sets are already in `models/eval_r4_r4_{val,test}.json` / `eval_r4_r4_in
 | 1 training r4c | **Step 1 done** (5 min, CPU, 8 epochs warm start from r4, lr 3e-4): train loss 0.520 -> 0.506, train acc 0.855 -> 0.860; val balanced accuracy per epoch 0.782 / 0.757 / 0.773 / 0.764 / 0.766 / 0.761 / 0.756 / **0.762** (selected, `select: last`; r4 final 0.776, r4b 0.741). `models/kw_r4c.pt`, `models/kw_r4c_log.csv`. `val_cm` help row **[847, 89, 0, 564]** (r4 [928, 91, 0, 481], r4b [769, 96, 0, 635]): 847 / 1500 correct, 564 -> `_other` - **below the 850 stop line set in HANDOFF_R4C, so the run stopped here for the owner's decision.** One `Mean of empty slice` warning at start (a group with no windows yet); training unaffected. |
 | 2 r4c sweep on val | **Step 2 done** (`models/eval_r4_sweep_val_r4c.json`, 8.9 min, rule 0, help_extra 0.05). Medium 0.65 / 0.70 / 0.75: own_help heard **83.3 / 83.3 / 83.3 %**, cut_own_help right **66.7 / 66.7 / 66.7 %**, real_help heard 78.75 / 72.25 / 65.25 % (right 70.0 / 64.25 / 58.75), cut_real_help heard 60.5 / 53.0 / 43.25 % (right 59.25 / 52.0 / 42.25), real_help@pair SOS 66.0 / 54.5 / 41.5 %, cut_real_help@pair 40.0 / 30.5 / 23.5 %, real_help_me 89.3 / 75.0 / 67.9 %, tts_sos 86.7 / 83.3 / 77.7 %, talk false SOS **12.43 / 7.10 / 1.78** per 24 h, cough 0.22 / 0.22 / 0.00 per 100. r4 at 0.70 for comparison: own_help 83.3 %, cut_own 66.7 %, real_help 81.5 % / right 73.75 %, cut_real 78.0 / 77.0 %, real@pair 71.0 %, cut_real@pair 62.5 %, real_help_me 82.1 %, tts_sos 81.3 %, talk 8.88 / 24 h, cough 0.86 / 100. So on val r4c separates public cut "help" (77.0 -> 52.0 % right, @pair 62.5 -> 30.5 %) at a small public-hit cost (real_help 81.5 -> 72.25 %); the owner's sets do not move between thresholds (n=6 each). The script's `recommended` ([0.85, 0.75, 0.70], help_extra 0.05) is the no-row-meets-1/24h fallback; thresholds stay as `export_r4c` (0.80 / 0.70 / 0.65) per the plan. |
 | 3 r4c "after" (test) | **Step 3 done** (r4c at `export_r4c`, thr 0.80/0.70/0.65, help_extra 0.05; `models/eval_r4_r4c_test.json`, `docs/kw_r4_r4c_compare_test.png`, `docs/kw_r4_r4c_cut_help_test.png`): own help / help me / SOS **92.31 / 100 / 75 %** (r4 100 / 100 / 65, r4b 38.46 / 100 / 75); public real_help **72.75 %** (r4 82.0, r4b 68.0), real_help_me **82.35 %** (r4 79.4, r4b 76.5), tts_sos **89.0 %** (r4 89.0, r4b 89.7); `cut_own_help` right **84.62 %** (r4 92.31, r4b 30.77), @pair **66.67 %** (r4 83.33, r4b 0 %); `cut_real_help` right **58.0 %** (r4 77.75, r4b 52.75), @pair **29.0 %** (r4 66.5, r4b 26.5); talk false SOS **6.06 / 24 h** (r4 9.10, r4b 2.02), cough **0 / 100** (r4 0.33), other vocal 0.06 / 100 (r4 0.33). Public real_help is 9.25 points below r4 (target <= 5) - **NOT MET** on PyTorch; the other targets are at or better than r4. The owner's cut help improves only a little (92.31 -> 84.62 %, @pair 83.33 -> 66.67 %), as expected because his /p/ is not audible. No test tuning. |
+| 4 export, int8, check_own | **Step 4 done**: export **`kws-r4c`** (id `AF7BE1FA`, `out/kws_model.c` 73 490 B, `out/kws_model_test.c`), `kws.check_c` **20 checks, 0 failed**; int8 vs float argmax agreement **98.0 %**, max prob diff 0.082; budget 6.92 M MAC, 22.9 KB weights, 89.8 KB work memory. int8 test: own help / help me / SOS **92.31 / 100 / 75 %**, public real_help / real_help_me / tts_sos **74.0 / 79.4 / 89.7 %**, `cut_own_help` right **84.62 %** (@pair 83.33 %), `cut_real_help` right **60.0 %** (@pair 34.5 %), talk false SOS **10.11 / 24 h** (AMI 7.95 / AISHELL 0 / Libri 14.0), cough **0 / 100**, other vocal 0.08 / 100. `models/eval_r4_r4c_int8_test.json`, `docs/kw_r4_int8_r4c_int8_{compare,cut_help}_test.png`. r4c check_own on the owner's 240 takes: heard as the right keyword help **90.0 FAR / 35.0 LOUD / 75.0 NORMAL %** (same as r4; r4b 35 / 40 / 27.5), help me **90 / 40 / 65** (r4 85 / 35 / 55), sos **95 / 90 / 75** (r4 90 / 90 / 72.5); verdicts help **55 ok / 3 missed / 22 two_calls** (r4 55 / 2 / 23; r4b 26 / 41 / 13), help me 52 / 0 / 7 other / 21 (r4 46 / 0 / 12 / 22), sos 67 / 12 missed / 1 (r4 65 / 14 / 1). **int8 vs PyTorch:** every set is within 5.9 points except `cut_own_help@pair` (n=6 pairs): PyTorch 66.67 %, int8 83.33 % (+16.7 points, one pair); talk all 6.06 -> 10.11 / 24 h is the same order as r4's rounding (9.10 -> 12.13). |
+
+### Result (test, medium 0.70, 2 calls in 10 s, help +0.05) - PyTorch
+
+| metric | r4 | r4b | r4c |
+|---|---|---|---|
+| owner help / help me / SOS single-call hit | 100 / 100 / 65 % | 38.5 / 100 / 75 % | **92.3 / 100 / 75 %** |
+| public real_help / real_help_me / tts_sos | 82.0 / 79.4 / 89.0 % | 68.0 / 76.5 / 89.7 % | **72.75 / 82.35 / 89.0 %** |
+| `cut_own_help` right (owner's "hel" heard as help) | 92.31 % | 30.77 % | **84.62 %** |
+| `cut_own_help@pair` ("hel ... hel" -> SOS) | 83.33 % | 0 % | **66.67 %** |
+| `cut_real_help` right (@pair) | 77.75 (66.5) % | 52.75 (26.5) % | **58.0 (29.0) %** |
+| talk false SOS / 24 h | 9.10 | 2.02 | **6.06** |
+| cough / 100 (VocalSound) | 0.33 | 0 | **0** |
+| other vocal sounds / 100 | 0.33 | 0.04 | **0.06** |
+
+### Result (test, medium 0.70, 2 calls in 10 s, help +0.05) - int8 C engine
+
+| metric | r4 int8 | r4b int8 | r4c int8 |
+|---|---|---|---|
+| owner help / help me / SOS single-call hit | 100 / 100 / 65 % | 38.5 / 100 / 90 % | **92.31 / 100 / 75 %** |
+| public real_help / real_help_me / tts_sos | 85.5 / 79.4 / 89.3 % | 65.3 / 79.4 / 92.0 % | **74.0 / 79.4 / 89.7 %** |
+| `cut_own_help` right (owner's "hel" heard as help) | 92.31 % | 30.77 % | **84.62 %** |
+| `cut_own_help@pair` ("hel ... hel" -> SOS) | 83.33 % | 0 % | **83.33 %** |
+| `cut_real_help` right (@pair) | 81.75 (71.0) % | 48.5 (23.5) % | **60.0 (34.5) %** |
+| talk false SOS / 24 h | 12.13 | 3.03 | **10.11** |
+| cough / 100 (VocalSound) | 0.65 | 0 | **0** |
+| other vocal sounds / 100 | 0.60 | 0.06 | **0.08** |
+
+**Targets (HANDOFF_R4C) against test, int8, 0.70, no test tuning:**
+1. owner help >= 90 % - **MET** (92.31 %).
+2. owner help me / SOS not lower than r4 - **MET** (100 / 75 % vs r4 100 / 65 %).
+3. public help no more than 5 points below r4 - **NOT MET** (74.0 vs 85.5 %, -11.5 points; PyTorch 72.75 vs 82.0 %, -9.25).
+4. `cut_real_help` heard as help clearly lower than r4 (81.75 %) - **MET** (60.0 %, -21.75 points; PyTorch 58.0 vs 77.75 %).
+5. talk false SOS and coughs not worse than r4 - **MET** (10.11 vs 12.13 / 24 h; cough 0 vs 0.65 / 100).
+   `cut_own_help` was expected to improve only a little: int8 92.31 -> 84.62 %, @pair 83.33 -> 83.33 % (PyTorch @pair 83.33 -> 66.67 %), because the /p/ is not audible in the owner's takes.
+
+**Conclusion:** r4c does what r4b could not: it keeps the owner's real help (92.3 % vs r4b 38.5 %; check_own's help row is identical to r4: 90 / 35 / 75 %) while cutting the public "hel" false accept substantially (int8 81.75 -> 60.0 %, @pair 71.0 -> 34.5 %). Talk false SOS (10.11 vs 12.13 / 24 h) and coughs (0 vs 0.65 / 100) are not worse, and "help me" / SOS are at or above r4. The remaining cost is public real_help: 74.0 % int8 (r4 85.5 %) - **11.5 points below r4, so the "within 5 points" target is missed**; PyTorch shows the same -9.25. Compared with r4, the trade is "fewer 'hel' false accepts on public speech, ~10 points fewer public help hits", with the owner's own voice unchanged. The owner's own "hel" still false-accepts at 84.6 % because his /p/ is inaudible - that part cannot be fixed by adding cut negatives from his voice (r4b showed it only lowers his real help). The delivered `out/kws_model.c` is **`kws-r4c`**, but the firmware choice between r4 and r4c is the owner's: r4 keeps public help, r4c reduces the "hel" false accept.
