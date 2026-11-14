@@ -4,6 +4,7 @@
     python scripts/10_train_kw.py --stage r2   # round 2 (+ hard negatives)  -> models/kw_r2.pt
     python scripts/10_train_kw.py --stage r3   # round 3 (+ round-3 hard negatives) -> models/kw_r3.pt
     python scripts/10_train_kw.py --stage r4   # Phase C: from r3 + own recordings, vocal sounds, talk, r4 hard negatives -> models/kw_r4.pt
+    python scripts/10_train_kw.py --stage r4b  # from r4 + "help" with the end cut off ("hel") as _other -> models/kw_r4b.pt
     (also models/kw_<stage>_log.csv, docs/kw_<stage>_training_curves.png, docs/kw_<stage>_confusion_val.png)
 
 Stage r2 / r3 use train_kw with the values of train_kw_r2 / train_kw_r3 replacing those they name
@@ -31,7 +32,7 @@ from kws.model import KwsNet  # noqa: E402
 import argparse  # noqa: E402
 
 _ap = argparse.ArgumentParser()
-_ap.add_argument("--stage", default="r1", choices=["r1", "r2", "r3", "r4"])
+_ap.add_argument("--stage", default="r1", choices=["r1", "r2", "r3", "r4", "r4b"])
 STAGE = _ap.parse_args().stage
 C = load()
 if STAGE != "r1":

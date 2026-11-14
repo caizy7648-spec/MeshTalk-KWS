@@ -36,7 +36,8 @@ import torch
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from kws import augment as aug  # noqa: E402
-from kws.audio import to_float, to_int16  # noqa: E402
+from kws.audio import speech_span, to_float, to_int16  # noqa: E402
+from kws.dataset import cut_tail  # noqa: E402
 from kws.cfg import load, rng_for, stable_hash  # noqa: E402
 from kws.fwdet import EV_HIT, EV_SOS, FwDet  # noqa: E402
 from kws.model import KwsNet  # noqa: E402
@@ -78,6 +79,16 @@ def call_sets(split, quick):
             d = cl[(cl.group.isin(groups)) & (cl.label == lab) & (cl.split == split)]
             d = d.loc[sorted(d.index, key=lambda i: stable_hash("evr4:%d" % i))[:E["max_per_set"]]]
             out[name] = [(to_float(np.array(cl_a[r.offset:r.offset + r.length])), lab, r.speaker, True) for r in d.itertuples()]
+    # r4b: the same "help" calls with the end of the word cut off ("hel", no final /p/): every hit as "help" is false
+    Q = C.get("cut_help")
+    if Q:
+        for src in ("own_help", "real_help"):
+            cut = []
+            for i, (x, lab, spk, public) in enumerate(out.get(src, [])):
+                s0, e0 = speech_span(x, C["prepare"]["span_rel_db"])
+                y, _, _ = cut_tail(x, s0, e0, np.random.default_rng(stable_hash("evcut:%s:%d" % (src, i))), Q)
+                cut.append((y, lab, spk, public))
+            out["cut_" + src] = cut
     if quick:
         out = {k: v[:6] for k, v in out.items()}
     return {k: v for k, v in out.items() if v}
@@ -278,8 +289,11 @@ def summarise(setting, calls, talk, vocal):
         if "@" in name:
             out["calls"][name] = dict(n=len(res), sos_rate=round(float(np.mean([r["sos"] for r in res])), 4))
         else:
+            sc = [r["score"] for r in res]
             out["calls"][name] = dict(n=len(res), heard=round(float(np.mean([r["heard"] for r in res])), 4),
-                                      right=round(float(np.mean([r["right"] for r in res])), 4))
+                                      right=round(float(np.mean([r["right"] for r in res])), 4),
+                                      score_median=round(float(np.median(sc)), 3),      # highest hit score of a call (0 = no hit)
+                                      score_p90=round(float(np.percentile(sc, 90)), 3))
     for src in sorted({t["source"] for t in talk}) + ["all"]:
         tt = [t for t in talk if src == "all" or t["source"] == src]
         h = sum(t["hours"] for t in tt)
@@ -302,7 +316,8 @@ def summarise(setting, calls, talk, vocal):
     out["vocal"] = dict(sounds=n, false_hits=sum(p["false_hits"] for p in per.values()), false_sos=fs,
                         false_hits_per_100=round(100.0 * sum(p["false_hits"] for p in per.values()) / max(1, n), 3),
                         false_sos_per_100=round(100.0 * fs / max(1, n), 3), per_type=per)
-    singles = [v["heard"] for k, v in out["calls"].items() if "@" not in k]
+    # cut_* sets ("hel") are false accepts, not calls: not in the mean hit rate
+    singles = [v["heard"] for k, v in out["calls"].items() if "@" not in k and not k.startswith("cut_")]
     out["mean_heard"] = round(float(np.mean(singles)), 4) if singles else None
     return out
 
@@ -327,7 +342,7 @@ def plot(tags):
     import matplotlib.pyplot as plt
     R = [json.load(open(os.path.join(MODELS, "eval_r4_%s_test.json" % t))) for t in tags]
     # 1. calls
-    names = [k for k in R[0]["calls"] if "@" not in k]
+    names = [k for k in R[0]["calls"] if "@" not in k and not k.startswith("cut_")]
     fig, ax = plt.subplots(1, 3, figsize=(15, 4))
     w = 0.8 / len(R)
     for i, (t, r) in enumerate(zip(tags, R)):
@@ -346,8 +361,21 @@ def plot(tags):
     ax[2].set_ylabel("false hits per 100 sounds"), ax[2].legend(), ax[2].set_title("coughs and other vocal sounds (test)")
     fig.suptitle("firmware v1.6.7 detector, medium sensitivity, 2 calls in 10 s: " + " vs ".join(tags))
     fig.tight_layout()
-    fig.savefig(os.path.join(DOCS, "kw_r4_compare_test.png"), dpi=130)
-    print("docs/kw_r4_compare_test.png")
+    png = "kw_r4_compare_test.png" if list(tags) == ["r3", "r4"] else "kw_%s_compare_test.png" % "_".join(tags)
+    fig.savefig(os.path.join(DOCS, png), dpi=130)
+    print("docs/" + png)
+    # r4b: "hel" (help with the end cut off) heard as help, and "hel ... hel" -> SOS
+    cuts = [k for k in R[0]["calls"] if k.startswith("cut_") and "@" not in k]
+    if cuts and all(k in r["calls"] for r in R for k in cuts):
+        fig, ax = plt.subplots(figsize=(6, 4))
+        for i, (t, r) in enumerate(zip(tags, R)):
+            ax.bar(np.arange(len(cuts)) + i * w, [100 * r["calls"][k]["right"] for k in cuts], w, label=t)
+        ax.set_xticks(np.arange(len(cuts)) + w * (len(R) - 1) / 2, cuts)
+        ax.set_ylabel('heard as "help" (%)'), ax.legend(), ax.set_title('"help" with the end cut off ("hel"), test')
+        fig.tight_layout()
+        png = "kw_%s_cut_help_test.png" % "_".join(tags)
+        fig.savefig(os.path.join(DOCS, png), dpi=130)
+        print("docs/" + png)
 
 
 # ------------------------------------------------------------------ main
@@ -407,7 +435,8 @@ def main():
                    rule="highest mean single-call hit rate on val with talk false SOS <= %.1f / 24 h (ties: higher thr); "
                         "if no row meets it: the fewest talk false SOS (ties: higher hit rate)"
                         % E["target_false_sos_24h"], minutes=round((time.time() - t0) / 60, 1))
-        path = os.path.join(MODELS, "eval_r4_sweep_val%s.json" % ("" if rule == 0 else "_rule%d" % rule))
+        path = os.path.join(MODELS, "eval_r4_sweep_val%s%s.json" % ("" if rule == 0 else "_rule%d" % rule,
+                                                                   "_" + a.tag if a.tag else ""))
         json.dump(out, open(path, "w"), indent=1)
         print("recommended:", best["setting"], "->", path)
     else:

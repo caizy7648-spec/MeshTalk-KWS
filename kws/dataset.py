@@ -29,6 +29,32 @@ def n_samples(T):
     return FRAME + (T - 1) * HOP
 
 
+def cut_tail(x, s, e, rng, Q):
+    """r4b: a keyword clip with the end of the word cut off ("hel" of "help": no final /p/) -> (audio, s, cut).
+    The cut is at the quietest 10 ms frame (the /p/ closure) in the last part of the word span
+    [s + min_frac * span, e - end_guard_s], moved jitter_s earlier; if that frame is not dip_db below
+    the span median (no clear closure) a fraction frac of the span is used. 5 ms fade-out."""
+    x = to_float(x) if x.dtype != np.float32 else x
+    L = e - s
+    hop, win = 160, 320
+    lo, hi = s + int(Q["min_frac"] * L), e - int(Q["end_guard_s"] * aug.RATE)
+    cut = None
+    if hi - lo > win:
+        idx = np.arange(lo, hi - win, hop)
+        en = np.array([10 * np.log10(np.mean(x[i:i + win] ** 2) + 1e-12) for i in idx])
+        span = np.array([10 * np.log10(np.mean(x[i:i + win] ** 2) + 1e-12) for i in range(s, max(s + 1, e - win), hop)])
+        k = int(np.argmin(en))
+        if len(span) and en[k] < np.median(span) - Q["dip_db"]:
+            cut = int(idx[k])
+    if cut is None:
+        cut = s + int(rng.uniform(*Q["frac"]) * L)
+    cut = max(s + int(0.3 * L), cut - int(rng.uniform(*Q["jitter_s"]) * aug.RATE))
+    y = x[:cut].copy()
+    f = min(80, len(y))
+    y[len(y) - f:] *= np.linspace(1.0, 0.0, f, dtype=np.float32)
+    return y, s, cut
+
+
 def worker_init(_):
     """DataLoader workers: one thread each (numpy BLAS / torch would otherwise oversubscribe the CPU)"""
     from threadpoolctl import threadpool_limits
@@ -213,9 +239,14 @@ class KwWindows(torch.utils.data.Dataset):
         P["sos", "tts"] = D.pool("sos", ["tts"], tts_split)
         for lab in ("help", "help me", "sos"):
             P[lab, "own"] = D.pool(lab, ["own"], split)
+        # r4b: "help" with its end cut off as _other (group cut_help: the owner's help clips and public ones)
+        self.cut = C.get("cut_help", {})
+        P["cut_help", "own"], P["cut_help", "real"] = P["help", "own"], P["help", "real"]
         for g, _ in self.other:
             if g == "libri_words":
                 P[g] = D.pool("_other", ["libri_words", "libri_me"], split)
+            elif g == "cut_help":
+                P[g] = np.concatenate([P["cut_help", "own"], P["cut_help", "real"]])
             elif g not in ("noise_only", "silence"):
                 P[g] = D.pool("_other", [g], split)
         # big _other groups: a fixed subset (hash order) - each epoch only uses a few thousand of them, and
@@ -256,6 +287,8 @@ class KwWindows(torch.utils.data.Dataset):
             g = self.other[rng.choice(len(self.other), p=self.other_p)][0]
             if g in ("noise_only", "silence"):
                 return g
+            if g == "cut_help":
+                return self.pick_cut(rng)
             p = self.P[g]
             return self.D.clip(p[rng.integers(len(p))])
         real = rng.random() < K["real_vs_tts"].get(lab, 0.0)
@@ -266,13 +299,25 @@ class KwWindows(torch.utils.data.Dataset):
         p = self.P[lab, "real" if real and len(self.P.get((lab, "real"), [])) else "tts"]
         return self.D.clip(p[rng.integers(len(p))])
 
+    def pick_cut(self, rng):
+        """(audio, s, cut, builder) of a "help" with its end cut off: placed like a keyword (end in the window)"""
+        own, real = self.P["cut_help", "own"], self.P["cut_help", "real"]
+        if len(own) and (not len(real) or rng.random() < self.cut.get("own_p", 0.5)):
+            x, s, e = self.D.clip(own[rng.integers(len(own))])
+            return cut_tail(x, s, e, rng, self.cut) + (self.B_own,)
+        x, s, e = self.D.clip(real[rng.integers(len(real))])
+        return cut_tail(x, s, e, rng, self.cut) + (self.B,)
+
     def make(self, rng, k):
         kw = not self.labels[k].startswith("_")
         for _ in range(20):
             c, B = self.pick2(rng, k)
             if isinstance(c, str):
                 return self.B.noise_window(rng, silence=(c == "silence"))
-            w = B.window(rng, *c, keyword=kw)
+            place_kw = kw
+            if len(c) == 4:                              # cut_help: a cut keyword, placed like one, label _other
+                c, B, place_kw = c[:3], c[3], True
+            w = B.window(rng, *c, keyword=place_kw)
             if w is not None:
                 return w
         raise RuntimeError("no clip fits the window for class %s" % self.labels[k])

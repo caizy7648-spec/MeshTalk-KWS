@@ -35,7 +35,8 @@ def main():
     ap.add_argument("--from-export", default=None, help="thresholds from this config section (default: export for r3, export_r4 for r4)")
     a = ap.parse_args()
     C = load()
-    sec = a.from_export or ("export_r4" if "r4" in os.path.basename(a.model) else "export")
+    b = os.path.basename(a.model)
+    sec = a.from_export or ("export_r4b" if "r4b" in b else "export_r4" if "r4" in b else "export")
     X, E = C[sec], C["eval_r4"]
     own = os.path.join(ROOT, C["own"]["dir"])
     man = pd.read_csv(os.path.join(own, "manifest.csv"), keep_default_na=False)

@@ -80,6 +80,8 @@ def make_config():
     C["own"]["min_clips_per_speaker"] = 4
     C["train_kw"].update(windows_per_epoch=512, batch=64, val_windows_per_class=8, norm_windows=64, workers=2)
     C["train_kw_r4"].update(epochs=1, workers=2, torch_threads=2, init=os.path.join(W, "models", "kw_r3.pt"))
+    C["train_kw_r4b"].update(epochs=1, workers=2, torch_threads=2, init=os.path.join(W, "models", "kw_r4.pt"))
+    C["export_r4b"]["check_windows_per_class"] = 4
     C["mine_r4"]["model"] = os.path.join(W, "models", "kw_r3.pt")
     C["mine_r4"]["threshold"] = 0.0                  # synthetic audio: make sure something is "mined"
     C["eval_r4"].update(procs=2, sweep_med_thr=[0.5, 0.95], sweep_help_extra=[0.0, 0.05], max_per_set=6, pairs_per_set=3)
@@ -250,6 +252,20 @@ def main():
                                                 "--split", "test", "--tag", "r4_int8", "--quick", "--from-export", "export_r4"]),
         ("21_eval_r4 --plot r3 r4", ["scripts/21_eval_r4.py", "--plot", "r3", "r4"]),
         ("check_own (r3 and r4 on every take)", ["tools/check_own.py", "--model", os.path.join(C["paths"]["models"], "kw_r4.pt")]),
+        # r4b: from r4 + "help" with the end cut off as _other
+        ("cut_tail on every own help clip", ["-c", "import numpy as np, kws.cfg as k; from kws.dataset import Data, KwWindows, cut_tail; "
+                                                "C=k.load(); D=Data(C); C['train_kw']=dict(C['train_kw'], **C['train_kw_r4b']); "
+                                                "ds=KwWindows(D, C, 'train', 64); P=ds.P['cut_help','own']; assert len(P), 'no own help'; "
+                                                "r=[cut_tail(*D.clip(i), np.random.default_rng(1), C['cut_help']) for i in P]; "
+                                                "assert all(0 < c - s < e - s for (y, s, c), (_, _, e) in zip(r, [D.clip(i) for i in P])); "
+                                                "w=[ds.make(np.random.default_rng(i), 3) for i in range(40)]; print(len(P), 'cut ok')"]),
+        ("10_train_kw --stage r4b (1 short epoch)", ["scripts/10_train_kw.py", "--stage", "r4b"]),
+        ("21_eval_r4 --quick, r4b (test, cut sets)", ["scripts/21_eval_r4.py", "--model", os.path.join(C["paths"]["models"], "kw_r4b.pt"),
+                                                     "--split", "test", "--tag", "r4b", "--quick", "--from-export", "export_r4b"]),
+        ("21_eval_r4 --quick --sweep --tag r4b (val)", ["scripts/21_eval_r4.py", "--model", os.path.join(C["paths"]["models"], "kw_r4b.pt"),
+                                                       "--split", "val", "--sweep", "--quick", "--tag", "r4b"]),
+        ("30_export --section export_r4b", ["scripts/30_export.py", "--section", "export_r4b"]),
+        ("21_eval_r4 --plot r4 r4b", ["scripts/21_eval_r4.py", "--plot", "r4", "r4b"]),
     ]
     fails = 0
     for name, args in steps:

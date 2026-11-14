@@ -410,6 +410,44 @@ train_kw_r4:                   # values replacing train_kw (10_train_kw.py --sta
     noise_only: 0.05
     silence: 0.02
 
+cut_help:                      # r4b: "help" with the end of the word cut off ("hel", no final /p/) as _other (kws/dataset.py cut_tail)
+  own_p: 0.5                   # share of cut clips from the owner's help recordings (the rest: MSWC / LibriSpeech help)
+  min_frac: 0.45               # the cut is searched in [s + 0.45 * span, e - end_guard_s] ...
+  end_guard_s: 0.03
+  dip_db: 6.0                  # ... at the quietest 10 ms frame (the /p/ closure) if it is 6 dB below the span median
+  frac: [0.55, 0.80]           # otherwise at this fraction of the word span
+  jitter_s: [0.0, 0.04]        # cut moved up to 40 ms earlier
+
+train_kw_r4b:                  # values replacing train_kw (10_train_kw.py --stage r4b): r4 + cut "help" negatives
+  init: models/kw_r4.pt        # warm start from r4
+  epochs: 8
+  lr: 0.0003
+  warmup_frac: 0.05
+  max_other_per_group: 15000
+  select: last
+  class_mix: {help: 0.17, help me: 0.16, sos: 0.17, _other: 0.5}
+  own_share: {help: 0.15, help me: 0.15, sos: 0.25}   # r4: 0.25 / 0.25 / 0.35 - less of one voice
+  workers: 10
+  torch_threads: 4
+  other_mix:
+    cut_help: 0.08             # new in r4b
+    vocal: 0.13
+    hard_neg_r4: 0.11
+    chat_en: 0.06
+    chat_zh: 0.07
+    hard_neg_r3: 0.10
+    hard_neg_r3_noise: 0.03
+    hard_neg: 0.05
+    hard_neg_noise: 0.02
+    mswc_lookalike: 0.11       # r4: 0.07 (back to r3's share: hell, held, helm, hello ...)
+    mswc_random: 0.03
+    speech_commands: 0.02
+    libri_words: 0.03
+    libri_chunk: 0.06
+    tts_other: 0.04
+    noise_only: 0.04
+    silence: 0.02
+
 eval_r4:                       # 21_eval_r4.py - everything with the firmware v1.6.7 detector (kws/fwdet.py)
   device: {sens: 1, rule: 0, help_extra: 0.05}     # v1.6.7 defaults: medium, 2 calls within 10 s, help +0.05 / no relax
   lead_s: 1.0                  # quiet (mic noise) before a call
@@ -440,4 +478,15 @@ export_r4:                     # 30_export.py --section export_r4 (thresholds fi
   hits: 3
   hits_ms: 20000
   name: kws-r4
+  check_windows_per_class: 100
+
+export_r4b:                    # 30_export.py --section export_r4b (same device settings as r4 unless the val sweep says otherwise)
+  model: kw_r4b.pt
+  thr: [0.80, 0.70, 0.65]      # = export_r4 (medium 0.70, chosen by the owner); the r4b val sweep is reported, the owner decides
+  cls_off: {help: -0.10, help me: 0.0, sos: 0.05}
+  help_extra: 0.05
+  spk_thr: 0.70
+  hits: 3
+  hits_ms: 20000
+  name: kws-r4b
   check_windows_per_class: 100
