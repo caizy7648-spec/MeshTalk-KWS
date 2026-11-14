@@ -330,3 +330,18 @@ each step finishes (`bash scripts/run_r4.sh N`).
 **Recommended thresholds and HELP_EXTRA:** `thr: [0.80, 0.70, 0.65]`, `help_extra: 0.05` (written to `configs/train.yaml` `export_r4:`). HELP_EXTRA 0.10 gives the same talk false SOS on val but a lower mean hit rate, so 0.05 is kept (unchanged from firmware v1.6.7). Note: the automatic `recommended` in `eval_r4_sweep_val.json` ([0.55, 0.45, 0.40], help_extra 0.00) is the script's fallback when no row meets the constraint and would give 459.9 false SOS / 24 h; it was not used.
 
 **Caveat:** the host crashed during step 3 (`0x1A MEMORY_MANAGEMENT`) and a downloaded shard was silently corrupted after its checksum had passed; three WinDbg-analysed dumps point to memory-subsystem instability rather than a driver. The memory diagnostic is still pending, so these numbers should be re-checked on stable hardware (steps 5-10 re-run in ~1.5 h).
+
+---
+
+# Phase C2 (2026-11) - keyword model r4b: "hel" without the final /p/ must not be "help"
+
+Plan: `PLAN_R4B.md`. r4 with firmware v1.6.8 removed the cough / talk false alarms, but the owner's
+**"hel"** (no final /p/) is now heard as "help" (r3 did not do this). r4b warm-starts from r4 and
+adds **cut-tail "help"** clips as `_other` (`kws/dataset.py cut_tail`, group `cut_help`), lowers
+`own_share` from 0.25/0.25/0.35 to **0.15/0.15/0.25** and restores the look-alike share from 0.07 to
+**0.11**. Steps: `bash scripts/run_r4b.sh N` (0-5), logs `logs/r4b_step<N>.log`; no data download,
+r4 caches reused.
+
+| step | result |
+|---|---|
+| 0 environment | **PASS**: firmware v1.6.7 detector build + checks **0 failed**; `tools/smoke_r4.py` now includes the r4b steps - **21/21 PASS, 0 failed**; disk **893 GB** free. |
