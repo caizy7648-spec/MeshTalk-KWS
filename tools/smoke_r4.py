@@ -82,6 +82,7 @@ def make_config():
     C["train_kw_r4"].update(epochs=1, workers=2, torch_threads=2, init=os.path.join(W, "models", "kw_r3.pt"))
     C["train_kw_r4b"].update(epochs=1, workers=2, torch_threads=2, init=os.path.join(W, "models", "kw_r4.pt"))
     C["export_r4b"]["check_windows_per_class"] = 4
+    C["train_kw_r4c"].update(epochs=1, workers=2, torch_threads=2, init=os.path.join(W, "models", "kw_r4.pt"))
     C["mine_r4"]["model"] = os.path.join(W, "models", "kw_r3.pt")
     C["mine_r4"]["threshold"] = 0.0                  # synthetic audio: make sure something is "mined"
     C["eval_r4"].update(procs=2, sweep_med_thr=[0.5, 0.95], sweep_help_extra=[0.0, 0.05], max_per_set=6, pairs_per_set=3)
@@ -266,6 +267,12 @@ def main():
                                                        "--split", "val", "--sweep", "--quick", "--tag", "r4b"]),
         ("30_export --section export_r4b", ["scripts/30_export.py", "--section", "export_r4b"]),
         ("21_eval_r4 --plot r4 r4b", ["scripts/21_eval_r4.py", "--plot", "r4", "r4b"]),
+        ("r4c: cut clips only from public help", ["-c", "import numpy as np, kws.cfg as k; from kws.dataset import Data, KwWindows; "
+                                                  "C=k.load(); D=Data(C); C['train_kw']=dict(C['train_kw'], **C['train_kw_r4c']); "
+                                                  "ds=KwWindows(D, C, 'train', 64); assert ds.cut['own_p'] == 0.0, ds.cut; "
+                                                  "B=[ds.pick_cut(np.random.default_rng(i))[3] for i in range(50)]; "
+                                                  "assert all(b is ds.B for b in B), 'own clip used'; print('ok')"]),
+        ("10_train_kw --stage r4c (1 short epoch)", ["scripts/10_train_kw.py", "--stage", "r4c"]),
     ]
     fails = 0
     for name, args in steps:

@@ -448,6 +448,38 @@ train_kw_r4b:                  # values replacing train_kw (10_train_kw.py --sta
     noise_only: 0.04
     silence: 0.02
 
+train_kw_r4c:                  # r4b lesson: the owner's "help" and "hel" scored the same at every threshold (his /p/ is not
+                               # audible in his takes) - cut negatives from his voice only pulled his "help" down (own help 100 -> 38 %)
+  init: models/kw_r4.pt        # warm start from r4 (not r4b)
+  epochs: 8
+  lr: 0.0003
+  warmup_frac: 0.05
+  max_other_per_group: 15000
+  select: last
+  class_mix: {help: 0.17, help me: 0.16, sos: 0.17, _other: 0.5}
+  own_share: {help: 0.25, help me: 0.25, sos: 0.35}   # as r4
+  cut_help: {own_p: 0.0}       # cut "help" only from MSWC / LibriSpeech (r4b: half from the owner)
+  workers: 10
+  torch_threads: 4
+  other_mix:
+    cut_help: 0.05             # r4b: 0.08
+    vocal: 0.13
+    hard_neg_r4: 0.11
+    chat_en: 0.07
+    chat_zh: 0.07
+    hard_neg_r3: 0.10
+    hard_neg_r3_noise: 0.04
+    hard_neg: 0.05
+    hard_neg_noise: 0.02
+    mswc_lookalike: 0.10
+    mswc_random: 0.03
+    speech_commands: 0.02
+    libri_words: 0.04
+    libri_chunk: 0.06
+    tts_other: 0.05
+    noise_only: 0.04
+    silence: 0.02
+
 eval_r4:                       # 21_eval_r4.py - everything with the firmware v1.6.7 detector (kws/fwdet.py)
   device: {sens: 1, rule: 0, help_extra: 0.05}     # v1.6.7 defaults: medium, 2 calls within 10 s, help +0.05 / no relax
   lead_s: 1.0                  # quiet (mic noise) before a call
@@ -489,4 +521,15 @@ export_r4b:                    # 30_export.py --section export_r4b (same device 
   hits: 3
   hits_ms: 20000
   name: kws-r4b
+  check_windows_per_class: 100
+
+export_r4c:                    # 30_export.py --section export_r4c (same device settings as r4 unless the owner decides otherwise)
+  model: kw_r4c.pt
+  thr: [0.80, 0.70, 0.65]
+  cls_off: {help: -0.10, help me: 0.0, sos: 0.05}
+  help_extra: 0.05
+  spk_thr: 0.70
+  hits: 3
+  hits_ms: 20000
+  name: kws-r4c
   check_windows_per_class: 100

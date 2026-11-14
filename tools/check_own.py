@@ -36,7 +36,7 @@ def main():
     a = ap.parse_args()
     C = load()
     b = os.path.basename(a.model)
-    sec = a.from_export or ("export_r4b" if "r4b" in b else "export_r4" if "r4" in b else "export")
+    sec = a.from_export or ("export_r4c" if "r4c" in b else "export_r4b" if "r4b" in b else "export_r4" if "r4" in b else "export")
     X, E = C[sec], C["eval_r4"]
     own = os.path.join(ROOT, C["own"]["dir"])
     man = pd.read_csv(os.path.join(own, "manifest.csv"), keep_default_na=False)

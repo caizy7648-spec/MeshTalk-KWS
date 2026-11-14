@@ -240,7 +240,7 @@ class KwWindows(torch.utils.data.Dataset):
         for lab in ("help", "help me", "sos"):
             P[lab, "own"] = D.pool(lab, ["own"], split)
         # r4b: "help" with its end cut off as _other (group cut_help: the owner's help clips and public ones)
-        self.cut = C.get("cut_help", {})
+        self.cut = dict(C.get("cut_help", {}), **K.get("cut_help", {}))   # a stage may override (r4c: own_p 0)
         P["cut_help", "own"], P["cut_help", "real"] = P["help", "own"], P["help", "real"]
         for g, _ in self.other:
             if g == "libri_words":
