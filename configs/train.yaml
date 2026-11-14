@@ -432,9 +432,9 @@ eval_r4:                       # 21_eval_r4.py - everything with the firmware v1
 
 export_r4:                     # 30_export.py --section export_r4 (thresholds filled in after 21_eval_r4.py --sweep)
   model: kw_r4.pt
-  thr: [0.65, 0.55, 0.50]      # TO BE SET from models/eval_r4_sweep_val.json ("recommended")
+  thr: [0.80, 0.70, 0.65]      # val sweep: no setting reached <= 1 false SOS/24 h; this row has the lowest (8.9/24 h)
   cls_off: {help: -0.10, help me: 0.0, sos: 0.05}
-  help_extra: 0.05             # TO BE SET from the sweep: the firmware's HELP_EXTRA (Svc/kws.c) to use with r4
+  help_extra: 0.05             # val sweep: same false SOS as 0.10 but higher mean hit rate
   spk_thr: 0.70
   hits: 3
   hits_ms: 20000
